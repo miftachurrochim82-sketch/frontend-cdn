@@ -1,4 +1,4 @@
-// app-components.js — Shared Vue components
+// app-components.js — Shared Vue components (tanpa registrasi global)
 const AppLogin = {
   props: ['config', 'isProcessing', 'errorMessage'],
   emits: ['login'],
@@ -119,11 +119,3 @@ const AppLayout = {
     </div>
   `
 };
-
-// Register globally
-if (window.Vue) {
-  window.Vue.component('app-login', AppLogin);
-  window.Vue.component('app-sidebar', AppSidebar);
-  window.Vue.component('app-header', AppHeader);
-  window.Vue.component('app-layout', AppLayout);
-}
