@@ -23,6 +23,6 @@ Tujuan utama: mengurangi duplikasi kode HTML/CSS/JS, mempermudah pemeliharaan, d
 Gunakan URL berikut di dalam `Index.html` aplikasi GAS:
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-scetch/frontend-cdn@main/app-common.css">
-<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-scetch/frontend-cdn@main/app-components.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-scetch/frontend-cdn@main/app-core.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/app-common.css">
+<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/app-components.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/app-core.js"></script>
