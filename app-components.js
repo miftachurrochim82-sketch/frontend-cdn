@@ -47,20 +47,15 @@ const AppSidebar = {
            @click="$emit('navigate', item.key)"
            :class="[
              'flex items-center px-3 py-2 rounded-lg cursor-pointer text-sm',
-             currentPage === item.key
-               ? 'bg-emerald-50 text-emerald-700 font-bold'
-               : 'text-slate-600 hover:bg-slate-100',
+             currentPage === item.key ? 'bg-emerald-50 text-emerald-700 font-bold' : 'text-slate-600 hover:bg-slate-100',
              item.adminOnly && !isAdmin ? 'hidden' : ''
-           ]"
-        >
+           ]">
           <i :class="item.icon" class="w-5"></i>
           <span v-if="!sidebarCollapsed" class="ml-2">{{ item.label }}</span>
         </a>
       </nav>
       <div class="p-3 border-t">
-        <button @click="$emit('logout')" class="w-full py-2 text-sm bg-rose-50 text-rose-600 rounded-lg hover:bg-rose-100">
-          Keluar
-        </button>
+        <button @click="$emit('logout')" class="w-full py-2 text-sm bg-rose-50 text-rose-600 rounded-lg hover:bg-rose-100">Keluar</button>
       </div>
     </aside>
   `
@@ -77,9 +72,7 @@ const AppHeader = {
         <span class="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">{{ currentPage }}</span>
       </div>
       <div class="flex items-center gap-2">
-        <button @click="$emit('toggle-dark')" class="text-sm">
-          {{ isDarkMode ? '☀️' : '🌙' }}
-        </button>
+        <button @click="$emit('toggle-dark')" class="text-sm">{{ isDarkMode ? '☀️' : '🌙' }}</button>
         <span class="text-xs">{{ currentUser?.email || '' }}</span>
       </div>
     </header>
