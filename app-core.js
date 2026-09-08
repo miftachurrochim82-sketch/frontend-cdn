@@ -1,8 +1,9 @@
-// app-core.js — Core Vue app factory
+// app-core.js — Factory function untuk membuat Vue app
 function createAppCore(config) {
   return {
     data() {
       return {
+        appConfig: config,
         appTitle: config.appTitle || 'Aplikasi',
         token: sessionStorage.getItem(config.storagePrefix + 'token') || '',
         currentUser: JSON.parse(sessionStorage.getItem(config.storagePrefix + 'user') || '{}'),
@@ -14,7 +15,6 @@ function createAppCore(config) {
         errorMessage: '',
         loading: false,
         toasts: [],
-        // Data referensi umum
         pegawaiList: [],
         unitList: [],
         jabatanList: []
@@ -36,9 +36,7 @@ function createAppCore(config) {
           google.script.run
             .withSuccessHandler((res) => {
               res = res || { success: false, error: 'Respons kosong' };
-              if (res.code === 'UNAUTHORIZED') {
-                this.handleSessionExpired();
-              }
+              if (res.code === 'UNAUTHORIZED') this.handleSessionExpired();
               resolve(res);
             })
             .withFailureHandler((err) => {
@@ -98,15 +96,21 @@ function createAppCore(config) {
         }
       },
       async initApp() {
-        // Load referensi dasar
-        const [pegawaiRes, unitRes, jabatanRes] = await Promise.all([
-          this.callServer('get_pegawai_list'),
-          this.callServer('get_unit_list'),
-          this.callServer('get_jabatan_list')
-        ]);
-        if (pegawaiRes.success) this.pegawaiList = pegawaiRes.data;
-        if (unitRes.success) this.unitList = unitRes.data;
-        if (jabatanRes.success) this.jabatanList = jabatanRes.data;
+        this.loading = true;
+        try {
+          const [pegawaiRes, unitRes, jabatanRes] = await Promise.all([
+            this.callServer('get_pegawai_list'),
+            this.callServer('get_unit_list'),
+            this.callServer('get_jabatan_list')
+          ]);
+          if (pegawaiRes.success) this.pegawaiList = pegawaiRes.data || [];
+          if (unitRes.success) this.unitList = unitRes.data || [];
+          if (jabatanRes.success) this.jabatanList = jabatanRes.data || [];
+        } catch (e) {
+          console.warn('initApp referensi:', e.message);
+        } finally {
+          this.loading = false;
+        }
       },
       async logout() {
         try { await this.callServer('logout'); } catch (e) {}
@@ -123,7 +127,6 @@ function createAppCore(config) {
     },
     mounted() {
       document.documentElement.classList.toggle('dark', this.isDarkMode);
-      // Cek ticket dari URL
       const params = new URLSearchParams(window.location.search);
       const ticket = params.get('ticket') || '';
       if (ticket) {
