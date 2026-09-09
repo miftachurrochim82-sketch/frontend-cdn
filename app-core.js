@@ -10,7 +10,8 @@
    - bridge backend : callServer(action, data) via
                       google.script.run.handleAction({action,data,token})
    - komponen shell : <app-login>, <app-sidebar>, <app-header>
-   - helper         : showToast, formatDateDisplay, todayIso_
+   - helper         : showToast, formatDateDisplay, formatDateTimeDisplay,
+                      formatRupiah, copyToClipboard, debounce, todayIso_
 
    AppConfig {
      appTitle      : String   // 'SI-PELAPORAN'
@@ -222,6 +223,77 @@
           }
         },
 
+        formatDateTimeDisplay: function (val) {
+          if (!val) return '-';
+          try {
+            var d = new Date(val);
+            if (isNaN(d.getTime())) return String(val);
+            return d.toLocaleDateString('id-ID', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            }).replace(/\./g, ':');
+          } catch (e) {
+            return String(val);
+          }
+        },
+
+        formatRupiah: function (val) {
+          if (val === undefined || val === null || val === '') return 'Rp 0';
+          var num = Number(val);
+          if (isNaN(num)) return 'Rp 0';
+          return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0
+          }).format(num);
+        },
+
+        copyToClipboard: function (text, successMsg) {
+          var self = this;
+          if (!text) return;
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(String(text)).then(function () {
+              self.showToast(successMsg || 'Berhasil disalin ke clipboard');
+            }).catch(function () {
+              self.fallbackCopy_(text, successMsg);
+            });
+          } else {
+            this.fallbackCopy_(text, successMsg);
+          }
+        },
+
+        fallbackCopy_: function (text, successMsg) {
+          var el = document.createElement('textarea');
+          el.value = String(text);
+          el.style.position = 'fixed';
+          el.style.opacity = '0';
+          document.body.appendChild(el);
+          el.select();
+          try {
+            document.execCommand('copy');
+            this.showToast(successMsg || 'Berhasil disalin');
+          } catch (e) {
+            this.showToast('Gagal menyalin teks', 'error');
+          }
+          document.body.removeChild(el);
+        },
+
+        debounce: function (func, wait) {
+          var timeout;
+          return function () {
+            var context = this, args = arguments;
+            var later = function () {
+              timeout = null;
+              func.apply(context, args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait || 300);
+          };
+        },
+
         showToast: function (message, type) {
           type = type || 'success';
           var id = Date.now() + Math.random();
@@ -302,7 +374,7 @@
 
   global.AppCore = {
     create: create,
-    version: '1.0.0'
+    version: '2.0.0'
   };
 
 })(window);

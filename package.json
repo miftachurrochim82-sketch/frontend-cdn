@@ -1,0 +1,29 @@
+{
+  "name": "@miftachurrochim82/frontend-cdn",
+  "version": "2.0.0",
+  "description": "Shared Frontend CDN & Backend Global Library for Google Apps Script Web Apps (Pemkab Trenggalek)",
+  "main": "app-core.js",
+  "scripts": {
+    "build:js": "terser app-core.js -c -m -o app-core.min.js && terser app-components.js -c -m -o app-components.min.js && terser app-modules.js -c -m -o app-modules.min.js",
+    "build:css": "cleancss -o app-common.min.css app-common.css",
+    "build": "npm run build:js && npm run build:css"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/miftachurrochim82-sketch/frontend-cdn.git"
+  },
+  "keywords": [
+    "google-apps-script",
+    "vue3",
+    "tailwind",
+    "trenggalek",
+    "simpeg",
+    "cdn"
+  ],
+  "author": "miftachurrochim82-sketch",
+  "license": "MIT",
+  "devDependencies": {
+    "clean-css-cli": "^5.6.3",
+    "terser": "^5.39.0"
+  }
+}

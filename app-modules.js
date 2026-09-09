@@ -64,13 +64,13 @@
         this.profilSaving = true;
         return this.$root.callServer('save_my_profile', this.editProfilForm)
           .then(function (res) {
-            if (res.success) {
+            if (res && res.success) {
               self.isEditingProfil = false;
               return self.loadProfil().then(function () {
-                self.$root.showToast('Profil diperbarui');
+                self.$root.showToast('Profil berhasil diperbarui');
               });
             }
-            self.$root.showToast(res.error || 'Profil berasal dari SIMPEG', 'info');
+            self.$root.showToast((res && res.error) || 'Profil berasal dari SIMPEG', 'info');
           })
           .catch(function (e) { self.$root.showToast(e.message, 'error'); })
           .finally(function () { self.profilSaving = false; });
@@ -237,13 +237,29 @@
       return {
         configList: [],
         configLoading: false,
+        searchQuery: '',
         showEditConfig: false,
         selectedConfig: null,
         editConfigKey: '',
         editConfigValue: '',
         editConfigKeterangan: '',
-        configSaving: false
+        configSaving: false,
+        // Modal Konfirmasi Hapus Kustom
+        showDeleteModal: false,
+        configToDelete: null,
+        deleteProcessing: false
       };
+    },
+    computed: {
+      filteredConfigList: function () {
+        if (!this.searchQuery) return this.configList;
+        var q = this.searchQuery.toLowerCase().trim();
+        return this.configList.filter(function (c) {
+          return (c.key && c.key.toLowerCase().indexOf(q) !== -1) ||
+                 (c.value && String(c.value).toLowerCase().indexOf(q) !== -1) ||
+                 (c.keterangan && c.keterangan.toLowerCase().indexOf(q) !== -1);
+        });
+      }
     },
     methods: {
       loadConfig: function () {
@@ -251,9 +267,15 @@
         this.configLoading = true;
         return this.$root.callServer('get_config')
           .then(function (res) {
-            if (res && res.success) self.configList = res.data || [];
+            if (res && res.success) {
+              self.configList = res.data || [];
+            } else if (res && res.code === 'UNAUTHORIZED') {
+              // handled in AppCore
+            }
           })
-          .catch(function (e) { console.error(e); })
+          .catch(function (e) {
+            self.$root.showToast(e.message || 'Gagal memuat konfigurasi', 'error');
+          })
           .finally(function () { self.configLoading = false; });
       },
       openAddConfig: function () {
@@ -279,30 +301,38 @@
           keterangan: this.editConfigKeterangan
         })
           .then(function (res) {
-            if (res.success) {
+            if (res && res.success) {
               self.showEditConfig = false;
               return self.loadConfig().then(function () {
                 self.$root.showToast('Konfigurasi berhasil disimpan');
               });
             }
-            self.$root.showToast(res.error || 'Gagal menyimpan konfigurasi', 'error');
+            self.$root.showToast((res && res.error) || 'Gagal menyimpan konfigurasi', 'error');
           })
           .catch(function (e) { self.$root.showToast(e.message, 'error'); })
           .finally(function () { self.configSaving = false; });
       },
-      deleteConfig: function (config) {
-        if (!confirm('Hapus permanen konfigurasi "' + config.key + '"?')) return;
+      promptDeleteConfig: function (config) {
+        this.configToDelete = config;
+        this.showDeleteModal = true;
+      },
+      confirmDelete: function () {
+        if (!this.configToDelete) return;
         var self = this;
-        this.$root.callServer('delete', { entity: 'KONFIGURASI', id: config.id })
+        this.deleteProcessing = true;
+        this.$root.callServer('delete', { entity: 'KONFIGURASI', id: this.configToDelete.id || this.configToDelete.key })
           .then(function (res) {
-            if (res.success) {
+            if (res && res.success) {
+              self.showDeleteModal = false;
+              self.configToDelete = null;
               return self.loadConfig().then(function () {
-                self.$root.showToast('Konfigurasi dihapus');
+                self.$root.showToast('Konfigurasi berhasil dihapus');
               });
             }
-            self.$root.showToast(res.error || 'Gagal menghapus konfigurasi', 'error');
+            self.$root.showToast((res && res.error) || 'Gagal menghapus konfigurasi', 'error');
           })
-          .catch(function (e) { self.$root.showToast(e.message, 'error'); });
+          .catch(function (e) { self.$root.showToast(e.message, 'error'); })
+          .finally(function () { self.deleteProcessing = false; });
       }
     },
     mounted: function () {
@@ -319,11 +349,18 @@
           <h2 class="text-xl font-extrabold text-slate-900 dark:text-white mt-1">Pengaturan Aplikasi</h2>\
           <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Kelola variabel konfigurasi dasar, variabel instansi, dan opsi sistem.</p>\
         </div>\
-        <button @click="openAddConfig"\
-                class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold text-xs transition shadow-md shadow-emerald-600/20 flex items-center gap-2 shrink-0">\
-          <i class="fa-solid fa-plus"></i>\
-          <span>Tambah Konfigurasi</span>\
-        </button>\
+        <div class="flex items-center gap-3">\
+          <div class="relative">\
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>\
+            <input v-model="searchQuery" type="text" placeholder="Cari parameter..."\
+                   class="pl-8 pr-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500/50 focus:outline-none transition w-44 sm:w-56" />\
+          </div>\
+          <button @click="openAddConfig"\
+                  class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold text-xs transition shadow-md shadow-emerald-600/20 flex items-center gap-2 shrink-0">\
+            <i class="fa-solid fa-plus"></i>\
+            <span>Tambah</span>\
+          </button>\
+        </div>\
       </div>\
       <div v-if="configLoading" class="py-12 flex flex-col items-center justify-center space-y-3">\
         <div class="relative flex items-center justify-center">\
@@ -344,7 +381,7 @@
               </tr>\
             </thead>\
             <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-xs">\
-              <tr v-for="config in configList" :key="config.key" class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">\
+              <tr v-for="config in filteredConfigList" :key="config.key" class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">\
                 <td class="py-3.5 px-4">\
                   <span class="font-mono font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/80 px-2.5 py-1 rounded-lg border border-emerald-200/60 dark:border-emerald-800/50 text-[11px] inline-block">\
                     {{ config.key }}\
@@ -354,19 +391,19 @@
                 <td class="py-3.5 px-4 text-slate-500 dark:text-slate-400 leading-relaxed">{{ config.keterangan || \'-\' }}</td>\
                 <td class="py-3.5 px-4 text-right space-x-1 whitespace-nowrap">\
                   <button @click="openEditConfig(config)"\
-                          class="w-7 h-7 rounded-lg bg-sky-50 dark:bg-sky-950/60 hover:bg-sky-100 text-sky-600 dark:text-sky-400 transition inline-flex items-center justify-center" title="Edit Konfigurasi">\
+                          class="w-7 h-7 rounded-lg bg-sky-50 dark:bg-sky-950/60 hover:bg-sky-100 dark:hover:bg-sky-900/50 text-sky-600 dark:text-sky-400 transition inline-flex items-center justify-center" title="Edit Konfigurasi">\
                     <i class="fa-solid fa-pen text-xs"></i>\
                   </button>\
-                  <button @click="deleteConfig(config)"\
-                          class="w-7 h-7 rounded-lg bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 text-rose-600 dark:text-rose-400 transition inline-flex items-center justify-center" title="Hapus Konfigurasi">\
+                  <button @click="promptDeleteConfig(config)"\
+                          class="w-7 h-7 rounded-lg bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 transition inline-flex items-center justify-center" title="Hapus Konfigurasi">\
                     <i class="fa-solid fa-trash text-xs"></i>\
                   </button>\
                 </td>\
               </tr>\
-              <tr v-if="!(configList || []).length">\
+              <tr v-if="!filteredConfigList.length">\
                 <td colspan="4" class="py-12 text-center text-slate-400 dark:text-slate-500">\
                   <i class="fa-solid fa-sliders text-4xl block mb-2 opacity-50"></i>\
-                  <p class="text-xs font-semibold">Belum ada item konfigurasi tersimpan.</p>\
+                  <p class="text-xs font-semibold">{{ searchQuery ? \'Tidak ada konfigurasi yang cocok dengan pencarian.\' : \'Belum ada item konfigurasi tersimpan.\' }}</p>\
                 </td>\
               </tr>\
             </tbody>\
@@ -422,13 +459,37 @@
           </div>\
         </div>\
       </transition>\
+      <transition enter-active-class="transition duration-200 ease-out" enter-from-class="opacity-0 scale-95" enter-to-class="opacity-100 scale-100" leave-active-class="transition duration-150 ease-in" leave-from-class="opacity-100 scale-100" leave-to-class="opacity-0 scale-95">\
+        <div v-if="showDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">\
+          <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-700/80 max-w-sm w-full p-6 overflow-hidden text-center">\
+            <div class="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-950 text-rose-600 dark:text-rose-400 flex items-center justify-center text-xl mx-auto mb-3">\
+              <i class="fa-solid fa-triangle-exclamation"></i>\
+            </div>\
+            <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Hapus Konfigurasi?</h3>\
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">\
+              Apakah Anda yakin ingin menghapus parameter <strong class="text-rose-600 dark:text-rose-400 font-mono">{{ configToDelete && configToDelete.key }}</strong>?\
+            </p>\
+            <div class="flex items-center justify-center gap-2.5 mt-6">\
+              <button type="button" @click="showDeleteModal = false" :disabled="deleteProcessing"\
+                      class="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-semibold text-xs hover:bg-slate-100 dark:hover:bg-slate-700 transition">\
+                Batal\
+              </button>\
+              <button type="button" @click="confirmDelete" :disabled="deleteProcessing"\
+                      class="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs transition shadow-md shadow-rose-600/20 disabled:opacity-50 flex items-center justify-center gap-2">\
+                <i v-if="deleteProcessing" class="fa-solid fa-spinner animate-spin"></i>\
+                <span>{{ deleteProcessing ? \'Menghapus...\' : \'Ya, Hapus\' }}</span>\
+              </button>\
+            </div>\
+          </div>\
+        </div>\
+      </transition>\
     </div>'
   };
 
   global.AppModules = {
     'app-profile': AppProfile,
     'app-settings': AppSettings,
-    version: '1.1.0'
+    version: '2.0.0'
   };
 
 })(window);

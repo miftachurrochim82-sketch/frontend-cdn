@@ -1,48 +1,52 @@
-# Frontend CDN — Shared Assets untuk Web App GAS
+# Frontend CDN & Backend Global Library v2.0
+### Ekosistem Shared Assets & Engine Web App Google Apps Script (GAS) — Pemkab Trenggalek
 
-Repository ini berisi aset frontend bersama yang digunakan oleh beberapa aplikasi web berbasis Google Apps Script (GAS) di lingkungan Pemerintah Kabupaten Trenggalek.
+Repository ini adalah standar terpadu frontend (*Vue 3 + Tailwind CSS*) dan backend (*Google Apps Script*) yang digunakan bersama oleh seluruh aplikasi web di lingkungan Pemerintah Kabupaten Trenggalek.
 
-Tujuan utama: mengurangi duplikasi kode HTML/CSS/JS, mempermudah pemeliharaan, dan mempercepat pengembangan aplikasi baru.
+---
 
-## 📦 Isi Repository
+## 📦 Struktur Proyek
 
-| File | Fungsi |
-|---|---|
-| `app-common.css` | Kumpulan gaya global, tema, komponen UI, dan dark mode. |
-| `app-components.js` | Komponen Vue siap pakai: Login, Sidebar, Header, Layout. |
-| `app-modules.js` | Modul halaman mandiri (self-contained): `<app-profile>` & `<app-settings>`. |
-| `app-core.js` | Factory function untuk inisialisasi Vue app dengan AppConfig. |
-
-Ketergantungan eksternal (tetap dimuat dari CDN publik di `<head>` aplikasi): Tailwind Play CDN, Vue 3 global build, Font Awesome 6, Inter font. Library fitur (Chart.js, SheetJS, jsPDF) dimuat sesuai kebutuhan aplikasi.
-
-## 🚀 Cara Penggunaan
-
-### 1. Akses melalui jsDelivr
-
-Gunakan URL berikut di dalam `Index.html` aplikasi GAS (untuk produksi disarankan pin tag, mis. `@v1.0.0`, menggantikan `@main`):
-
-```html
-<!-- CSS bersama (di <head>, setelah Tailwind) -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/app-common.css">
-
-<!-- Komponen & core (di akhir <body>, SETELAH vue.global.prod.js) -->
-<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/app-components.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/app-modules.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/app-core.js"></script>
+```text
+frontend-cdn/
+├── app-common.css / app-common.min.css     # CSS Global, Theme Token & Dark Mode
+├── app-components.js / app-components.min.js # Shell UI (<app-login>, <app-sidebar>, <app-header>)
+├── app-core.js / app-core.min.js           # Core App Engine (SSO, Bridge, Helpers, State)
+├── app-modules.js / app-modules.min.js     # Modul Mandiri (<app-profile> SIMPEG & <app-settings>)
+├── package.json                            # Build script minifikasi otomatis
+│
+└── backend/                                # Engine Backend Google Apps Script (GAS) v2.0
+    ├── 00_MIGRATION_v2.md                  # Dokumentasi teknis changelog v2.0
+    ├── 01_CoreFoundation.gs                # Engine Database Spreadsheet, Cache, Date & SIMPEG Helpers
+    ├── 02_AuthBridge.gs                    # SSO Platform Ticket Exchanger, Token HMAC & Role Guard
+    ├── 03_ProfileService.gs                # Handler Profil SIMPEG (get_my_profile, save_my_profile)
+    ├── 04_ConfigService.gs                 # Handler Pengaturan Sistem Admin (get_config, save, delete)
+    └── Code.gs                             # Entrypoint doGet() & Dispatcher handleAction()
 ```
 
-Pemakaian modul mandiri di body (menggantikan file A7/A9 lokal):
+---
+
+## 🚀 Penggunaan Frontend (jsDelivr CDN)
+
+### 1. Tag CDN di `Index.html`
+
+Untuk performa maksimal dan efisiensi bandwidth, gunakan versi minifikasi (`.min.js` & `.min.css`):
 
 ```html
-<app-profile v-if="currentPage === 'profil'"></app-profile>
-<app-settings v-if="currentPage === 'pengaturan' && isAdmin"></app-settings>
+<!-- Di dalam <head>, setelah Tailwind CDN -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/app-common.min.css">
+
+<!-- Di akhir <body>, SETELAH vue.global.prod.js -->
+<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/app-components.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/app-modules.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/app-core.min.js"></script>
 ```
 
-> Catatan: jsDelivr membaca langsung dari GitHub. Setelah push + tag baru,
-> URL `@TAG` langsung aktif (cache ±12 jam; paksa refresh dengan menaikkan
-> versi tag, jangan menimpa tag lama).
+*(Catatan: Untuk lingkungan produksi yang stabil, disarankan mengganti `@main` dengan tag versi tetap, misalnya `@v2.0.0`).*
 
-### 2. Contoh `Index.html` aplikasi GAS
+---
+
+### 2. Contoh Lengkap `Index.html` Aplikasi GAS
 
 ```html
 <!DOCTYPE html>
@@ -58,15 +62,18 @@ Pemakaian modul mandiri di body (menggantikan file A7/A9 lokal):
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
-  <!-- CDN BERSAMA -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/app-common.css">
+  
+  <!-- Shared CSS CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/app-common.min.css">
 </head>
 <body>
   <div id="app" v-cloak>
+    <!-- Layar Login SSO -->
     <app-login v-if="!token" :is-processing="isProcessing" :error-message="errorMessage"
                :app-title="appTitle" :instansi="'Pemerintah Kabupaten Trenggalek'"
                :logo-svg="brand.logoSvg" @login="goToPlatform"></app-login>
 
+    <!-- Shell Aplikasi -->
     <div v-if="token" class="flex h-screen overflow-hidden bg-slate-100 dark:bg-slate-900">
       <app-sidebar :collapsed="sidebarCollapsed" :mobile-open="sidebarMobileOpen"
                    :dark="isDarkMode" :current-page="currentPage" :is-admin="isAdmin"
@@ -81,12 +88,20 @@ Pemakaian modul mandiri di body (menggantikan file A7/A9 lokal):
                       @navigate="navigateTo"></app-header>
         </div>
         <main class="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
-          <?!= include('A4_Dashboard'); ?>
-          <!-- halaman lain khas aplikasi (tetap file lokal GAS) -->
+          <!-- Modul Mandiri (Self-Contained) -->
+          <app-profile v-if="currentPage === 'profil'"></app-profile>
+          <app-settings v-if="currentPage === 'pengaturan' && isAdmin"></app-settings>
+
+          <!-- Halaman Spesifik Aplikasi -->
+          <div v-if="currentPage === 'dashboard'" class="card p-6">
+            <h2 class="text-xl font-bold">Dashboard {{ appTitle }}</h2>
+            <p class="text-sm text-slate-500 mt-2">Konten spesifik aplikasi dimuat di sini.</p>
+          </div>
         </main>
       </div>
     </div>
 
+    <!-- Toast Notification -->
     <div class="toast-container">
       <div v-for="t in toasts" :key="t.id" class="toast-item" :class="'toast-'+t.type">
         <span class="flex-1">{{ t.message }}</span>
@@ -94,8 +109,10 @@ Pemakaian modul mandiri di body (menggantikan file A7/A9 lokal):
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/app-components.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/app-core.js"></script>
+  <!-- Shared JS CDN -->
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/app-components.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/app-modules.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/app-core.min.js"></script>
   <script>
     const app = AppCore.create({
       appTitle: 'SI-PELAPORAN',
@@ -106,12 +123,15 @@ Pemakaian modul mandiri di body (menggantikan file A7/A9 lokal):
         { name: 'Utama', items: [
           { id: 'dashboard', label: 'Dashboard', icon: 'fa-solid fa-gauge-high' },
           { id: 'pelaporan', label: 'Pelaporan', icon: 'fa-solid fa-file-lines' }
+        ]},
+        { name: 'Sistem', items: [
+          { id: 'pengaturan', label: 'Pengaturan', icon: 'fa-solid fa-gear', adminOnly: true }
         ]}
       ],
-      pageIcons: { dashboard: 'fa-solid fa-gauge-high', pelaporan: 'fa-solid fa-file-lines' },
-      onNavigate: (vm, page) => { /* loader per halaman */ },
-      initApp: async (vm) => { /* muat dashboard, referensi, dst. */ },
-      mixins: [ /* data & method khas aplikasi */ ]
+      pageIcons: { dashboard: 'fa-solid fa-gauge-high', pelaporan: 'fa-solid fa-file-lines', profil: 'fa-solid fa-id-card', pengaturan: 'fa-solid fa-gear' },
+      initApp: async (vm) => {
+        // Logika inisialisasi pasca-login (muat data, tabel, dsb.)
+      }
     });
     app.mount('#app');
   </script>
@@ -119,29 +139,30 @@ Pemakaian modul mandiri di body (menggantikan file A7/A9 lokal):
 </html>
 ```
 
-### 3. Kontrak backend yang harus dipenuhi tiap aplikasi
+---
 
-| Aksi | Kegunaan |
-|---|---|
-| `exchange_platform_ticket` | `{ticket}` → `{token, user}` (SSO) |
-| `get_my_profile` | validasi sesi tersimpan saat reload |
-| `logout` | hapus sesi server |
-| Respons `{code:'UNAUTHORIZED'}` | memicu reset sesi otomatis di frontend |
+## ⚙️ Penggunaan Backend (Google Apps Script)
 
-Bridge: `google.script.run.handleAction({action, data, token})`.
+1. Salin seluruh file di folder `backend/` ke dalam proyek Google Apps Script Anda (atau deploy via `clasp push`).
+2. Atur **Script Properties** di Apps Script:
+   - `SPREADSHEET_ID`: ID Spreadsheet database lokal aplikasi.
+   - `MASTER_SPREADSHEET_ID`: ID Spreadsheet database master SIMPEG Pemkab.
+   - `PLATFORM_VALIDATE_URL`: URL validasi tiket SSO SI-Platform.
+3. Tambahkan *custom action handlers* Anda di dalam switch `handleAction` di file `backend/Code.gs`.
 
-## 🧩 Komponen yang tersedia
+---
 
-| Tag | Deskripsi |
-|---|---|
-| `<app-login>` | Layar SSO (tombol "Masuk via SI-Platform", state loading & error). |
-| `<app-sidebar>` | Navigasi samping: collapse desktop, drawer mobile, grup menu, badge user, logout. |
-| `<app-header>` | Top bar: hamburger, breadcrumb halaman, toggle dark mode, status online, identitas user. |
-| `<app-profile>` | Modul mandiri: kartu profil SIMPEG + edit kontak (muat data sendiri saat tampil). |
-| `<app-settings>` | Modul mandiri (admin): tabel konfigurasi + modal tambah/edit + hapus. Gate akses via `isAdmin` di template aplikasi. |
+## 🛠️ Kompilasi & Minifikasi
 
-## 📝 Kebijakan versi
+Untuk melakukan minifikasi ulang setelah memodifikasi file JavaScript/CSS:
 
-- Gunakan tag semver (`v1.0.0`, `v1.1.0`, …) — **jangan** menimpa tag lama.
-- Perubahan merusak (nama props/events berubah) → naikkan MAJOR.
-- Aplikasi GAS menunjuk tag spesifik, jadi update repo tidak merusak aplikasi yang sudah live sampai tagnya dinaikkan.
+```bash
+npm run build
+```
+
+---
+
+## 📝 Lisensi & Hak Cipta
+
+Dikelola untuk standarisasi web app oleh Pemerintah Kabupaten Trenggalek.
+Lisensi: MIT.
