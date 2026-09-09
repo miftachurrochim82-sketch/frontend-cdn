@@ -5,48 +5,61 @@ Repository ini adalah standar terpadu frontend (*Vue 3 + Tailwind CSS*) dan back
 
 ---
 
-## 📦 Struktur Proyek
+## 📦 Struktur Folder Repository
 
 ```text
 frontend-cdn/
-├── app-common.css / app-common.min.css     # CSS Global, Theme Token & Dark Mode
-├── app-components.js / app-components.min.js # Shell UI (<app-login>, <app-sidebar>, <app-header>)
-├── app-core.js / app-core.min.js           # Core App Engine (SSO, Bridge, Helpers, State)
-├── app-modules.js / app-modules.min.js     # Modul Mandiri (<app-profile> SIMPEG & <app-settings>)
-├── package.json                            # Build script minifikasi otomatis
+├── .github/
+│   └── workflows/
+│       └── deploy-gas.yml          # Skrip CI/CD otomatis kirim backend ke Google Apps Script via Clasp
 │
-└── backend/                                # Engine Backend Google Apps Script (GAS) v2.0
-    ├── 00_MIGRATION_v2.md                  # Dokumentasi teknis changelog v2.0
-    ├── 01_CoreFoundation.gs                # Engine Database Spreadsheet, Cache, Date & SIMPEG Helpers
-    ├── 02_AuthBridge.gs                    # SSO Platform Ticket Exchanger, Token HMAC & Role Guard
-    ├── 03_ProfileService.gs                # Handler Profil SIMPEG (get_my_profile, save_my_profile)
-    ├── 04_ConfigService.gs                 # Handler Pengaturan Sistem Admin (get_config, save, delete)
-    └── Code.gs                             # Entrypoint doGet() & Dispatcher handleAction()
+├── .clasp.json                     # Identitas konfigurasi Clasp root
+├── package.json                    # Script build minifikasi otomatis frontend (npm run build)
+│
+├── 🎨 frontend/                     # KODE FRONTEND (SHARED CDN ASSETS)
+│   ├── app-common.css              # Desain tema global, token CSS, dan dark mode
+│   ├── app-common.min.css          # Versi minifikasi CSS (~6.7 KB)
+│   ├── app-components.js           # Komponen Vue Shell (<app-login>, <app-sidebar>, <app-header>)
+│   ├── app-components.min.js       # Versi minifikasi Shell UI
+│   ├── app-modules.js              # Modul mandiri (<app-profile> SIMPEG & <app-settings>)
+│   ├── app-modules.min.js          # Versi minifikasi modul mandiri
+│   ├── app-core.js                 # Factory AppCore Vue 3 (Auth SSO, Bridge, Helper)
+│   └── app-core.min.js             # Versi minifikasi Core Engine (~6.4 KB)
+│
+└── 📋 backend/                      # KODE BACKEND GOOGLE APPS SCRIPT
+    ├── .clasp.json                 # File identitas proyek Apps Script lokal
+    ├── appsscript.json             # Manifest konfigurasi runtime & izin Apps Script
+    ├── 00_MIGRATION_v2.md          # Panduan migrasi & changelog teknis v2.0
+    ├── 01_CoreFoundation.gs        # Engine Database Sheets, Aligned Column, Cache & SIMPEG Helpers
+    ├── 02_CoreGateway.gs           # Gateway Auth SSO, Session Cache, Role Guard & API CRUD
+    ├── 03_CoreServices.gs          # Profil SIMPEG, Konfigurasi, Drive Folder Provisioning & Setup
+    ├── 99_CoreTest.gs              # Automated Diagnostic & Regression Test Suite
+    └── Code.gs                     # Template Entrypoint doGet() & Dispatcher handleAction()
 ```
 
 ---
 
-## 🚀 Penggunaan Frontend (jsDelivr CDN)
+## 🚀 Cara Penggunaan Frontend (jsDelivr CDN)
 
 ### 1. Tag CDN di `Index.html`
 
-Untuk performa maksimal dan efisiensi bandwidth, gunakan versi minifikasi (`.min.js` & `.min.css`):
+Tambahkan tag berikut ke dalam `Index.html` aplikasi GAS Anda:
 
 ```html
-<!-- Di dalam <head>, setelah Tailwind CDN -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/app-common.min.css">
+<!-- Di dalam <head>, setelah Tailwind Play CDN -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/frontend/app-common.min.css">
 
 <!-- Di akhir <body>, SETELAH vue.global.prod.js -->
-<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/app-components.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/app-modules.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/app-core.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/frontend/app-components.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/frontend/app-modules.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/frontend/app-core.min.js"></script>
 ```
 
-*(Catatan: Untuk lingkungan produksi yang stabil, disarankan mengganti `@main` dengan tag versi tetap, misalnya `@v2.0.0`).*
+*(Catatan: Untuk produksi disarankan menggunakan tag versi tetap seperti `@v2.1.0` alih-alih `@main`).*
 
 ---
 
-### 2. Contoh Lengkap `Index.html` Aplikasi GAS
+### 2. Contoh Lengkap `Index.html`
 
 ```html
 <!DOCTYPE html>
@@ -63,8 +76,8 @@ Untuk performa maksimal dan efisiensi bandwidth, gunakan versi minifikasi (`.min
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
   
-  <!-- Shared CSS CDN -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/app-common.min.css">
+  <!-- CSS BERSAMA DARI CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/frontend/app-common.min.css">
 </head>
 <body>
   <div id="app" v-cloak>
@@ -101,7 +114,7 @@ Untuk performa maksimal dan efisiensi bandwidth, gunakan versi minifikasi (`.min
       </div>
     </div>
 
-    <!-- Toast Notification -->
+    <!-- Toast Notification Global -->
     <div class="toast-container">
       <div v-for="t in toasts" :key="t.id" class="toast-item" :class="'toast-'+t.type">
         <span class="flex-1">{{ t.message }}</span>
@@ -109,10 +122,10 @@ Untuk performa maksimal dan efisiensi bandwidth, gunakan versi minifikasi (`.min
     </div>
   </div>
 
-  <!-- Shared JS CDN -->
-  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/app-components.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/app-modules.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/app-core.min.js"></script>
+  <!-- JAVASCRIPT BERSAMA DARI CDN -->
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/frontend/app-components.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/frontend/app-modules.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/frontend/app-core.min.js"></script>
   <script>
     const app = AppCore.create({
       appTitle: 'SI-PELAPORAN',
@@ -130,7 +143,7 @@ Untuk performa maksimal dan efisiensi bandwidth, gunakan versi minifikasi (`.min
       ],
       pageIcons: { dashboard: 'fa-solid fa-gauge-high', pelaporan: 'fa-solid fa-file-lines', profil: 'fa-solid fa-id-card', pengaturan: 'fa-solid fa-gear' },
       initApp: async (vm) => {
-        // Logika inisialisasi pasca-login (muat data, tabel, dsb.)
+        // Panggil data awal jika diperlukan
       }
     });
     app.mount('#app');
@@ -141,20 +154,21 @@ Untuk performa maksimal dan efisiensi bandwidth, gunakan versi minifikasi (`.min
 
 ---
 
-## ⚙️ Penggunaan Backend (Google Apps Script)
+## ⚙️ Deployment Otomatis Backend (CI/CD Clasp)
 
-1. Salin seluruh file di folder `backend/` ke dalam proyek Google Apps Script Anda (atau deploy via `clasp push`).
-2. Atur **Script Properties** di Apps Script:
-   - `SPREADSHEET_ID`: ID Spreadsheet database lokal aplikasi.
-   - `MASTER_SPREADSHEET_ID`: ID Spreadsheet database master SIMPEG Pemkab.
-   - `PLATFORM_VALIDATE_URL`: URL validasi tiket SSO SI-Platform.
-3. Tambahkan *custom action handlers* Anda di dalam switch `handleAction` di file `backend/Code.gs`.
+Repository ini telah dilengkapi dengan GitHub Actions workflow `.github/workflows/deploy-gas.yml`. Setiap kali Anda melakukan *push* ke branch `main`, kode backend akan otomatis ter-deploy ke Google Apps Script target.
+
+### Konfigurasi GitHub Secrets:
+1. Buka repository di GitHub ➡️ **Settings** ➡️ **Secrets and variables** ➡️ **Actions**.
+2. Tambahkan Secrets berikut:
+   * **`CLASPRC_JSON`**: Isi konten file `~/.clasprc.json` Anda (hasil login clasp lokal `clasp login`).
+   * **`CLASP_SCRIPT_ID`**: ID Script Google Apps Script tujuan deploy Anda.
 
 ---
 
-## 🛠️ Kompilasi & Minifikasi
+## 🛠️ Minifikasi Frontend
 
-Untuk melakukan minifikasi ulang setelah memodifikasi file JavaScript/CSS:
+Untuk melakukan *build* ulang file minifikasi di folder `frontend/`:
 
 ```bash
 npm run build
@@ -162,7 +176,7 @@ npm run build
 
 ---
 
-## 📝 Lisensi & Hak Cipta
+## 📝 Lisensi
 
 Dikelola untuk standarisasi web app oleh Pemerintah Kabupaten Trenggalek.
 Lisensi: MIT.

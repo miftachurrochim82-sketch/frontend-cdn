@@ -1,11 +1,11 @@
 {
   "name": "@miftachurrochim82/frontend-cdn",
-  "version": "2.0.0",
-  "description": "Shared Frontend CDN & Backend Global Library for Google Apps Script Web Apps (Pemkab Trenggalek)",
-  "main": "app-core.js",
+  "version": "2.1.0",
+  "description": "Shared Frontend Assets CDN & Backend Global Library for Google Apps Script Web Apps (Pemkab Trenggalek)",
+  "main": "frontend/app-core.js",
   "scripts": {
-    "build:js": "terser app-core.js -c -m -o app-core.min.js && terser app-components.js -c -m -o app-components.min.js && terser app-modules.js -c -m -o app-modules.min.js",
-    "build:css": "cleancss -o app-common.min.css app-common.css",
+    "build:js": "terser frontend/app-core.js -c -m -o frontend/app-core.min.js && terser frontend/app-components.js -c -m -o frontend/app-components.min.js && terser frontend/app-modules.js -c -m -o frontend/app-modules.min.js",
+    "build:css": "cleancss -o frontend/app-common.min.css frontend/app-common.css",
     "build": "npm run build:js && npm run build:css"
   },
   "repository": {
@@ -18,7 +18,8 @@
     "tailwind",
     "trenggalek",
     "simpeg",
-    "cdn"
+    "cdn",
+    "clasp"
   ],
   "author": "miftachurrochim82-sketch",
   "license": "MIT",
