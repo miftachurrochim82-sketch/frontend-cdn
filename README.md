@@ -18,15 +18,15 @@ Ketergantungan eksternal (tetap dimuat dari CDN publik di `<head>` aplikasi): Ta
 
 ### 1. Akses melalui jsDelivr
 
-Gunakan URL berikut di dalam `Index.html` aplikasi GAS (ganti `GITHUB_USER`, `NAMA_REPO`, dan `TAG` dengan milik Anda, mis. tag `v1.0.0`):
+Gunakan URL berikut di dalam `Index.html` aplikasi GAS (untuk produksi disarankan pin tag, mis. `@v1.0.0`, menggantikan `@main`):
 
 ```html
 <!-- CSS bersama (di <head>, setelah Tailwind) -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/GITHUB_USER/NAMA_REPO@TAG/app-common.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/app-common.css">
 
 <!-- Komponen & core (di akhir <body>, SETELAH vue.global.prod.js) -->
-<script src="https://cdn.jsdelivr.net/gh/GITHUB_USER/NAMA_REPO@TAG/app-components.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/GITHUB_USER/NAMA_REPO@TAG/app-core.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/app-components.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/app-core.js"></script>
 ```
 
 > Catatan: jsDelivr membaca langsung dari GitHub. Setelah push + tag baru,
@@ -50,7 +50,7 @@ Gunakan URL berikut di dalam `Index.html` aplikasi GAS (ganti `GITHUB_USER`, `NA
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
   <!-- CDN BERSAMA -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/GITHUB_USER/NAMA_REPO@TAG/app-common.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/app-common.css">
 </head>
 <body>
   <div id="app" v-cloak>
@@ -85,8 +85,8 @@ Gunakan URL berikut di dalam `Index.html` aplikasi GAS (ganti `GITHUB_USER`, `NA
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/gh/GITHUB_USER/NAMA_REPO@TAG/app-components.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/GITHUB_USER/NAMA_REPO@TAG/app-core.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/app-components.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/app-core.js"></script>
   <script>
     const app = AppCore.create({
       appTitle: 'SI-PELAPORAN',
