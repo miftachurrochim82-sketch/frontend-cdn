@@ -31,7 +31,7 @@ function runCoreTests(ctx) {
     testDateRoundTrip, testNullClears, testStrictUpsert, testHardDeleteConfig,
     testTicketBinding, testSessionPrefix, testTestModeRemoved, testTtlCap,
     testRoleMapping, testResolvePegawai, testAuditStrip, testDispatcherAuthz,
-    testSsoFlow, testGenericCrud
+    testDeclarativeResourceRouter, testSsoFlow, testGenericCrud
   ];
   var passed = 0, failed = 0, skipped = 0, details = [];
   tests.forEach(function(fn) {
@@ -269,6 +269,82 @@ function testDispatcherAuthz(ctx) {
     burnTestSession_(viewer.prefix, viewer.token);
     burnTestSession_(admin.prefix, admin.token);
     hardDeleteRecordNoLock(ctx.ssId, 'ZZ_TEST_CRUD', 'AUTHZ-2', systemActor());
+  }
+}
+
+function testDeclarativeResourceRouter(ctx) {
+  need_(ctx.ssId && ctx.headersMap && ctx.headersMap.ZZ_TEST_CRUD, 'Butuh ssId + ZZ_TEST_CRUD.');
+  var preHookCalled = false, postHookCalled = false;
+  var cfg = {
+    appCode: ctx.appCode || 'TESTAPP',
+    spreadsheetId: ctx.ssId,
+    headersMap: ctx.headersMap,
+    resources: {
+      zz_test_crud: {
+        sheetName: 'ZZ_TEST_CRUD',
+        pk: 'id',
+        ownerField: 'nama',
+        searchFields: ['id', 'nama', 'no_hp'],
+        roles: { read: 'viewer', create: 'user', update: 'user', delete: 'admin' },
+        hooks: {
+          preSave: function(canonical, record, actor) {
+            preHookCalled = true;
+            if (record.no_hp === 'INVALID') return { error: 'No HP tidak valid' };
+            return { record: record };
+          },
+          postSave: function(saved, actor) {
+            postHookCalled = true;
+          }
+        }
+      }
+    }
+  };
+
+  var userA = mintTestSession_(cfg, 'user', 'userA@example.com');
+  var userB = mintTestSession_(cfg, 'user', 'userB@example.com');
+  var admin = mintTestSession_(cfg, 'admin', 'admin@example.com');
+
+  var id1 = 'RES-1-' + new Date().getTime();
+  var id2 = 'RES-2-' + new Date().getTime();
+
+  try {
+    // 1. Hook validation failure
+    var hookFail = dispatchAction({ action: 'save_zz_test_crud', token: userA.token, data: { id: id1, nama: 'UserA', no_hp: 'INVALID' } }, cfg);
+    assert_(!hookFail.success && hookFail.error === 'No HP tidak valid', 'preSave hook memvalidasi dan menolak payload tidak valid.');
+
+    // 2. Auto save & postSave hook
+    var saveOk = dispatchAction({ action: 'save_zz_test_crud', token: userA.token, data: { id: id1, nama: 'UserA', no_hp: '08123' } }, cfg);
+    assert_(saveOk.success && preHookCalled && postHookCalled, 'Auto save declarative resource berhasil + hook dipanggil.');
+
+    // 3. Auto list & search
+    var listRes = dispatchAction({ action: 'get_zz_test_crud_list', token: userB.token, data: { search: '08123' } }, cfg);
+    assert_(listRes.success && listRes.data.length >= 1, 'Auto list & search berjalan.');
+
+    // 4. Auto detail by ID
+    var detailRes = dispatchAction({ action: 'get_zz_test_crud_detail', token: userB.token, data: { id: id1 } }, cfg);
+    assert_(detailRes.success && detailRes.data && detailRes.data.id === id1, 'Auto detail by ID berjalan.');
+
+    // 5. Row-level owner security: UserB tidak boleh update data UserA (karena ownerField='nama')
+    var tamper = dispatchAction({ action: 'save_zz_test_crud', token: userB.token, data: { id: id1, nama: 'UserB', no_hp: '08999' } }, cfg);
+    assert_(!tamper.success && tamper.code === 'FORBIDDEN', 'Row-level security menolak edit data milik orang lain.');
+
+    // 6. Admin boleh update data siapa saja
+    var adminEdit = dispatchAction({ action: 'save_zz_test_crud', token: admin.token, data: { id: id1, nama: 'UserA', no_hp: '08111' } }, cfg);
+    assert_(adminEdit.success, 'Admin diizinkan update data siapa saja.');
+
+    // 7. Non-admin dilarang delete jika role.delete = 'admin'
+    var userDel = dispatchAction({ action: 'delete_zz_test_crud', token: userA.token, data: { id: id1 } }, cfg);
+    assert_(!userDel.success && userDel.code === 'FORBIDDEN', 'Non-admin dilarang delete.');
+
+    // 8. Admin boleh delete
+    var adminDel = dispatchAction({ action: 'delete_zz_test_crud', token: admin.token, data: { id: id1 } }, cfg);
+    assert_(adminDel.success, 'Admin berhasil menghapus declarative resource.');
+  } finally {
+    burnTestSession_(userA.prefix, userA.token);
+    burnTestSession_(userB.prefix, userB.token);
+    burnTestSession_(admin.prefix, admin.token);
+    hardDeleteRecordNoLock(ctx.ssId, 'ZZ_TEST_CRUD', id1, systemActor());
+    hardDeleteRecordNoLock(ctx.ssId, 'ZZ_TEST_CRUD', id2, systemActor());
   }
 }
 

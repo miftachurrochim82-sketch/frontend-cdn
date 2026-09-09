@@ -11,6 +11,8 @@
 // - H4 FIX: apiSave menghapus paksa field audit client.
 // - H5 FIX: AUDIT_LOGS via header default sistem + details dipotong 40rb.
 // - H6/H7 FIX: apiSave 1x-scan (upsertRow_ langsung).
+// - BARU: Declarative Resource Routing (Auto-CRUD with Row-Level Security,
+//         Multi-Field Search, CacheService acceleration, Hooks & Permissions).
 // - BARU: case 'save_config_item'; actionLevels kustom; kode error (code) standar.
 // Breaking changes: baca 00_MIGRATION_v2.md
 // ============================================================
@@ -25,7 +27,7 @@ function extractRecord(data) {
   if (data.row) return data.row;
   var record = {};
   Object.keys(data).forEach(function(key) {
-    if (['entity', 'sheetName', 'table', 'token', 'action', 'id', 'page', 'limit', 'filters', 'search', 'sortBy', 'sortDir'].indexOf(key) === -1) record[key] = data[key];
+    if (['entity', 'sheetName', 'table', 'token', 'action', 'id', 'page', 'limit', 'filters', 'search', 'sortBy', 'sortDir', 'sortOrder'].indexOf(key) === -1) record[key] = data[key];
   });
   if (data.id !== undefined && record.id === undefined) record.id = data.id;
   return record;
@@ -147,7 +149,7 @@ function apiGet(ssId, sheetName, id, query, headersMap, pkField) {
     query = query || {};
     var canonical = String(sheetName || '').toUpperCase().trim();
     if (!canonical) return { success: false, code: 'BAD_REQUEST', error: 'Nama sheet tidak valid.' };
-    var rows = readRecordsNoLock(ssId, canonical, headersMap).filter(function(row) { return !row.deleted_at; });
+    var rows = getSheetDataCached(ssId, canonical, headersMap, 180).filter(function(row) { return !row.deleted_at; });
     var headers = (headersMap && headersMap[canonical]) ? headersMap[canonical] : [];
     if (id) {
       var found = null;
@@ -169,7 +171,7 @@ function apiGet(ssId, sheetName, id, query, headersMap, pkField) {
       }
     }
     if (query.sortBy) {
-      var sortDir = String(query.sortDir || 'asc').toLowerCase() === 'desc' ? -1 : 1;
+      var sortDir = String(query.sortDir || query.sortOrder || 'asc').toLowerCase() === 'desc' ? -1 : 1;
       rows.sort(function(a, b) { var av = a[query.sortBy] || '', bv = b[query.sortBy] || ''; return (av < bv ? -1 : (av > bv ? 1 : 0)) * sortDir; });
     }
     var page = parseInt(query.page, 10); if (isNaN(page) || page < 1) page = 1;
@@ -190,7 +192,7 @@ function apiSave(ssId, sheetName, record, actor, headersMap, isRefSheetFunc, pre
     record = Object.assign({}, record);
     ['created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at'].forEach(function(f) { delete record[f]; }); // H4: otoritas server
     if (typeof preSaveHook === 'function') {
-      var hookResult = preSaveHook(canonical, record);
+      var hookResult = preSaveHook(canonical, record, actor);
       if (hookResult && hookResult.error) return { success: false, code: 'BAD_REQUEST', error: hookResult.error };
       if (hookResult && hookResult.record) record = hookResult.record;
     }
@@ -237,9 +239,191 @@ function appendAuditLog(ssId, userId, action, details, headersMap) {
   } catch (e) { logError('CoreHandlers.appendAuditLog', e.message); }
 }
 
+// ==================== DECLARATIVE RESOURCE ROUTER ====================
+function handleDeclarativeResourceAction_(action, data, currentUser, localConfig) {
+  var resources = localConfig.resources;
+  if (!resources || typeof resources !== 'object') return null;
+
+  var act = String(action || '').toLowerCase().trim();
+  var resourceKeys = Object.keys(resources);
+
+  for (var i = 0; i < resourceKeys.length; i++) {
+    var rKey = resourceKeys[i];
+    var resCfg = resources[rKey] || {};
+    var normKey = String(rKey).toLowerCase().trim();
+    var canonical = String(resCfg.sheetName || rKey).toUpperCase().trim();
+    var pkField = resCfg.pk || pkFor_(localConfig, canonical) || 'id';
+    var ownerField = resCfg.ownerField || null;
+    var searchFields = resCfg.searchFields || null;
+    var roles = resCfg.roles || {};
+    var hooks = resCfg.hooks || {};
+    var roleMap = localConfig.roleLevels || MASTER_ROLE_LEVELS;
+    var ssId = (isReferenceSheet(canonical) && localConfig.masterSsId) ? localConfig.masterSsId : localConfig.spreadsheetId;
+    var headersMap = localConfig.headersMap;
+    var userRole = String((currentUser && currentUser.role) || 'viewer').toLowerCase();
+    var userLevel = levelOf_(userRole, roleMap);
+    var isAdmin = userRole === 'admin' || userRole === 'super';
+    var userPegawaiId = String((currentUser && (currentUser.pegawai_id || currentUser.user_id || currentUser.id)) || '').trim();
+
+    // Match Action Patterns
+    var isList = (act === 'get_' + normKey + '_list' || act === 'get_' + normKey + 's' || act === 'get_' + normKey || act === normKey + '_list');
+    var isDetail = (act === 'get_' + normKey + '_detail' || act === 'get_' + normKey + '_by_id' || act === normKey + '_detail');
+    var isSave = (act === 'save_' + normKey || act === 'create_' + normKey || act === 'update_' + normKey);
+    var isDelete = (act === 'delete_' + normKey || act === 'remove_' + normKey);
+
+    if (isList) {
+      var needRole = roles.read || 'viewer';
+      if (userLevel < levelOf_(needRole, roleMap)) {
+        return { success: false, code: 'FORBIDDEN', error: 'Akses baca "' + canonical + '" butuh hak akses "' + needRole + '".' };
+      }
+      return executeResourceList_(ssId, canonical, data, headersMap, pkField, searchFields, resCfg.defaultSort);
+    }
+
+    if (isDetail) {
+      var needRoleD = roles.read || 'viewer';
+      if (userLevel < levelOf_(needRoleD, roleMap)) {
+        return { success: false, code: 'FORBIDDEN', error: 'Akses baca "' + canonical + '" butuh hak akses "' + needRoleD + '".' };
+      }
+      var targetId = data.id || (data.record && data.record[pkField]) || '';
+      if (!targetId) return { success: false, code: 'BAD_REQUEST', error: 'ID ' + canonical + ' wajib diisi.' };
+      var rows = getSheetDataCached(ssId, canonical, headersMap, 180).filter(function(r) { return !r.deleted_at; });
+      var found = null;
+      for (var j = 0; j < rows.length; j++) {
+        if (String(getRecordPrimaryId_(rows[j], pkField)) === String(targetId)) { found = rows[j]; break; }
+      }
+      if (!found) return { success: false, code: 'NOT_FOUND', error: 'Data ' + canonical + ' tidak ditemukan.' };
+      return { success: true, data: found };
+    }
+
+    if (isSave) {
+      var record = extractRecord(data);
+      var isUpdate = Boolean(record[pkField] && String(record[pkField]).trim() !== '');
+      var needRoleS = isUpdate ? (roles.update || roles.create || 'user') : (roles.create || 'user');
+      if (userLevel < levelOf_(needRoleS, roleMap)) {
+        return { success: false, code: 'FORBIDDEN', error: 'Akses simpan "' + canonical + '" butuh hak akses "' + needRoleS + '".' };
+      }
+
+      // Row-level owner guard
+      if (ownerField && !isAdmin) {
+        if (isUpdate) {
+          var rowsS = getSheetDataCached(ssId, canonical, headersMap, 180).filter(function(r) { return !r.deleted_at; });
+          var oldRec = null;
+          for (var k = 0; k < rowsS.length; k++) {
+            if (String(getRecordPrimaryId_(rowsS[k], pkField)) === String(record[pkField])) { oldRec = rowsS[k]; break; }
+          }
+          if (oldRec && String(oldRec[ownerField] || '').trim() !== userPegawaiId) {
+            return { success: false, code: 'FORBIDDEN', error: 'Anda hanya boleh mengubah data milik sendiri.' };
+          }
+        } else {
+          if (!record[ownerField]) record[ownerField] = userPegawaiId;
+        }
+      }
+
+      var preHook = (hooks && typeof hooks.preSave === 'function') ? hooks.preSave : localConfig.preSaveHook;
+      var saveResult = apiSave(ssId, canonical, record, currentUser, headersMap, localConfig.isRefSheetFunc, preHook, pkField);
+
+      if (saveResult && saveResult.success && hooks && typeof hooks.postSave === 'function') {
+        try { hooks.postSave(saveResult.data, currentUser); } catch (e) { logWarn('CoreResource', 'postSave hook: ' + e.message); }
+      }
+      return saveResult;
+    }
+
+    if (isDelete) {
+      var needRoleDel = roles.delete || 'admin';
+      if (userLevel < levelOf_(needRoleDel, roleMap)) {
+        return { success: false, code: 'FORBIDDEN', error: 'Akses hapus "' + canonical + '" butuh hak akses "' + needRoleDel + '".' };
+      }
+      var delId = data.id || (data.record && data.record[pkField]) || '';
+      if (!delId) return { success: false, code: 'BAD_REQUEST', error: 'ID ' + canonical + ' wajib diisi.' };
+
+      if (ownerField && !isAdmin) {
+        var rowsD = getSheetDataCached(ssId, canonical, headersMap, 180).filter(function(r) { return !r.deleted_at; });
+        var targetRec = null;
+        for (var m = 0; m < rowsD.length; m++) {
+          if (String(getRecordPrimaryId_(rowsD[m], pkField)) === String(delId)) { targetRec = rowsD[m]; break; }
+        }
+        if (targetRec && String(targetRec[ownerField] || '').trim() !== userPegawaiId) {
+          return { success: false, code: 'FORBIDDEN', error: 'Anda hanya boleh menghapus data milik sendiri.' };
+        }
+      }
+
+      if (hooks && typeof hooks.beforeDelete === 'function') {
+        var beforeResult = hooks.beforeDelete(delId, currentUser);
+        if (beforeResult && beforeResult.error) return { success: false, code: 'BAD_REQUEST', error: beforeResult.error };
+      }
+
+      return apiDelete(ssId, canonical, delId, currentUser, headersMap, localConfig.isRefSheetFunc, pkField);
+    }
+  }
+
+  return null;
+}
+
+function executeResourceList_(ssId, canonical, query, headersMap, pkField, customSearchFields, defaultSort) {
+  try {
+    query = query || {};
+    var rows = getSheetDataCached(ssId, canonical, headersMap, 180).filter(function(r) { return !r.deleted_at; });
+    var headers = (headersMap && headersMap[canonical]) ? headersMap[canonical] : (rows.length > 0 ? Object.keys(rows[0]) : []);
+
+    // Filters
+    var rawFilters = query.filters || query;
+    if (typeof rawFilters === 'string') { try { rawFilters = JSON.parse(rawFilters); } catch (e) { rawFilters = {}; } }
+    if (rawFilters && typeof rawFilters === 'object') {
+      var exclude = ['action', 'token', 'search', 'page', 'limit', 'sortBy', 'sortDir', 'sortOrder', 'filters'];
+      Object.keys(rawFilters).forEach(function(k) {
+        if (exclude.indexOf(k) === -1) {
+          var val = rawFilters[k];
+          if (val !== '' && val !== null && val !== undefined) {
+            rows = rows.filter(function(r) { return String(r[k] || '').toLowerCase().trim() === String(val).toLowerCase().trim(); });
+          }
+        }
+      });
+    }
+
+    // Search
+    var q = String(query.search || '').toLowerCase().trim();
+    if (q) {
+      var fields = (customSearchFields && customSearchFields.length > 0) ? customSearchFields : headers;
+      rows = rows.filter(function(r) {
+        return fields.some(function(f) { return String(r[f] || '').toLowerCase().indexOf(q) !== -1; });
+      });
+    }
+
+    // Sort
+    var sortKey = query.sortBy || (defaultSort && defaultSort.field) || '';
+    var sortOrder = query.sortDir || query.sortOrder || (defaultSort && defaultSort.order) || 'asc';
+    if (sortKey) {
+      var dir = String(sortOrder).toLowerCase() === 'desc' ? -1 : 1;
+      rows.sort(function(a, b) {
+        var av = String(a[sortKey] || ''), bv = String(b[sortKey] || '');
+        return (av < bv ? -1 : (av > bv ? 1 : 0)) * dir;
+      });
+    }
+
+    // Pagination
+    var page = parseInt(query.page, 10); if (isNaN(page) || page < 1) page = 1;
+    var limit = parseInt(query.limit, 10); if (isNaN(limit) || limit < 1) limit = 50; if (limit > 500) limit = 500;
+    var total = rows.length;
+    var start = (page - 1) * limit;
+
+    return {
+      success: true,
+      data: rows.slice(start, start + limit),
+      meta: {
+        total: total,
+        page: page,
+        limit: limit,
+        total_pages: Math.max(1, Math.ceil(total / limit))
+      }
+    };
+  } catch (err) {
+    logError('CoreResource.list', err.message);
+    return { success: false, code: 'BAD_REQUEST', error: err.message };
+  }
+}
+
 // ==================== DISPATCHER ====================
 function levelOf_(role, map) { return (map && map[String(role).toLowerCase()]) || 1; }
-// H3: entitas harus dikenal. Return string error / null.
 function entityGate_(entity, headersMap) {
   if (!entity || entity === 'UNDEFINED') return 'Entitas tidak valid.';
   if (headersMap && headersMap[entity]) return null;
@@ -275,9 +459,17 @@ function dispatchAction(payload, localConfig) {
     var auth = checkAuth(token, minLevel, prefix, roleMap);
     if (!auth.success) return auth;
     var currentUser = auth.user;
-    // 3. Handler lokal dinas (signature: fn(data, currentUser) — post-auth).
-    if (localHandlers[action] && typeof localHandlers[action] === 'function') return localHandlers[action](data, currentUser);
-    // 4. Aksi universal.
+
+    // 3. Handler lokal dinas kustom (signature: fn(data, currentUser) — post-auth).
+    if (localHandlers[action] && typeof localHandlers[action] === 'function') {
+      return localHandlers[action](data, currentUser);
+    }
+
+    // 4. Declarative Resource Router (Auto-CRUD with Row-Level Security, Search & Cache)
+    var resourceResult = handleDeclarativeResourceAction_(action, data, currentUser, localConfig);
+    if (resourceResult !== null) return resourceResult;
+
+    // 5. Aksi universal.
     var masterDb = localConfig.masterSsId || ssId;
     switch (action) {
       case 'get_profile':
