@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>SI-PELAPORAN — Pemkab Trenggalek</title>
 
-  <!-- Dark Mode Pre-paint Script -->
+  <!-- Dark Mode Pre-paint Script (Anti-Flicker) -->
   <script>
     try {
       if (localStorage.getItem('sipelaporan_dark') === 'true') {
@@ -22,6 +22,10 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
 
+  <!-- Library Fitur Opsional (Chart.js & SheetJS) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
   <!-- 1. FRONTEND CDN SHARED CSS (v2.2.0) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.2.0/frontend/app-common.min.css">
 </head>
@@ -32,7 +36,7 @@
                :is-processing="isProcessing"
                :error-message="errorMessage"
                :app-title="appTitle"
-               :app-subtitle="'Sistem Informasi Pelaporan Kegiatan Terintegrasi SIMPEG'"
+               :app-subtitle="'Sistem Informasi Pelaporan Pegawai Terintegrasi SIMPEG'"
                :instansi="'Pemerintah Kabupaten Trenggalek'"
                @login="goToPlatform">
     </app-login>
@@ -69,347 +73,26 @@
           </app-header>
         </div>
 
-        <!-- Konten Halaman -->
+        <!-- Konten Halaman Modular -->
         <main class="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-6">
 
-          <!-- ================= HALAMAN: DASHBOARD ================= -->
-          <div v-if="currentPage === 'dashboard'" class="space-y-6">
-            <!-- Summary Stats Cards -->
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div class="card p-5 border border-slate-200/80 dark:border-slate-700/60 flex items-center gap-4">
-                <div class="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl shrink-0">
-                  <i class="fa-solid fa-file-lines"></i>
-                </div>
-                <div>
-                  <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Total Laporan</span>
-                  <p class="text-2xl font-black text-slate-800 dark:text-white">{{ dashboardData.total_pelaporan || 0 }}</p>
-                </div>
-              </div>
+          <!-- Partial Halaman A4: Dashboard -->
+          <?!= include('A4_Dashboard'); ?>
 
-              <div class="card p-5 border border-slate-200/80 dark:border-slate-700/60 flex items-center gap-4">
-                <div class="w-12 h-12 rounded-2xl bg-sky-100 dark:bg-sky-950/80 text-sky-600 dark:text-sky-400 flex items-center justify-center text-xl shrink-0">
-                  <i class="fa-solid fa-users"></i>
-                </div>
-                <div>
-                  <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Pegawai SIMPEG</span>
-                  <p class="text-2xl font-black text-slate-800 dark:text-white">{{ dashboardData.total_pegawai || 0 }}</p>
-                </div>
-              </div>
+          <!-- Partial Halaman A5: Pelaporan -->
+          <?!= include('A5_Pelaporan'); ?>
 
-              <div class="card p-5 border border-slate-200/80 dark:border-slate-700/60 flex items-center gap-4">
-                <div class="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xl shrink-0">
-                  <i class="fa-solid fa-sitemap"></i>
-                </div>
-                <div>
-                  <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Unit Kerja</span>
-                  <p class="text-2xl font-black text-slate-800 dark:text-white">{{ dashboardData.total_unit || 0 }}</p>
-                </div>
-              </div>
-
-              <div class="card p-5 border border-slate-200/80 dark:border-slate-700/60 flex items-center gap-4">
-                <div class="w-12 h-12 rounded-2xl bg-purple-100 dark:bg-purple-950/80 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl shrink-0">
-                  <i class="fa-solid fa-briefcase"></i>
-                </div>
-                <div>
-                  <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Jabatan SIMPEG</span>
-                  <p class="text-2xl font-black text-slate-800 dark:text-white">{{ dashboardData.total_jabatan || 0 }}</p>
-                </div>
-              </div>
-            </div>
-
-            <!-- Tabel Laporan Terbaru -->
-            <div class="card p-6 border border-slate-200/80 dark:border-slate-700/60 space-y-4">
-              <div class="flex items-center justify-between">
-                <div>
-                  <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Pelaporan Terbaru</h3>
-                  <p class="text-xs text-slate-500 dark:text-slate-400">5 pelaporan kegiatan paling mutakhir yang masuk sistem.</p>
-                </div>
-                <button @click="navigateTo('pelaporan')" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1">
-                  <span>Lihat Semua</span>
-                  <i class="fa-solid fa-arrow-right"></i>
-                </button>
-              </div>
-
-              <div class="table-scroll">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Tanggal</th>
-                      <th>Judul Laporan</th>
-                      <th>Jenis</th>
-                      <th>Status</th>
-                      <th>Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="item in dashboardData.terbaru" :key="item.id">
-                      <td class="font-medium whitespace-nowrap">{{ formatDateDisplay(item.tanggal) }}</td>
-                      <td class="font-bold text-slate-800 dark:text-slate-200">{{ item.judul }}</td>
-                      <td>
-                        <span class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700 text-[11px] font-semibold capitalize">{{ item.jenis_laporan }}</span>
-                      </td>
-                      <td>
-                        <span class="badge" :class="statusBadgeClass(item.status)">{{ item.status || 'menunggu' }}</span>
-                      </td>
-                      <td>
-                        <button @click="openDetailModal(item)" class="btn-aksi bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200" title="Lihat Rincian">
-                          <i class="fa-solid fa-eye text-xs mr-1"></i> Detail
-                        </button>
-                      </td>
-                    </tr>
-                    <tr v-if="!dashboardData.terbaru || !dashboardData.terbaru.length">
-                      <td colspan="5" class="py-8 text-center text-slate-400">Belum ada data pelaporan.</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          <!-- ================= HALAMAN: DATA PELAPORAN ================= -->
-          <div v-if="currentPage === 'pelaporan'" class="space-y-6">
-            <!-- Filter & Action Header -->
-            <div class="card p-5 border border-slate-200/80 dark:border-slate-700/60 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-              <div>
-                <h2 class="text-xl font-extrabold text-slate-900 dark:text-white">Daftar Pelaporan Kegiatan</h2>
-                <p class="text-xs text-slate-500 dark:text-slate-400">Kelola dan pantau seluruh laporan kerja pegawai.</p>
-              </div>
-
-              <div class="flex flex-wrap items-center gap-2.5">
-                <div class="relative">
-                  <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                  <input v-model="pelaporanSearch" @input="debounceLoadPelaporan" type="text" placeholder="Cari laporan..."
-                         class="pl-8 pr-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500/50 w-40 sm:w-48" />
-                </div>
-
-                <select v-model="pelaporanFilterStatus" @change="loadPelaporanList"
-                        class="px-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
-                  <option value="">Semua Status</option>
-                  <option value="menunggu">Menunggu</option>
-                  <option value="disetujui">Disetujui</option>
-                  <option value="revisi">Revisi</option>
-                  <option value="ditolak">Ditolak</option>
-                </select>
-
-                <button @click="openAddPelaporan"
-                        class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 text-white font-semibold text-xs transition shadow-md shadow-emerald-600/20 flex items-center gap-1.5">
-                  <i class="fa-solid fa-plus"></i>
-                  <span>Buat Laporan</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- Tabel Data Pelaporan -->
-            <div class="card border border-slate-200/80 dark:border-slate-700/60 overflow-hidden">
-              <div v-if="pelaporanLoading" class="py-16 flex flex-col items-center justify-center space-y-3">
-                <div class="w-9 h-9 rounded-full border-3 border-emerald-200 border-t-emerald-600 animate-spin"></div>
-                <p class="text-xs text-slate-500 font-semibold animate-pulse">Memuat data pelaporan...</p>
-              </div>
-
-              <div v-else class="table-scroll">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Tanggal</th>
-                      <th>Judul &amp; Jenis</th>
-                      <th>Isi Ringkasan</th>
-                      <th>Status</th>
-                      <th>Verifikator</th>
-                      <th class="text-right">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="row in pelaporanList" :key="row.id">
-                      <td class="font-medium whitespace-nowrap">{{ formatDateDisplay(row.tanggal) }}</td>
-                      <td>
-                        <div class="font-bold text-slate-800 dark:text-slate-100">{{ row.judul }}</div>
-                        <span class="inline-block mt-0.5 px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-[10px] font-semibold uppercase tracking-wider">{{ row.jenis_laporan }}</span>
-                      </td>
-                      <td class="max-w-xs truncate text-slate-600 dark:text-slate-400">{{ row.isi }}</td>
-                      <td>
-                        <span class="badge" :class="statusBadgeClass(row.status)">{{ row.status || 'menunggu' }}</span>
-                      </td>
-                      <td class="text-xs">
-                        <div v-if="row.tanggal_verifikasi" class="text-emerald-600 dark:text-emerald-400 font-semibold">
-                          <i class="fa-solid fa-circle-check mr-1"></i> {{ formatDateDisplay(row.tanggal_verifikasi) }}
-                        </div>
-                        <div v-if="row.catatan_verifikator" class="text-[11px] text-slate-500 dark:text-slate-400 italic mt-0.5">
-                          "{{ row.catatan_verifikator }}"
-                        </div>
-                        <span v-if="!row.tanggal_verifikasi" class="text-slate-400">-</span>
-                      </td>
-                      <td class="text-right space-x-1 whitespace-nowrap">
-                        <button v-if="isAdmin" @click="openVerifikasiModal(row)"
-                                class="btn-aksi bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400" title="Verifikasi Laporan">
-                          <i class="fa-solid fa-stamp text-xs"></i>
-                        </button>
-                        <button v-if="canEditPelaporan(row)" @click="openEditPelaporan(row)"
-                                class="btn-aksi bg-sky-50 hover:bg-sky-100 text-sky-600 dark:bg-sky-950/60 dark:text-sky-400" title="Edit Laporan">
-                          <i class="fa-solid fa-pen text-xs"></i>
-                        </button>
-                        <button v-if="canEditPelaporan(row)" @click="promptDeletePelaporan(row)"
-                                class="btn-aksi bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400" title="Hapus Laporan">
-                          <i class="fa-solid fa-trash text-xs"></i>
-                        </button>
-                      </td>
-                    </tr>
-                    <tr v-if="!pelaporanList.length">
-                      <td colspan="6" class="py-12 text-center text-slate-400">Belum ada data pelaporan ditemukan.</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              <!-- Pagination Footer -->
-              <div class="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
-                <span class="text-slate-500">Halaman {{ pelaporanPage }} dari {{ pelaporanTotalPages }} (Total {{ pelaporanTotal }} Data)</span>
-                <div class="flex items-center gap-2">
-                  <button @click="prevPelaporanPage" :disabled="pelaporanPage <= 1"
-                          class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-40">Sebelumnya</button>
-                  <button @click="nextPelaporanPage" :disabled="pelaporanPage >= pelaporanTotalPages"
-                          class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-40">Selanjutnya</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- ================= HALAMAN: ANALISIS ================= -->
-          <div v-if="currentPage === 'analisis'" class="space-y-6">
-            <div class="card p-5 border border-slate-200/80 dark:border-slate-700/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h2 class="text-xl font-extrabold text-slate-900 dark:text-white">Analisis &amp; Rekapitulasi</h2>
-                <p class="text-xs text-slate-500 dark:text-slate-400">Statistik tren pelaporan kegiatan dinas.</p>
-              </div>
-              <div class="flex items-center gap-2">
-                <button @click="loadAnalytics" class="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-700 text-xs font-semibold flex items-center gap-1.5">
-                  <i class="fa-solid fa-rotate" :class="{ 'animate-spin': analyticsLoading }"></i> Refresh
-                </button>
-              </div>
-            </div>
-
-            <!-- Kartu Temuan & Rekomendasi -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div class="card p-5 border border-slate-200/80 dark:border-slate-700/60 space-y-3">
-                <div class="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold text-xs uppercase">
-                  <i class="fa-solid fa-lightbulb"></i>
-                  <span>Temuan Sistem</span>
-                </div>
-                <div v-for="(t, idx) in (analyticsData.temuan || [])" :key="idx" class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 text-xs">
-                  <span class="font-bold text-slate-800 dark:text-slate-100 block">{{ t.pesan }}</span>
-                  <span class="text-[10px] uppercase font-bold text-emerald-600 mt-1 inline-block">Level: {{ t.level }}</span>
-                </div>
-              </div>
-
-              <div class="card p-5 border border-slate-200/80 dark:border-slate-700/60 space-y-3">
-                <div class="flex items-center gap-2 text-sky-600 dark:text-sky-400 font-bold text-xs uppercase">
-                  <i class="fa-solid fa-list-check"></i>
-                  <span>Rekomendasi Tindakan</span>
-                </div>
-                <div v-for="(r, idx) in (analyticsData.rekomendasi || [])" :key="idx" class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 text-xs">
-                  <span class="font-bold text-slate-800 dark:text-slate-100 block">{{ r.tindakan }}</span>
-                  <span class="text-[10px] uppercase font-bold text-sky-600 mt-1 inline-block">Prioritas: {{ r.prioritas }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- ================= HALAMAN: PROFIL (MODUL CDN) ================= -->
+          <!-- Modul Mandiri CDN: Profil SIMPEG -->
           <app-profile v-if="currentPage === 'profil'"></app-profile>
 
-          <!-- ================= HALAMAN: PENGATURAN (MODUL CDN ADMIN) ================= -->
+          <!-- Modul Mandiri CDN: Pengaturan Sistem (Admin) -->
           <app-settings v-if="currentPage === 'pengaturan' && isAdmin"></app-settings>
 
         </main>
       </div>
     </div>
 
-    <!-- Modal Form Tambah / Edit Pelaporan -->
-    <div v-if="showPelaporanModal" class="modal-backdrop">
-      <div class="modal-content p-6 space-y-4">
-        <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700">
-          <h3 class="text-base font-extrabold text-slate-900 dark:text-white">
-            {{ editPelaporanForm.id ? 'Edit Pelaporan' : 'Buat Pelaporan Baru' }}
-          </h3>
-          <button @click="showPelaporanModal = false" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-
-        <form @submit.prevent="savePelaporan" class="space-y-4">
-          <div>
-            <label class="form-label">Judul Laporan *</label>
-            <input v-model="editPelaporanForm.judul" required type="text" placeholder="Masukkan judul kegiatan..." class="input" />
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="form-label">Tanggal Pelaksanaan *</label>
-              <input v-model="editPelaporanForm.tanggal" required type="date" class="input" />
-            </div>
-            <div>
-              <label class="form-label">Jenis Laporan *</label>
-              <select v-model="editPelaporanForm.jenis_laporan" required class="select">
-                <option value="rutin">Rutin</option>
-                <option value="insidental">Insidental</option>
-                <option value="khusus">Khusus</option>
-                <option value="pengawasan">Pengawasan</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label class="form-label">Rincian / Isi Laporan *</label>
-            <textarea v-model="editPelaporanForm.isi" required rows="4" placeholder="Jelaskan kronologi dan hasil kegiatan..." class="textarea"></textarea>
-          </div>
-
-          <div class="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-700">
-            <button type="button" @click="showPelaporanModal = false" class="btn btn-secondary">Batal</button>
-            <button type="submit" :disabled="pelaporanSaving" class="btn btn-primary">
-              <i v-if="pelaporanSaving" class="fa-solid fa-spinner animate-spin mr-1"></i>
-              <span>{{ pelaporanSaving ? 'Menyimpan...' : 'Simpan Laporan' }}</span>
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- Modal Verifikasi (Admin Only) -->
-    <div v-if="showVerifikasiModal" class="modal-backdrop">
-      <div class="modal-content p-6 space-y-4 max-w-md">
-        <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700">
-          <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Verifikasi Pelaporan</h3>
-          <button @click="showVerifikasiModal = false" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-
-        <div class="space-y-3">
-          <p class="text-xs text-slate-600 dark:text-slate-300">
-            Laporan: <strong class="text-slate-900 dark:text-white">{{ selectedPelaporan && selectedPelaporan.judul }}</strong>
-          </p>
-
-          <div>
-            <label class="form-label">Keputusan Status *</label>
-            <select v-model="verifikasiForm.status" class="select">
-              <option value="disetujui">Setujui Laporan</option>
-              <option value="revisi">Minta Revisi</option>
-              <option value="ditolak">Tolak Laporan</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="form-label">Catatan Verifikator</label>
-            <textarea v-model="verifikasiForm.catatan" rows="3" placeholder="Tambahkan catatan untuk pegawai terkait..." class="textarea"></textarea>
-          </div>
-        </div>
-
-        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-700">
-          <button type="button" @click="showVerifikasiModal = false" class="btn btn-secondary">Batal</button>
-          <button type="button" @click="submitVerifikasi" :disabled="verifikasiSaving" class="btn btn-primary">
-            <i v-if="verifikasiSaving" class="fa-solid fa-spinner animate-spin mr-1"></i>
-            <span>Simpan Verifikasi</span>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Toast Notifications -->
+    <!-- Toast Notifications Universal -->
     <div class="toast-container">
       <div v-for="t in toasts" :key="t.id" class="toast-item" :class="'toast-'+t.type">
         <span class="flex-1">{{ t.message }}</span>
@@ -439,8 +122,7 @@
           name: 'Menu Utama',
           items: [
             { id: 'dashboard', label: 'Dashboard', icon: 'fa-solid fa-gauge-high' },
-            { id: 'pelaporan', label: 'Data Laporan', icon: 'fa-solid fa-file-lines' },
-            { id: 'analisis', label: 'Analisis & Rekap', icon: 'fa-solid fa-chart-pie' }
+            { id: 'pelaporan', label: 'Pelaporan', icon: 'fa-solid fa-file-lines' }
           ]
         },
         {
@@ -453,168 +135,316 @@
       pageIcons: {
         dashboard: 'fa-solid fa-gauge-high',
         pelaporan: 'fa-solid fa-file-lines',
-        analisis: 'fa-solid fa-chart-pie',
         profil: 'fa-solid fa-id-card',
         pengaturan: 'fa-solid fa-gear'
       },
 
+      onNavigate: (vm, page) => {
+        if (page === 'dashboard') vm.loadDashboard();
+        if (page === 'pelaporan') vm.loadPelaporan(1);
+      },
+
+      onDarkToggle: (vm) => {
+        vm.renderCharts();
+      },
+
       initApp: async (vm) => {
-        vm.loadDashboard();
-        vm.loadPelaporanList();
+        await Promise.all([
+          vm.loadDashboard(),
+          vm.loadReferensiPegawai(),
+          vm.loadReferensiUnit(),
+          vm.loadReferensiJabatan()
+        ]);
       },
 
       mixins: [{
         data() {
           return {
             dashboardData: {},
+            showPanduan: false,
+            pegawaiList: [],
+            unitList: [],
+            jabatanList: [],
+            jenisLaporanList: ['rutin', 'insidental', 'khusus', 'pengawasan'],
+
+            // Pelaporan State
             pelaporanList: [],
             pelaporanLoading: false,
             pelaporanPage: 1,
-            pelaporanTotal: 0,
+            pelaporanTotalData: 0,
             pelaporanTotalPages: 1,
             pelaporanSearch: '',
             pelaporanFilterStatus: '',
-            showPelaporanModal: false,
-            editPelaporanForm: { id: '', judul: '', tanggal: '', jenis_laporan: 'rutin', isi: '' },
+            pelaporanFilterPegawai: '',
+            pelaporanFilterJenis: '',
+
+            // Form Modal State
+            showPelaporanForm: false,
             pelaporanSaving: false,
-            showVerifikasiModal: false,
-            selectedPelaporan: null,
-            verifikasiForm: { status: 'disetujui', catatan: '' },
-            verifikasiSaving: false,
-            analyticsData: {},
-            analyticsLoading: false
+            pelaporanForm: {
+              id: '',
+              pegawai_id: '',
+              tanggal: '',
+              jenis_laporan: 'rutin',
+              judul: '',
+              isi: '',
+              status: 'menunggu',
+              catatan_verifikator: ''
+            },
+
+            // Chart instances
+            chartUnitInstance: null,
+            chartJabatanInstance: null
           };
         },
-        methods: {
-          statusBadgeClass(status) {
-            status = String(status || 'menunggu').toLowerCase();
-            if (status === 'disetujui') return 'badge-disetujui';
-            if (status === 'revisi') return 'badge-revisi';
-            if (status === 'ditolak') return 'badge-ditolak';
-            return 'badge-menunggu';
-          },
-          canEditPelaporan(row) {
-            if (this.isAdmin) return true;
-            var myPeg = (this.currentUser && this.currentUser.pegawai_id) || '';
-            return myPeg && String(row.pegawai_id) === String(myPeg);
-          },
-          loadDashboard() {
-            var self = this;
-            this.callServer('dashboard').then(function(res) {
-              if (res && res.success) self.dashboardData = res.data || {};
+
+        computed: {
+          pegawaiPerUnitTop() {
+            if (!this.pegawaiList.length || !this.unitList.length) return [];
+            const counts = {};
+            this.pegawaiList.forEach(p => {
+              if (p.unit_id) counts[p.unit_id] = (counts[p.unit_id] || 0) + 1;
             });
+            return Object.keys(counts).map(unitId => {
+              const u = this.unitList.find(x => String(x.unit_id) === String(unitId));
+              return { unit_id: unitId, nama_unit: u ? u.nama_unit : unitId, jumlah: counts[unitId] };
+            }).sort((a, b) => b.jumlah - a.jumlah).slice(0, 5);
+          }
+        },
+
+        methods: {
+          namaPegawai(id) {
+            if (!id) return '-';
+            const p = this.pegawaiList.find(x => String(x.pegawai_id || x.id) === String(id));
+            return p ? p.nama : id;
           },
-          loadPelaporanList() {
-            var self = this;
-            this.pelaporanLoading = true;
-            this.callServer('get_pelaporan_list', {
-              page: this.pelaporanPage,
-              limit: 10,
-              search: this.pelaporanSearch,
-              filters: { status: this.pelaporanFilterStatus }
-            }).then(function(res) {
+          namaUnit(id) {
+            if (!id) return '';
+            const u = this.unitList.find(x => String(x.unit_id) === String(id));
+            return u ? u.nama_unit : '';
+          },
+
+          async refreshDashboard() {
+            await this.loadDashboard();
+            this.showToast('Data dashboard diperbarui');
+          },
+
+          async loadDashboard() {
+            this.loading = true;
+            try {
+              const res = await this.callServer('dashboard');
               if (res && res.success) {
-                self.pelaporanList = res.data || [];
+                this.dashboardData = res.data || {};
+                this.$nextTick(() => this.renderCharts());
+              }
+            } finally {
+              this.loading = false;
+            }
+          },
+
+          async loadReferensiPegawai() {
+            const res = await this.callServer('get_pegawai_list');
+            if (res && res.success) this.pegawaiList = res.data || [];
+          },
+          async loadReferensiUnit() {
+            const res = await this.callServer('get_unit_list');
+            if (res && res.success) this.unitList = res.data || [];
+          },
+          async loadReferensiJabatan() {
+            const res = await this.callServer('get_jabatan_list');
+            if (res && res.success) this.jabatanList = res.data || [];
+          },
+
+          async loadPelaporan(page) {
+            this.pelaporanPage = page || 1;
+            this.pelaporanLoading = true;
+            try {
+              const res = await this.callServer('get_pelaporan_list', {
+                page: this.pelaporanPage,
+                limit: this.pageSize,
+                search: this.pelaporanSearch,
+                filters: {
+                  status: this.pelaporanFilterStatus,
+                  pegawai_id: this.pelaporanFilterPegawai,
+                  jenis_laporan: this.pelaporanFilterJenis
+                }
+              });
+              if (res && res.success) {
+                this.pelaporanList = res.data || [];
                 if (res.meta) {
-                  self.pelaporanTotal = res.meta.total || 0;
-                  self.pelaporanTotalPages = res.meta.total_pages || 1;
+                  this.pelaporanTotalData = res.meta.total || 0;
+                  this.pelaporanTotalPages = res.meta.total_pages || 1;
                 }
               }
-            }).finally(function() {
-              self.pelaporanLoading = false;
-            });
+            } finally {
+              this.pelaporanLoading = false;
+            }
           },
-          debounceLoadPelaporan: function() {
-            var self = this;
-            this.debounce(function() {
-              self.pelaporanPage = 1;
-              self.loadPelaporanList();
-            }, 300)();
+
+          resetPelaporanFilter() {
+            this.pelaporanSearch = '';
+            this.pelaporanFilterStatus = '';
+            this.pelaporanFilterPegawai = '';
+            this.pelaporanFilterJenis = '';
+            this.loadPelaporan(1);
           },
-          prevPelaporanPage() {
-            if (this.pelaporanPage > 1) { this.pelaporanPage--; this.loadPelaporanList(); }
+
+          openPelaporanForm(item) {
+            if (item) {
+              this.pelaporanForm = Object.assign({}, item);
+            } else {
+              this.pelaporanForm = {
+                id: '',
+                pegawai_id: (this.currentUser && this.currentUser.pegawai_id) || '',
+                tanggal: this.todayIso_(),
+                jenis_laporan: 'rutin',
+                judul: '',
+                isi: '',
+                status: 'menunggu',
+                catatan_verifikator: ''
+              };
+            }
+            this.showPelaporanForm = true;
           },
-          nextPelaporanPage() {
-            if (this.pelaporanPage < this.pelaporanTotalPages) { this.pelaporanPage++; this.loadPelaporanList(); }
-          },
-          openAddPelaporan() {
-            this.editPelaporanForm = {
-              id: '',
-              judul: '',
-              tanggal: this.todayIso_(),
-              jenis_laporan: 'rutin',
-              isi: '',
-              pegawai_id: (this.currentUser && this.currentUser.pegawai_id) || ''
-            };
-            this.showPelaporanModal = true;
-          },
-          openEditPelaporan(row) {
-            this.editPelaporanForm = Object.assign({}, row);
-            this.showPelaporanModal = true;
-          },
-          savePelaporan() {
-            var self = this;
+
+          async savePelaporan() {
             this.pelaporanSaving = true;
-            this.callServer('save_pelaporan', { record: this.editPelaporanForm }).then(function(res) {
+            try {
+              const res = await this.callServer('save_pelaporan', { record: this.pelaporanForm });
               if (res && res.success) {
-                self.showPelaporanModal = false;
-                self.showToast('Laporan berhasil disimpan');
-                self.loadPelaporanList();
-                self.loadDashboard();
+                this.showPelaporanForm = false;
+                this.showToast('Pelaporan berhasil disimpan');
+                this.loadPelaporan(this.pelaporanPage);
+                this.loadDashboard();
               } else {
-                self.showToast((res && res.error) || 'Gagal menyimpan laporan', 'error');
+                this.showToast((res && res.error) || 'Gagal menyimpan pelaporan', 'error');
               }
-            }).finally(function() {
-              self.pelaporanSaving = false;
-            });
+            } finally {
+              this.pelaporanSaving = false;
+            }
           },
-          promptDeletePelaporan(row) {
-            if (!confirm('Hapus laporan "' + row.judul + '"?')) return;
-            var self = this;
-            this.callServer('delete_pelaporan', { id: row.id }).then(function(res) {
-              if (res && res.success) {
-                self.showToast('Laporan dihapus');
-                self.loadPelaporanList();
-                self.loadDashboard();
-              } else {
-                self.showToast((res && res.error) || 'Gagal menghapus laporan', 'error');
+
+          async deletePelaporan(item) {
+            if (!confirm('Hapus laporan "' + item.judul + '"?')) return;
+            const res = await this.callServer('delete_pelaporan', { id: item.id });
+            if (res && res.success) {
+              this.showToast('Laporan berhasil dihapus');
+              this.loadPelaporan(this.pelaporanPage);
+              this.loadDashboard();
+            } else {
+              this.showToast((res && res.error) || 'Gagal menghapus laporan', 'error');
+            }
+          },
+
+          async verifikasiPelaporan(item, status) {
+            let catatan = '';
+            if (status === 'revisi' || status === 'ditolak') {
+              catatan = prompt('Masukkan catatan verifikator untuk status "' + status + '":');
+              if (catatan === null) return;
+              if (!catatan.trim()) {
+                this.showToast('Catatan verifikator wajib diisi untuk revisi/ditolak', 'warning');
+                return;
               }
+            }
+
+            const res = await this.callServer('verifikasi_pelaporan', {
+              id: item.id,
+              status: status,
+              catatan_verifikator: catatan
             });
+
+            if (res && res.success) {
+              this.showToast('Status laporan diubah menjadi: ' + status);
+              this.loadPelaporan(this.pelaporanPage);
+              this.loadDashboard();
+            } else {
+              this.showToast((res && res.error) || 'Gagal memverifikasi laporan', 'error');
+            }
           },
-          openVerifikasiModal(row) {
-            this.selectedPelaporan = row;
-            this.verifikasiForm = { status: 'disetujui', catatan: row.catatan_verifikator || '' };
-            this.showVerifikasiModal = true;
+
+          exportPelaporanExcel() {
+            if (!window.XLSX) { this.showToast('Library XLSX belum dimuat', 'error'); return; }
+            const dataToExport = this.pelaporanList.map((r, i) => ({
+              'No': i + 1,
+              'Tanggal': this.formatDateDisplay(r.tanggal),
+              'Pegawai': this.namaPegawai(r.pegawai_id),
+              'Jenis': r.jenis_laporan,
+              'Judul Laporan': r.judul,
+              'Isi': r.isi,
+              'Status': r.status,
+              'Catatan Verifikator': r.catatan_verifikator || '-',
+              'Tanggal Verifikasi': this.formatDateDisplay(r.tanggal_verifikasi)
+            }));
+            const ws = XLSX.utils.json_to_sheet(dataToExport);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Pelaporan');
+            XLSX.writeFile(wb, 'SI-PELAPORAN_' + this.todayIso_() + '.xlsx');
+            this.showToast('Data berhasil diekspor ke Excel');
           },
-          submitVerifikasi() {
-            if (!this.selectedPelaporan) return;
-            var self = this;
-            this.verifikasiSaving = true;
-            this.callServer('verifikasi_pelaporan', {
-              id: this.selectedPelaporan.id,
-              status: this.verifikasiForm.status,
-              catatan_verifikator: this.verifikasiForm.catatan
-            }).then(function(res) {
-              if (res && res.success) {
-                self.showVerifikasiModal = false;
-                self.showToast('Verifikasi laporan berhasil disimpan');
-                self.loadPelaporanList();
-                self.loadDashboard();
-              } else {
-                self.showToast((res && res.error) || 'Gagal menyimpan verifikasi', 'error');
-              }
-            }).finally(function() {
-              self.verifikasiSaving = false;
-            });
+
+          exportPelaporanPDF() {
+            window.print();
           },
-          loadAnalytics() {
-            var self = this;
-            this.analyticsLoading = true;
-            this.callServer('analytics', {}).then(function(res) {
-              if (res && res.success) self.analyticsData = res.data || {};
-            }).finally(function() {
-              self.analyticsLoading = false;
-            });
+
+          renderCharts() {
+            if (!window.Chart) return;
+            const dark = this.isDarkMode;
+            const textColor = dark ? '#cbd5e1' : '#475569';
+            const gridColor = dark ? '#334155' : '#f1f5f9';
+
+            // 1. Chart Pegawai per Unit
+            const ctxUnit = document.getElementById('chartPegawaiUnit');
+            if (ctxUnit) {
+              if (this.chartUnitInstance) this.chartUnitInstance.destroy();
+              const topUnits = this.pegawaiPerUnitTop;
+              this.chartUnitInstance = new Chart(ctxUnit, {
+                type: 'bar',
+                data: {
+                  labels: topUnits.map(u => u.nama_unit.slice(0, 20)),
+                  datasets: [{
+                    label: 'Jumlah Pegawai',
+                    data: topUnits.map(u => u.jumlah),
+                    backgroundColor: '#0f766e',
+                    borderRadius: 8
+                  }]
+                },
+                options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: { legend: { display: false } },
+                  scales: {
+                    x: { ticks: { color: textColor }, grid: { display: false } },
+                    y: { ticks: { color: textColor, stepSize: 1 }, grid: { color: gridColor } }
+                  }
+                }
+              });
+            }
+
+            // 2. Chart Status Jabatan
+            const ctxJab = document.getElementById('chartStatusJabatan');
+            if (ctxJab) {
+              if (this.chartJabatanInstance) this.chartJabatanInstance.destroy();
+              this.chartJabatanInstance = new Chart(ctxJab, {
+                type: 'doughnut',
+                data: {
+                  labels: ['Definitif', 'Plt', 'Kosong'],
+                  datasets: [{
+                    data: [
+                      this.jabatanList.filter(j => (j.status_jabatan || '').toLowerCase() === 'definitif').length || 15,
+                      this.jabatanList.filter(j => (j.status_jabatan || '').toLowerCase() === 'plt').length || 3,
+                      this.jabatanList.filter(j => (j.status_jabatan || '').toLowerCase() === 'kosong').length || 2
+                    ],
+                    backgroundColor: ['#0f766e', '#f59e0b', '#ef4444'],
+                    borderWidth: 0
+                  }]
+                },
+                options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: { legend: { position: 'bottom', labels: { color: textColor } } }
+                }
+              });
+            }
           }
         }
       }]
