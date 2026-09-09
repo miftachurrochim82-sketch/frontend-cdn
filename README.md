@@ -10,6 +10,7 @@ Tujuan utama: mengurangi duplikasi kode HTML/CSS/JS, mempermudah pemeliharaan, d
 |---|---|
 | `app-common.css` | Kumpulan gaya global, tema, komponen UI, dan dark mode. |
 | `app-components.js` | Komponen Vue siap pakai: Login, Sidebar, Header, Layout. |
+| `app-modules.js` | Modul halaman mandiri (self-contained): `<app-profile>` & `<app-settings>`. |
 | `app-core.js` | Factory function untuk inisialisasi Vue app dengan AppConfig. |
 
 Ketergantungan eksternal (tetap dimuat dari CDN publik di `<head>` aplikasi): Tailwind Play CDN, Vue 3 global build, Font Awesome 6, Inter font. Library fitur (Chart.js, SheetJS, jsPDF) dimuat sesuai kebutuhan aplikasi.
@@ -26,7 +27,15 @@ Gunakan URL berikut di dalam `Index.html` aplikasi GAS (untuk produksi disaranka
 
 <!-- Komponen & core (di akhir <body>, SETELAH vue.global.prod.js) -->
 <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/app-components.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/app-modules.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/app-core.js"></script>
+```
+
+Pemakaian modul mandiri di body (menggantikan file A7/A9 lokal):
+
+```html
+<app-profile v-if="currentPage === 'profil'"></app-profile>
+<app-settings v-if="currentPage === 'pengaturan' && isAdmin"></app-settings>
 ```
 
 > Catatan: jsDelivr membaca langsung dari GitHub. Setelah push + tag baru,
@@ -128,6 +137,8 @@ Bridge: `google.script.run.handleAction({action, data, token})`.
 | `<app-login>` | Layar SSO (tombol "Masuk via SI-Platform", state loading & error). |
 | `<app-sidebar>` | Navigasi samping: collapse desktop, drawer mobile, grup menu, badge user, logout. |
 | `<app-header>` | Top bar: hamburger, breadcrumb halaman, toggle dark mode, status online, identitas user. |
+| `<app-profile>` | Modul mandiri: kartu profil SIMPEG + edit kontak (muat data sendiri saat tampil). |
+| `<app-settings>` | Modul mandiri (admin): tabel konfigurasi + modal tambah/edit + hapus. Gate akses via `isAdmin` di template aplikasi. |
 
 ## 📝 Kebijakan versi
 
