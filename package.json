@@ -1,6 +1,6 @@
 {
   "name": "@miftachurrochim82/frontend-cdn",
-  "version": "2.2.4",
+  "version": "2.2.5",
   "description": "Shared Frontend Assets CDN & Backend Global Library for Google Apps Script Web Apps (Pemkab Trenggalek)",
   "main": "frontend/app-core.js",
   "scripts": {
