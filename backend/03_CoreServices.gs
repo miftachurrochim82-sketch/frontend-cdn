@@ -18,7 +18,7 @@ function masterDbFor_(ssId, masterSsId) { return (masterSsId && masterSsId !== s
 function getPegawaiList(ssId, headersMap, masterSsId) {
   try {
     var db = masterDbFor_(ssId, masterSsId);
-    return readRecordsNoLock(db, 'PEGAWAI', MASTER_SHEET_HEADERS, { masterSsId: masterSsId }).map(function(p) {
+    return getSheetDataCached(db, 'PEGAWAI', MASTER_SHEET_HEADERS, 600, { masterSsId: masterSsId }).map(function(p) {
       return { id: p.pegawai_id || p.id || '', pegawai_id: p.pegawai_id || p.id || '', nip: p.nip || '', nama: p.nama || '', email: p.email || '', no_hp: p.no_hp || '', unit_id: p.unit_id || '', jabatan_id: p.jabatan_id || '', status: p.status || 'AKTIF' };
     });
   } catch (err) { throw new Error('Gagal baca PEGAWAI: ' + err.message); }
@@ -26,7 +26,7 @@ function getPegawaiList(ssId, headersMap, masterSsId) {
 function getUnitList(ssId, headersMap, masterSsId) {
   try {
     var db = masterDbFor_(ssId, masterSsId);
-    return readRecordsNoLock(db, 'UNIT_KERJA', MASTER_SHEET_HEADERS, { masterSsId: masterSsId }).map(function(u) {
+    return getSheetDataCached(db, 'UNIT_KERJA', MASTER_SHEET_HEADERS, 600, { masterSsId: masterSsId }).map(function(u) {
       return { unit_id: u.unit_id || u.id || '', kode_unit: u.kode_unit || '', nama_unit: u.nama_unit || '', parent_unit_id: u.parent_unit_id || '', jenis_unit: u.jenis_unit || '', status: u.status || 'AKTIF' };
     });
   } catch (err) { throw new Error('Gagal baca UNIT_KERJA: ' + err.message); }
@@ -34,7 +34,7 @@ function getUnitList(ssId, headersMap, masterSsId) {
 function getJabatanList(ssId, headersMap, masterSsId) {
   try {
     var db = masterDbFor_(ssId, masterSsId);
-    return readRecordsNoLock(db, 'JABATAN', MASTER_SHEET_HEADERS, { masterSsId: masterSsId }).map(function(j) {
+    return getSheetDataCached(db, 'JABATAN', MASTER_SHEET_HEADERS, 600, { masterSsId: masterSsId }).map(function(j) {
       return { jabatan_id: j.jabatan_id || j.id || '', kode_jabatan: j.kode_jabatan || '', nama_jabatan: j.nama_jabatan || '', unit_id: j.unit_id || '', jenis_jabatan: j.jenis_jabatan || '', kelas_jabatan: j.kelas_jabatan || '', status: j.status || 'AKTIF', status_jabatan: j.status_jabatan || '' };
     });
   } catch (err) { throw new Error('Gagal baca JABATAN: ' + err.message); }
@@ -46,7 +46,7 @@ function getProfile(ssId, email, headersMap, masterSsId) {
   var targetEmail = String(email).toLowerCase().trim();
   try {
     try {
-      var rows = readRecordsNoLock(ssId, 'MAIN_DATA', headersMap);
+      var rows = getSheetDataCached(ssId, 'MAIN_DATA', headersMap, 180);
       for (var i = 0; i < rows.length; i++) {
         var p = rows[i];
         if (!p.deleted_at && String(p.email || '').toLowerCase().trim() === targetEmail) {
@@ -54,7 +54,7 @@ function getProfile(ssId, email, headersMap, masterSsId) {
         }
       }
     } catch (e) { logWarn('CoreBusiness.getProfile', 'MAIN_DATA dilewati: ' + e.message); }
-    var refs = readRecordsNoLock(masterDbFor_(ssId, masterSsId), 'PEGAWAI', MASTER_SHEET_HEADERS, { masterSsId: masterSsId });
+    var refs = getSheetDataCached(masterDbFor_(ssId, masterSsId), 'PEGAWAI', MASTER_SHEET_HEADERS, 600, { masterSsId: masterSsId });
     var referensi = null;
     for (var j = 0; j < refs.length; j++) { if (String(refs[j].email || '').toLowerCase().trim() === targetEmail) { referensi = refs[j]; break; } }
     if (!referensi) return null;
@@ -113,7 +113,7 @@ function saveMyProfile(ssId, data, actor, headersMap, masterSsId) {
 // ==================== 3. KONFIGURASI ====================
 function getConfigList(ssId, headersMap) {
   try {
-    return readRecordsNoLock(ssId, 'KONFIGURASI', headersMap).filter(function(c) { return !c.deleted_at; })
+    return getSheetDataCached(ssId, 'KONFIGURASI', headersMap, 600).filter(function(c) { return !c.deleted_at; })
       .map(function(c) { return { id: c.id, key: c.key, value: c.value, keterangan: c.keterangan || '', updated_at: c.updated_at || '' }; });
   } catch (err) { logError('CoreBusiness.getConfigList', err.message); return []; }
 }
