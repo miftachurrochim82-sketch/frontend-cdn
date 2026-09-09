@@ -286,6 +286,14 @@
       });
     }
 
+    // Registrasi modul halaman mandiri (app-modules.js, opsional)
+    if (global.AppModules) {
+      Object.keys(global.AppModules).forEach(function (name) {
+        if (name === 'version') return;
+        app.component(name, global.AppModules[name]);
+      });
+    }
+
     // Mixin khusus aplikasi (data/methods halaman: dashboard, CRUD, dst.)
     (config.mixins || []).forEach(function (m) { app.mixin(m); });
 
