@@ -1,4 +1,4 @@
-# Frontend CDN & Backend Global Library v2.0
+# Frontend CDN & Backend Global Library v2.2.4
 ### Ekosistem Shared Assets & Engine Web App Google Apps Script (GAS) — Pemkab Trenggalek
 
 Repository ini adalah standar terpadu frontend (*Vue 3 + Tailwind CSS*) dan backend (*Google Apps Script*) yang digunakan bersama oleh seluruh aplikasi web di lingkungan Pemerintah Kabupaten Trenggalek.
@@ -34,13 +34,13 @@ frontend-cdn/
 │
 ├── 🎨 frontend/                     # KODE FRONTEND (SHARED CDN ASSETS)
 │   ├── app-common.css              # Desain tema global, token CSS, dan dark mode
-│   ├── app-common.min.css          # Versi minifikasi CSS (~6.7 KB)
+│   ├── app-common.min.css          # Versi minifikasi CSS (~6.8 KB)
 │   ├── app-components.js           # Komponen Vue Shell (<app-login>, <app-sidebar>, <app-header>)
-│   ├── app-components.min.js       # Versi minifikasi Shell UI
+│   ├── app-components.min.js       # Versi minifikasi Shell UI (~16.3 KB)
 │   ├── app-modules.js              # Modul mandiri (<app-profile> SIMPEG & <app-settings>)
-│   ├── app-modules.min.js          # Versi minifikasi modul mandiri
+│   ├── app-modules.min.js          # Versi minifikasi modul mandiri (~27.7 KB)
 │   ├── app-core.js                 # Factory AppCore Vue 3 (Auth SSO, Bridge, Rupiah & Date Helpers)
-│   └── app-core.min.js             # Versi minifikasi Core Engine (~6.4 KB)
+│   └── app-core.min.js             # Versi minifikasi Core Engine (~6.5 KB)
 │
 ├── 📋 backend/                      # KODE BACKEND GOOGLE APPS SCRIPT (v2.0)
 │   ├── .clasp.json                 # File identitas proyek Apps Script lokal (Script ID)
@@ -51,6 +51,18 @@ frontend-cdn/
 │   ├── 03_CoreServices.gs          # Profil SIMPEG, Konfigurasi, Drive Folder Provisioning & Setup
 │   ├── 99_CoreTest.gs              # Automated Diagnostic & Regression Test Suite
 │   └── Code.gs                     # Template Entrypoint doGet() & Dispatcher handleAction()
+│
+├── 📂 examples/                     # TEMPLATE & IMPLEMENTASI CONTOH APLIKASI
+│   └── si-pelaporan/               # Implementasi Lengkap SI-PELAPORAN (Pemkab Trenggalek)
+│       ├── 01_ConfigAndBridge.gs   # Bridge & konfigurasi lokal (CoreLib integration)
+│       ├── 02_AppLogic.gs          # Endpoint doGet, doPost, pelaporan handlers, & analytics
+│       ├── 03_SeedData.gs          # Seeder data pelaporan & demo records
+│       ├── 99_TestSuite.gs         # Comprehensive automated test suite
+│       ├── A4_Dashboard.html       # Partial View: Dashboard & KPI Analytics
+│       ├── A5_Pelaporan.html       # Partial View: Manajemen Pelaporan & Verifikasi
+│       ├── A6_Analisa.html         # Partial View: Analisa & Rekapitulasi Statistik
+│       ├── A8_MasterData.html      # Partial View: Master Data Referensi SIMPEG (Pegawai/Jabatan/Unit)
+│       └── Index.html              # Template View Utama AppCore Consumer Web App
 │
 ├── .clasp.json                     # Konfigurasi Clasp root (target folder backend)
 ├── .gitignore                      # Mengabaikan cache & node_modules
@@ -66,12 +78,12 @@ Salin tag CDN berikut ke dalam file `Index.html` aplikasi GAS Anda:
 
 ```html
 <!-- CSS Global Minified (di <head>) -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.2.0/frontend/app-common.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.2.4/frontend/app-common.min.css">
 
 <!-- JS Components, Modules, & Core Minified (di akhir <body>) -->
-<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.2.0/frontend/app-components.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.2.0/frontend/app-modules.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.2.0/frontend/app-core.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.2.4/frontend/app-components.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.2.4/frontend/app-modules.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.2.4/frontend/app-core.min.js"></script>
 ```
 
 ---
@@ -107,14 +119,18 @@ function handleAction(payload) {
     platformApiUrl: props.getProperty('PLATFORM_API_URL'),
     headersMap: {
       // Sheet khusus aplikasi Anda:
-      // PELAPORAN: ['id', 'nomor', 'judul', 'status', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at']
+      PELAPORAN: [
+        'id', 'pegawai_id', 'tanggal', 'jenis_laporan', 'judul', 'isi',
+        'status', 'catatan_verifikator', 'verifikator_id', 'tanggal_verifikasi',
+        'created_at', 'updated_at', 'created_by', 'updated_by', 'deleted_at'
+      ]
     }
   });
 }
 ```
 
 ### Cara B: Copy-Paste / Clasp Clone
-Salin seluruh file di folder `backend/` ke proyek Apps Script Anda, konfigurasikan `Script Properties`, dan panggil `dispatchAction(payload, getAppConfig_())`.
+Lihat implementasi referensi lengkap di folder `examples/si-pelaporan/`.
 
 ---
 
