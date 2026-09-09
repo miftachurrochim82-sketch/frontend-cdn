@@ -1,0 +1,19 @@
+{
+  "name": "@trenggalekkab/frontend-cdn",
+  "version": "2.2.5",
+  "description": "Shared Frontend CDN Library for Pemkab Trenggalek Applications",
+  "main": "app-core.min.js",
+  "author": "Pemerintah Kabupaten Trenggalek",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/miftachurrochim82-sketch/frontend-cdn.git"
+  },
+  "keywords": [
+    "trenggalek",
+    "vue3",
+    "cdn",
+    "sso",
+    "app-core"
+  ]
+}
