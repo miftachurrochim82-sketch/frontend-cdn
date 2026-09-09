@@ -1,32 +1,19 @@
 /* ============================================================
-   app-core.js — Factory inisialisasi Vue app (Shared CDN)
+   app-core.js — Factory Inisialisasi Vue App (Shared CDN v2.3.0)
 
    AppCore.create(AppConfig) mengembalikan instance aplikasi Vue 3
-   yang sudah berisi:
-   - state shell    : token, currentUser, currentPage, sidebar,
-                      dark mode, toasts, loading
-   - auth SSO       : exchange_platform_ticket, validasi sesi,
+   yang sudah terkonfigurasi lengkap dengan:
+   - State Shell    : token, currentUser, currentPage, sidebar,
+                      dark mode, toasts, loading, modal, pagination
+   - Auth SSO       : exchange_platform_ticket, validasi sesi,
                       logout, handleSessionExpired
-   - bridge backend : callServer(action, data) via
-                      google.script.run.handleAction({action,data,token})
-   - komponen shell : <app-login>, <app-sidebar>, <app-header>
-   - helper         : showToast, formatDateDisplay, formatDateTimeDisplay,
-                      formatRupiah, copyToClipboard, debounce, todayIso_
-
-   AppConfig {
-     appTitle      : String   // 'SI-PELAPORAN'
-     storagePrefix : String   // 'sipelaporan' → key sipelaporan_token/_user/_dark
-     platformUrl   : String   // URL exec SI-Platform (SSO)
-     initialPage   : String   // default 'dashboard'
-     brand         : { title, subtitle, logoChar, logoIcon, logoSvg }
-     menu          : [{ name:'Utama', items:[{id,label,icon,adminOnly}] }]
-                     ATAU flat [{id,label,icon,adminOnly}]
-     pageIcons     : { pageId: 'fa-solid fa-...' }
-     onNavigate    : (vm, page) => {}        // loader per halaman
-     onDarkToggle  : (vm) => {}               // mis. re-render chart
-     initApp       : async (vm) => {}        // load data awal pasca-login
-     mixins        : [ ... ]                  // data/methods khusus aplikasi
-   }
+   - Bridge Backend : callServer(action, data) via google.script.run
+   - Master SIMPEG  : In-memory & LocalStorage Cache (Pegawai, Unit, Jabatan)
+   - Lookup Helper  : lookupPegawai, namaPegawai, lookupUnit, namaUnit,
+                      lookupJabatan, namaJabatan
+   - Exporter Kit   : exportExcel, exportPDF
+   - Komponen Shell : <app-login>, <app-sidebar>, <app-header>,
+                      <app-badge>, <app-stat-card>, <app-modal>, <app-crud-table>
    ============================================================ */
 (function (global) {
   'use strict';
@@ -41,6 +28,7 @@
     var KEY_TOKEN   = prefix + '_token';
     var KEY_USER    = prefix + '_user';
     var KEY_DARK    = prefix + '_dark';
+    var KEY_SIMPEG  = prefix + '_simpeg_cache';
     var platformUrl = config.platformUrl || '';
 
     var app = Vue.createApp({
@@ -53,10 +41,10 @@
         } catch (e) { storedUser = {}; }
 
         return {
-          // ===== Pass-through AppConfig (dipakai template & komponen) =====
+          // ===== Pass-through AppConfig =====
           appTitle: config.appTitle || 'Aplikasi',
           brand: Object.assign(
-            { title: '', subtitle: '', logoChar: '', logoIcon: 'fa-solid fa-cube', logoSvg: '' },
+            { title: '', subtitle: '', logoChar: 'A', logoIcon: 'fa-solid fa-cube', logoSvg: '' },
             config.brand || {}
           ),
           menu: config.menu || [],
@@ -65,6 +53,12 @@
           // ===== Auth & session =====
           token: sessionStorage.getItem(KEY_TOKEN) || '',
           currentUser: storedUser,
+
+          // ===== Master Data SIMPEG Shared Cache =====
+          masterPegawaiList: [],
+          masterUnitList: [],
+          masterJabatanList: [],
+          masterLoaded: false,
 
           // ===== Shell / UI state =====
           currentPage: config.initialPage || 'dashboard',
@@ -85,13 +79,15 @@
         isAdmin: function () {
           var r = String((this.currentUser && this.currentUser.role) || '').toLowerCase();
           return r === 'admin' || r === 'super';
+        },
+        isVerifikator: function () {
+          var r = String((this.currentUser && this.currentUser.role) || '').toLowerCase();
+          return r === 'verifikator' || r === 'admin' || r === 'super';
         }
       },
 
       methods: {
         // ================= NAVIGASI & THEME =================
-        // Portal butuh ?redirect= (kontrak doGet Global) agar tahu URL
-        // kembali + tiket. back = URL aplikasi ini (valid di /exec & /dev).
         goToPlatform: function () {
           if (!platformUrl) { this.showToast('platformUrl belum dikonfigurasi', 'error'); return; }
           var back = window.location.href.split('?')[0];
@@ -100,7 +96,6 @@
         },
 
         navigateTo: function (page) {
-          // Cegah non-admin membuka pengaturan (lapis UX; backend tetap menolak)
           if (page === 'pengaturan' && !this.isAdmin) {
             this.showToast('Halaman khusus administrator', 'error');
             return;
@@ -148,7 +143,6 @@
           });
         },
 
-        // Sesi mati/kedaluwarsa → bersihkan + kembali ke layar login
         handleSessionExpired: function () {
           this.token = '';
           this.currentUser = {};
@@ -159,6 +153,102 @@
           this.currentPage = config.initialPage || 'dashboard';
           this.errorMessage = 'Sesi berakhir, silakan login ulang.';
           this.showToast('Sesi berakhir, silakan login ulang', 'error');
+        },
+
+        // ================= MASTER DATA SIMPEG AUTO-LOADER & LOOKUP =================
+        loadMasterSIMPEG: async function (forceReload) {
+          if (this.masterLoaded && !forceReload && this.masterPegawaiList.length) return;
+          try {
+            var calls = [
+              this.callServer('get_master_pegawai').then(function(r){ return r && r.success ? r : { success: false }; }),
+              this.callServer('get_master_unit').then(function(r){ return r && r.success ? r : { success: false }; }),
+              this.callServer('get_master_jabatan').then(function(r){ return r && r.success ? r : { success: false }; })
+            ];
+            var results = await Promise.all(calls);
+            // Fallback nama handler alternatif
+            if (!results[0].success) results[0] = await this.callServer('get_pegawai_list');
+            if (!results[1].success) results[1] = await this.callServer('get_unit_list');
+            if (!results[2].success) results[2] = await this.callServer('get_jabatan_list');
+
+            if (results[0] && results[0].success) this.masterPegawaiList = results[0].data || [];
+            if (results[1] && results[1].success) this.masterUnitList = results[1].data || [];
+            if (results[2] && results[2].success) this.masterJabatanList = results[2].data || [];
+            this.masterLoaded = true;
+          } catch (e) {
+            console.warn('[AppCore] loadMasterSIMPEG fallback:', e.message);
+          }
+        },
+
+        lookupPegawai: function (id) {
+          if (!id) return null;
+          var list = this.masterPegawaiList && this.masterPegawaiList.length ? this.masterPegawaiList : (this.pegawaiList || []);
+          return list.find(function(p) { return String(p.id || p.pegawai_id) === String(id); }) || null;
+        },
+        namaPegawai: function (id) {
+          var p = this.lookupPegawai(id);
+          return p ? (p.nama || p.display_name || id) : (id || '-');
+        },
+        lookupUnit: function (id) {
+          if (!id) return null;
+          var list = this.masterUnitList && this.masterUnitList.length ? this.masterUnitList : (this.unitList || []);
+          return list.find(function(u) { return String(u.id || u.unit_id || u.kode_unit) === String(id); }) || null;
+        },
+        namaUnit: function (id) {
+          var u = this.lookupUnit(id);
+          return u ? (u.nama_unit || u.nama || id) : (id || '-');
+        },
+        lookupJabatan: function (id) {
+          if (!id) return null;
+          var list = this.masterJabatanList && this.masterJabatanList.length ? this.masterJabatanList : (this.jabatanList || []);
+          return list.find(function(j) { return String(j.id || j.jabatan_id || j.kode_jabatan) === String(id); }) || null;
+        },
+        namaJabatan: function (id) {
+          var j = this.lookupJabatan(id);
+          return j ? (j.nama_jabatan || j.nama || id) : (id || '-');
+        },
+
+        // ================= UNIVERSAL EXPORT KIT =================
+        exportExcel: function (data, filename, sheetName) {
+          if (typeof XLSX === 'undefined') { this.showToast('Library SheetJS/XLSX tidak termuat', 'error'); return; }
+          filename = filename || ('Export_' + this.todayIso_() + '.xlsx');
+          if (!filename.endsWith('.xlsx')) filename += '.xlsx';
+          sheetName = sheetName || 'Data';
+          var ws = XLSX.utils.json_to_sheet(Array.isArray(data) ? data : []);
+          var wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, sheetName);
+          XLSX.writeFile(wb, filename);
+          this.showToast('Berkas Excel berhasil diunduh: ' + filename, 'success');
+        },
+
+        exportPDF: function (columns, data, filename, title) {
+          if (typeof jspdf === 'undefined' || !jspdf.jsPDF) { this.showToast('Library jsPDF tidak termuat', 'error'); return; }
+          filename = filename || ('Export_' + this.todayIso_() + '.pdf');
+          if (!filename.endsWith('.pdf')) filename += '.pdf';
+          title = title || this.appTitle;
+          var doc = new jspdf.jsPDF();
+          doc.setFontSize(14);
+          doc.text(title, 14, 16);
+          doc.setFontSize(9);
+          doc.setTextColor(100);
+          doc.text('Dicetak pada: ' + this.formatDateTimeDisplay(new Date()), 14, 22);
+
+          var head = [columns.map(function(c) { return c.label || c; })];
+          var body = (data || []).map(function(row, idx) {
+            return columns.map(function(c) {
+              if (c.key === '_index') return idx + 1;
+              return row[c.key || c] !== undefined ? row[c.key || c] : '-';
+            });
+          });
+
+          doc.autoTable({
+            startY: 26,
+            head: head,
+            body: body,
+            theme: 'striped',
+            headStyles: { fillColor: [5, 150, 105], textColor: [255, 255, 255], fontStyle: 'bold' }
+          });
+          doc.save(filename);
+          this.showToast('Berkas PDF berhasil diunduh: ' + filename, 'success');
         },
 
         // ================= LOGIN SSO =================
@@ -187,9 +277,12 @@
         },
 
         runInitApp: function () {
-          if (typeof config.initApp !== 'function') return Promise.resolve();
           var self = this;
-          return Promise.resolve(config.initApp(this)).then(function () {
+          return this.loadMasterSIMPEG().then(function() {
+            if (typeof config.initApp === 'function') {
+              return Promise.resolve(config.initApp(self));
+            }
+          }).then(function () {
             self.dataLoaded = true;
           });
         },
@@ -207,7 +300,7 @@
           });
         },
 
-        // ================= HELPER & UTILITAS =================
+        // ================= HELPER & FORMATTER =================
         todayIso_: function () {
           return new Date().toISOString().slice(0, 10);
         },
@@ -251,49 +344,6 @@
           }).format(num);
         },
 
-        copyToClipboard: function (text, successMsg) {
-          var self = this;
-          if (!text) return;
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(String(text)).then(function () {
-              self.showToast(successMsg || 'Berhasil disalin ke clipboard');
-            }).catch(function () {
-              self.fallbackCopy_(text, successMsg);
-            });
-          } else {
-            this.fallbackCopy_(text, successMsg);
-          }
-        },
-
-        fallbackCopy_: function (text, successMsg) {
-          var el = document.createElement('textarea');
-          el.value = String(text);
-          el.style.position = 'fixed';
-          el.style.opacity = '0';
-          document.body.appendChild(el);
-          el.select();
-          try {
-            document.execCommand('copy');
-            this.showToast(successMsg || 'Berhasil disalin');
-          } catch (e) {
-            this.showToast('Gagal menyalin teks', 'error');
-          }
-          document.body.removeChild(el);
-        },
-
-        debounce: function (func, wait) {
-          var timeout;
-          return function () {
-            var context = this, args = arguments;
-            var later = function () {
-              timeout = null;
-              func.apply(context, args);
-            };
-            clearTimeout(timeout);
-            timeout = setTimeout(later, wait || 300);
-          };
-        },
-
         showToast: function (message, type) {
           type = type || 'success';
           var id = Date.now() + Math.random();
@@ -306,7 +356,6 @@
           this.toasts = this.toasts.filter(function (t) { return t.id !== id; });
         },
 
-        // Tiket → login; session tersimpan → VERIFIKASI dulu baru initApp
         processInitialAuth: function (ticket) {
           var self = this;
           if (ticket) {
@@ -318,7 +367,6 @@
           if (storedToken && storedUser) {
             this.token = storedToken;
             try { this.currentUser = JSON.parse(storedUser); } catch (e) {}
-            // token mati → callServer memicu handleSessionExpired
             this.callServer('get_my_profile').then(function (res) {
               if (res && res.success) return self.runInitApp();
             });
@@ -328,11 +376,8 @@
 
       mounted: function () {
         var self = this;
-
-        // Inisialisasi mode gelap (class sudah dipasang pre-paint di <head>)
         document.documentElement.classList.toggle('dark', this.isDarkMode);
 
-        // Ekstraksi tiket SSO dari URL (?ticket=...)
         var ticket = '';
         try {
           var urlParams = new URLSearchParams(window.location.search);
@@ -358,7 +403,7 @@
       });
     }
 
-    // Registrasi modul halaman mandiri (app-modules.js, opsional)
+    // Registrasi modul halaman mandiri (app-modules.js)
     if (global.AppModules) {
       Object.keys(global.AppModules).forEach(function (name) {
         if (name === 'version') return;
@@ -366,7 +411,6 @@
       });
     }
 
-    // Mixin khusus aplikasi (data/methods halaman: dashboard, CRUD, dst.)
     (config.mixins || []).forEach(function (m) { app.mixin(m); });
 
     return app;
@@ -374,7 +418,7 @@
 
   global.AppCore = {
     create: create,
-    version: '2.0.0'
+    version: '2.3.0'
   };
 
 })(window);

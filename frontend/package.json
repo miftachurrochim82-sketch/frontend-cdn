@@ -1,7 +1,7 @@
 {
   "name": "@trenggalekkab/frontend-cdn",
-  "version": "2.2.5",
-  "description": "Shared Frontend CDN Library for Pemkab Trenggalek Applications",
+  "version": "2.3.0",
+  "description": "Shared Frontend CDN Library (v2.3.0) for Pemkab Trenggalek Applications with Smart Datatable, SIMPEG Cache & Universal Exporters",
   "main": "app-core.min.js",
   "author": "Pemerintah Kabupaten Trenggalek",
   "license": "MIT",
@@ -14,6 +14,10 @@
     "vue3",
     "cdn",
     "sso",
-    "app-core"
+    "app-core",
+    "app-crud-table",
+    "app-stat-card",
+    "app-modal",
+    "app-badge"
   ]
 }

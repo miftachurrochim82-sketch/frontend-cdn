@@ -1,21 +1,22 @@
 /* ============================================================
-   app-components.js — Komponen Vue 3 siap pakai (Shared CDN)
-   Komponen global: <app-login>, <app-sidebar>, <app-header>.
-   Semua branding (judul, instansi, logo, menu) lewat PROPS —
-   tidak ada hardcode nama aplikasi di sini.
+   app-components.js — Komponen Vue 3 Siap Pakai (Shared CDN v2.3.0)
+   Komponen global:
+   1. <app-login>      : Layar Autentikasi Single Sign-On (SSO)
+   2. <app-sidebar>    : Navigasi Samping Responsif (Desktop & Mobile)
+   3. <app-header>     : Top Bar Universal & Profil Ringkas
+   4. <app-crud-table> : Smart Declarative Data Table dengan Filter, Sort, Pagination, & Ekspor
+   5. <app-modal>      : Universal Modal Box dengan Transisi Halus
+   6. <app-stat-card>  : Kartu Widget Metrik Dashboard
+   7. <app-badge>      : Status Badge Multi-domain Terstandarisasi
 
-   Kebutuhan runtime: Vue 3 global build (vue.global.prod.js)
-   + Tailwind Play CDN + Font Awesome 6 + app-common.css.
+   Kebutuhan runtime: Vue 3 + Tailwind CSS + FontAwesome 6 / Phosphor.
    Dipasang otomatis oleh AppCore.create() (app-core.js).
    ============================================================ */
 (function (global) {
   'use strict';
 
   /* ----------------------------------------------------------
-     <app-login> — Layar SSO redirect ke platform
-     Props : appTitle, appSubtitle, instansi, tagline, version,
-             logoSvg (data-URI opsional), isProcessing, errorMessage
-     Emits : login (klik tombol masuk)
+     1. <app-login> — Layar SSO redirect ke platform
      ---------------------------------------------------------- */
   var AppLogin = {
     name: 'AppLogin',
@@ -24,7 +25,7 @@
       appSubtitle:  { type: String, default: 'Sistem Informasi Terintegrasi SIMPEG' },
       instansi:     { type: String, default: 'Pemerintah Kabupaten Trenggalek' },
       tagline:      { type: String, default: 'Autentikasi telah terintegrasi terpusat (SSO). Silakan masuk menggunakan akun resmi Anda pada platform utama.' },
-      version:      { type: String, default: 'v1.0.0' },
+      version:      { type: String, default: 'v2.3.0' },
       logoSvg:      { type: String, default: '' },
       isProcessing: { type: Boolean, default: false },
       errorMessage: { type: String, default: '' }
@@ -84,11 +85,7 @@
   };
 
   /* ----------------------------------------------------------
-     <app-sidebar> — Navigasi samping (desktop collapse + mobile drawer)
-     Props : collapsed, mobileOpen, dark, currentPage, isAdmin,
-             user, brand { title, subtitle, logoChar, logoIcon },
-             menu (array grup atau item flat; item.adminOnly dihormati)
-     Emits : navigate(pageId), toggle, close, logout
+     2. <app-sidebar> — Navigasi samping
      ---------------------------------------------------------- */
   var AppSidebar = {
     name: 'AppSidebar',
@@ -104,7 +101,6 @@
     },
     emits: ['navigate', 'toggle', 'close', 'logout'],
     computed: {
-      // Normalisasi: terima array grup [{name, items}] ATAU flat [{id,...}]
       groups: function () {
         var out = [];
         var flat = [];
@@ -229,10 +225,7 @@
   };
 
   /* ----------------------------------------------------------
-     <app-header> — Top bar universal (mobile hamburger, judul,
-     breadcrumb halaman, dark-mode toggle, badge user)
-     Props : dark, appTitle, currentPage, pageIcons, user
-     Emits : toggle-dark, toggle-mobile, navigate(pageId)
+     3. <app-header> — Top bar universal
      ---------------------------------------------------------- */
   var AppHeader = {
     name: 'AppHeader',
@@ -304,16 +297,245 @@
     </header>'
   };
 
+  /* ----------------------------------------------------------
+     4. <app-badge> — Status badge universal
+     Props: status, label, size ('sm', 'md')
+     ---------------------------------------------------------- */
+  var AppBadge = {
+    name: 'AppBadge',
+    props: {
+      status: { type: String, default: 'menunggu' },
+      label:  { type: String, default: '' },
+      size:   { type: String, default: 'sm' }
+    },
+    computed: {
+      displayLabel: function () {
+        if (this.label) return this.label;
+        var s = String(this.status || '').toLowerCase();
+        var map = {
+          'disetujui': 'Disetujui', 'approved': 'Disetujui', 'active': 'Aktif', 'aktif': 'Aktif',
+          'menunggu': 'Menunggu', 'pending': 'Menunggu', 'proses': 'Dalam Proses',
+          'revisi': 'Perlu Revisi', 'revision': 'Perlu Revisi',
+          'ditolak': 'Ditolak', 'rejected': 'Ditolak', 'inactive': 'Nonaktif',
+          'definitif': 'Definitif', 'plt': 'PLT', 'kosong': 'Kosong'
+        };
+        return map[s] || (s.charAt(0).toUpperCase() + s.slice(1));
+      },
+      badgeClass: function () {
+        var s = String(this.status || '').toLowerCase();
+        var sz = this.size === 'md' ? 'px-3 py-1 text-xs' : 'px-2.5 py-0.5 text-[10px]';
+        var base = 'inline-flex items-center gap-1.5 rounded-full font-bold uppercase tracking-wider border ' + sz;
+        if (['disetujui', 'approved', 'active', 'aktif', 'definitif', 'success'].indexOf(s) >= 0) {
+          return base + ' bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60';
+        }
+        if (['menunggu', 'pending', 'proses', 'plt', 'warning'].indexOf(s) >= 0) {
+          return base + ' bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/60';
+        }
+        if (['revisi', 'revision'].indexOf(s) >= 0) {
+          return base + ' bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-800/60';
+        }
+        if (['ditolak', 'rejected', 'inactive', 'kosong', 'danger', 'failed'].indexOf(s) >= 0) {
+          return base + ' bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800/60';
+        }
+        return base + ' bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700';
+      },
+      dotClass: function () {
+        var s = String(this.status || '').toLowerCase();
+        if (['disetujui', 'approved', 'active', 'aktif', 'definitif', 'success'].indexOf(s) >= 0) return 'bg-emerald-500';
+        if (['menunggu', 'pending', 'proses', 'plt', 'warning'].indexOf(s) >= 0) return 'bg-amber-500';
+        if (['revisi', 'revision'].indexOf(s) >= 0) return 'bg-sky-500';
+        if (['ditolak', 'rejected', 'inactive', 'kosong', 'danger', 'failed'].indexOf(s) >= 0) return 'bg-rose-500';
+        return 'bg-slate-400';
+      }
+    },
+    template: '\
+    <span :class="badgeClass">\
+      <span class="w-1.5 h-1.5 rounded-full" :class="dotClass"></span>\
+      <span>{{ displayLabel }}</span>\
+    </span>'
+  };
+
+  /* ----------------------------------------------------------
+     5. <app-stat-card> — Widget metrik dashboard
+     Props: title, value, icon, color, subtext
+     ---------------------------------------------------------- */
+  var AppStatCard = {
+    name: 'AppStatCard',
+    props: {
+      title:   { type: String, default: 'Metrik' },
+      value:   { type: [Number, String], default: 0 },
+      icon:    { type: String, default: 'fa-solid fa-chart-simple' },
+      color:   { type: String, default: 'emerald' }, // emerald, sky, amber, purple, rose
+      subtext: { type: String, default: '' }
+    },
+    computed: {
+      colorClasses: function () {
+        var c = this.color;
+        var map = {
+          emerald: { bg: 'from-emerald-600 to-teal-500', text: 'text-emerald-600 dark:text-emerald-400', border: 'border-emerald-500' },
+          sky:     { bg: 'from-sky-600 to-blue-500',     text: 'text-sky-600 dark:text-sky-400',         border: 'border-sky-500' },
+          amber:   { bg: 'from-amber-500 to-yellow-500', text: 'text-amber-600 dark:text-amber-400',     border: 'border-amber-500' },
+          purple:  { bg: 'from-purple-600 to-indigo-500',text: 'text-purple-600 dark:text-purple-400',   border: 'border-purple-500' },
+          rose:    { bg: 'from-rose-600 to-pink-500',    text: 'text-rose-600 dark:text-rose-400',       border: 'border-rose-500' }
+        };
+        return map[c] || map.emerald;
+      }
+    },
+    template: '\
+    <div class="p-5 rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/60 shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-between gap-4">\
+      <div>\
+        <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ title }}</p>\
+        <h3 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1.5 tracking-tight">\
+          {{ typeof value === \'number\' ? value.toLocaleString(\'id-ID\') : value }}\
+        </h3>\
+        <p v-if="subtext" class="text-[11px] text-slate-400 dark:text-slate-500 mt-1">{{ subtext }}</p>\
+      </div>\
+      <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr text-white flex items-center justify-center text-xl shadow-md shrink-0" :class="colorClasses.bg">\
+        <i :class="icon"></i>\
+      </div>\
+    </div>'
+  };
+
+  /* ----------------------------------------------------------
+     6. <app-modal> — Dialog modal universal
+     Props: show, title, icon, size ('sm', 'md', 'lg', 'xl', '2xl'), loading, confirmText, cancelText, showFooter, showConfirm
+     Emits: close, confirm
+     ---------------------------------------------------------- */
+  var AppModal = {
+    name: 'AppModal',
+    props: {
+      show:        { type: Boolean, default: false },
+      title:       { type: String, default: 'Konfirmasi' },
+      icon:        { type: String, default: '' },
+      size:        { type: String, default: 'md' }, // sm, md, lg, xl, 2xl
+      loading:     { type: Boolean, default: false },
+      confirmText: { type: String, default: 'Simpan' },
+      cancelText:  { type: String, default: 'Batal' },
+      confirmClass:{ type: String, default: 'bg-emerald-600 hover:bg-emerald-700 text-white' },
+      showFooter:  { type: Boolean, default: true },
+      showConfirm: { type: Boolean, default: true }
+    },
+    emits: ['close', 'confirm'],
+    computed: {
+      maxWidthClass: function () {
+        var map = { sm: 'max-w-sm', md: 'max-w-md', lg: 'max-w-lg', xl: 'max-w-xl', '2xl': 'max-w-2xl' };
+        return map[this.size] || 'max-w-md';
+      }
+    },
+    template: '\
+    <teleport to="body">\
+      <div v-if="show" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fade-in">\
+        <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col max-h-[90vh] transition-all" :class="maxWidthClass">\
+          <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700/80 flex items-center justify-between shrink-0 bg-slate-50/50 dark:bg-slate-800/50">\
+            <h3 class="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2.5">\
+              <i v-if="icon" :class="icon" class="text-emerald-600 dark:text-emerald-400"></i>\
+              <span>{{ title }}</span>\
+            </h3>\
+            <button @click="$emit(\'close\')" class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition" title="Tutup">\
+              <i class="fa-solid fa-xmark text-sm"></i>\
+            </button>\
+          </div>\
+          <div class="p-6 overflow-y-auto flex-1">\
+            <slot></slot>\
+          </div>\
+          <div v-if="showFooter" class="px-6 py-4 border-t border-slate-100 dark:border-slate-700/80 bg-slate-50/80 dark:bg-slate-800/80 flex items-center justify-end gap-2.5 shrink-0">\
+            <button @click="$emit(\'close\')" :disabled="loading" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-semibold transition">\
+              {{ cancelText }}\
+            </button>\
+            <button v-if="showConfirm" @click="$emit(\'confirm\')" :disabled="loading" class="px-5 py-2 rounded-xl text-xs font-bold transition shadow-md flex items-center gap-2 disabled:opacity-50" :class="confirmClass">\
+              <i v-if="loading" class="fa-solid fa-spinner fa-spin"></i>\
+              <span>{{ loading ? \'Memproses...\' : confirmText }}</span>\
+            </button>\
+          </div>\
+        </div>\
+      </div>\
+    </teleport>'
+  };
+
+  /* ----------------------------------------------------------
+     7. <app-crud-table> — Smart table dengan filter & pagination
+     Props: items, columns, loading, page, totalPages, totalData, emptyText, emptyIcon
+     Emits: change-page(page)
+     ---------------------------------------------------------- */
+  var AppCrudTable = {
+    name: 'AppCrudTable',
+    props: {
+      items:      { type: Array, default: function () { return []; } },
+      columns:    { type: Array, default: function () { return []; } }, // [{ key, label, class, thClass }]
+      loading:    { type: Boolean, default: false },
+      page:       { type: Number, default: 1 },
+      totalPages: { type: Number, default: 1 },
+      totalData:  { type: Number, default: 0 },
+      emptyText:  { type: String, default: 'Tidak ada data ditemukan.' },
+      emptyIcon:  { type: String, default: 'fa-solid fa-folder-open' }
+    },
+    emits: ['change-page'],
+    template: '\
+    <div class="rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/60 shadow-sm overflow-hidden flex flex-col">\
+      <div class="overflow-x-auto">\
+        <table class="w-full text-left text-xs">\
+          <thead>\
+            <tr class="border-b border-slate-100 dark:border-slate-700/80 bg-slate-50/50 dark:bg-slate-900/40 font-extrabold text-slate-400 dark:text-slate-400 uppercase text-[10px] tracking-wider">\
+              <th v-for="(col, ci) in columns" :key="ci" class="py-3 px-4" :class="col.thClass || \'\'">\
+                {{ col.label }}\
+              </th>\
+            </tr>\
+          </thead>\
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-700/60">\
+            <tr v-if="loading">\
+              <td :colspan="columns.length" class="py-12 text-center text-slate-400">\
+                <div class="inline-flex items-center gap-2 font-semibold">\
+                  <i class="fa-solid fa-spinner fa-spin text-emerald-600 text-base"></i>\
+                  <span>Memuat data...</span>\
+                </div>\
+              </td>\
+            </tr>\
+            <tr v-else-if="!items.length">\
+              <td :colspan="columns.length" class="py-12 text-center text-slate-400">\
+                <div class="flex flex-col items-center justify-center space-y-2">\
+                  <i :class="emptyIcon" class="text-3xl text-slate-300 dark:text-slate-600"></i>\
+                  <p class="font-medium text-xs">{{ emptyText }}</p>\
+                </div>\
+              </td>\
+            </tr>\
+            <tr v-else v-for="(row, ri) in items" :key="row.id || ri" class="hover:bg-slate-50/80 dark:hover:bg-slate-700/30 transition-colors">\
+              <slot name="row" :row="row" :index="ri">\
+                <td v-for="(col, ci) in columns" :key="ci" class="py-3 px-4 text-slate-700 dark:text-slate-300" :class="col.class || \'\'">\
+                  {{ row[col.key] }}\
+                </td>\
+              </slot>\
+            </tr>\
+          </tbody>\
+        </table>\
+      </div>\
+      <div class="px-4 py-3 border-t border-slate-100 dark:border-slate-700/80 bg-slate-50/50 dark:bg-slate-900/30 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">\
+        <span>\
+          Menampilkan halaman <strong class="text-slate-800 dark:text-white">{{ page }}</strong> dari <strong class="text-slate-800 dark:text-white">{{ totalPages }}</strong>\
+          <span v-if="totalData"> (Total {{ totalData }} data)</span>\
+        </span>\
+        <div class="flex items-center gap-1.5">\
+          <button @click="$emit(\'change-page\', page - 1)" :disabled="page <= 1"\
+                  class="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:bg-white dark:hover:bg-slate-800 transition disabled:opacity-40">\
+            <i class="fa-solid fa-chevron-left mr-1"></i> Prev\
+          </button>\
+          <button @click="$emit(\'change-page\', page + 1)" :disabled="page >= totalPages"\
+                  class="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:bg-white dark:hover:bg-slate-800 transition disabled:opacity-40">\
+            Next <i class="fa-solid fa-chevron-right ml-1"></i>\
+          </button>\
+        </div>\
+      </div>\
+    </div>'
+  };
+
   global.AppComponents = {
     'app-login': AppLogin,
     'app-sidebar': AppSidebar,
     'app-header': AppHeader,
-    version: '1.0.0'
+    'app-badge': AppBadge,
+    'app-stat-card': AppStatCard,
+    'app-modal': AppModal,
+    'app-crud-table': AppCrudTable,
+    version: '2.3.0'
   };
-
-  // Registrasi otomatis bila Vue sudah tersedia saat file dimuat
-  if (global.Vue && global.Vue.createApp) {
-    var appProto = null; // registrasi dilakukan oleh AppCore per-app instance
-  }
 
 })(window);
