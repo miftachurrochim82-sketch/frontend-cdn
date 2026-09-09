@@ -5,16 +5,32 @@ Repository ini adalah standar terpadu frontend (*Vue 3 + Tailwind CSS*) dan back
 
 ---
 
+## 🏛️ Identitas Library Google Apps Script
+
+| Properti | Nilai | Keterangan |
+|---|---|---|
+| **Script ID / Library ID** | `1GmeYflfMpRa1iTVgFHRD6K1DMoxc9OoKqpuucPJXgNZ9XBK06O7wgDkO` | ID Library Resmi Pemkab Trenggalek |
+| **Identifier (Symbol)** | `CoreLib` | Simbol pemanggilan fungsi library di aplikasi |
+| **Runtime** | `V8` | Standar modern Apps Script |
+| **TimeZone** | `Asia/Jakarta` | WIB (Waktu Indonesia Barat) |
+
+### OAuth Scopes yang Digunakan:
+- `https://www.googleapis.com/auth/spreadsheets` (Akses Google Sheets DB)
+- `https://www.googleapis.com/auth/drive` (Folder Evidence & Backup)
+- `https://www.googleapis.com/auth/script.storage` (Script Properties & Sesi)
+- `https://www.googleapis.com/auth/script.external_request` (SSO SI-Platform HTTP)
+- `https://www.googleapis.com/auth/userinfo.email` & `openid` (Identitas Google)
+
+---
+
 ## 📦 Struktur Folder Repository
 
 ```text
 frontend-cdn/
-├── .github/
-│   └── workflows/
-│       └── deploy-gas.yml          # Skrip CI/CD otomatis kirim backend ke Google Apps Script via Clasp
 │
-├── .clasp.json                     # Identitas konfigurasi Clasp root
-├── package.json                    # Script build minifikasi otomatis frontend (npm run build)
+├── 🤖 .github/
+│   └── workflows/
+│       └── deploy-gas.yml          # Skrip CI/CD otomatis deploy backend ke GAS via Google Clasp
 │
 ├── 🎨 frontend/                     # KODE FRONTEND (SHARED CDN ASSETS)
 │   ├── app-common.css              # Desain tema global, token CSS, dan dark mode
@@ -23,156 +39,88 @@ frontend-cdn/
 │   ├── app-components.min.js       # Versi minifikasi Shell UI
 │   ├── app-modules.js              # Modul mandiri (<app-profile> SIMPEG & <app-settings>)
 │   ├── app-modules.min.js          # Versi minifikasi modul mandiri
-│   ├── app-core.js                 # Factory AppCore Vue 3 (Auth SSO, Bridge, Helper)
+│   ├── app-core.js                 # Factory AppCore Vue 3 (Auth SSO, Bridge, Rupiah & Date Helpers)
 │   └── app-core.min.js             # Versi minifikasi Core Engine (~6.4 KB)
 │
-└── 📋 backend/                      # KODE BACKEND GOOGLE APPS SCRIPT
-    ├── .clasp.json                 # File identitas proyek Apps Script lokal
-    ├── appsscript.json             # Manifest konfigurasi runtime & izin Apps Script
-    ├── 00_MIGRATION_v2.md          # Panduan migrasi & changelog teknis v2.0
-    ├── 01_CoreFoundation.gs        # Engine Database Sheets, Aligned Column, Cache & SIMPEG Helpers
-    ├── 02_CoreGateway.gs           # Gateway Auth SSO, Session Cache, Role Guard & API CRUD
-    ├── 03_CoreServices.gs          # Profil SIMPEG, Konfigurasi, Drive Folder Provisioning & Setup
-    ├── 99_CoreTest.gs              # Automated Diagnostic & Regression Test Suite
-    └── Code.gs                     # Template Entrypoint doGet() & Dispatcher handleAction()
+├── 📋 backend/                      # KODE BACKEND GOOGLE APPS SCRIPT (v2.0)
+│   ├── .clasp.json                 # File identitas proyek Apps Script lokal (Script ID)
+│   ├── appsscript.json             # Manifest konfigurasi runtime V8, timezone, & OAuth scopes
+│   ├── 00_MIGRATION_v2.md          # Panduan migrasi & changelog teknis
+│   ├── 01_CoreFoundation.gs        # Engine Database Sheets, Aligned Column, Cache & SIMPEG Helpers
+│   ├── 02_CoreGateway.gs           # Gateway Auth SSO, Session Cache, Role Guard & API CRUD
+│   ├── 03_CoreServices.gs          # Profil SIMPEG, Konfigurasi, Drive Folder Provisioning & Setup
+│   ├── 99_CoreTest.gs              # Automated Diagnostic & Regression Test Suite
+│   └── Code.gs                     # Template Entrypoint doGet() & Dispatcher handleAction()
+│
+├── .clasp.json                     # Konfigurasi Clasp root (target folder backend)
+├── .gitignore                      # Mengabaikan cache & node_modules
+├── package.json                    # Script minifikasi (npm run build)
+└── README.md                       # Dokumentasi lengkap & cara pemakaian
 ```
 
 ---
 
-## 🚀 Cara Penggunaan Frontend (jsDelivr CDN)
+## 🚀 1. Penggunaan Frontend (jsDelivr CDN)
 
-### 1. Tag CDN di `Index.html`
-
-Tambahkan tag berikut ke dalam `Index.html` aplikasi GAS Anda:
+Salin tag CDN berikut ke dalam file `Index.html` aplikasi GAS Anda:
 
 ```html
-<!-- Di dalam <head>, setelah Tailwind Play CDN -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/frontend/app-common.min.css">
+<!-- CSS Global Minified (di <head>) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.2.0/frontend/app-common.min.css">
 
-<!-- Di akhir <body>, SETELAH vue.global.prod.js -->
-<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/frontend/app-components.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/frontend/app-modules.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/frontend/app-core.min.js"></script>
-```
-
-*(Catatan: Untuk produksi disarankan menggunakan tag versi tetap seperti `@v2.1.0` alih-alih `@main`).*
-
----
-
-### 2. Contoh Lengkap `Index.html`
-
-```html
-<!DOCTYPE html>
-<html lang="id">
-<head>
-  <base target="_top">
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>SI-PELAPORAN</title>
-  <script>try{ if(localStorage.getItem('sipelaporan_dark')==='true') document.documentElement.classList.add('dark'); }catch(e){}</script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config={darkMode:'class'};</script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
-  
-  <!-- CSS BERSAMA DARI CDN -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/frontend/app-common.min.css">
-</head>
-<body>
-  <div id="app" v-cloak>
-    <!-- Layar Login SSO -->
-    <app-login v-if="!token" :is-processing="isProcessing" :error-message="errorMessage"
-               :app-title="appTitle" :instansi="'Pemerintah Kabupaten Trenggalek'"
-               :logo-svg="brand.logoSvg" @login="goToPlatform"></app-login>
-
-    <!-- Shell Aplikasi -->
-    <div v-if="token" class="flex h-screen overflow-hidden bg-slate-100 dark:bg-slate-900">
-      <app-sidebar :collapsed="sidebarCollapsed" :mobile-open="sidebarMobileOpen"
-                   :dark="isDarkMode" :current-page="currentPage" :is-admin="isAdmin"
-                   :user="currentUser" :brand="brand" :menu="menu"
-                   @navigate="navigateTo" @toggle="toggleSidebar"
-                   @close="sidebarMobileOpen=false" @logout="logout"></app-sidebar>
-      <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <div class="px-4 sm:px-6 pt-4 shrink-0">
-          <app-header :dark="isDarkMode" :app-title="appTitle" :current-page="currentPage"
-                      :page-icons="pageIcons" :user="currentUser"
-                      @toggle-dark="toggleDarkMode" @toggle-mobile="sidebarMobileOpen=!sidebarMobileOpen"
-                      @navigate="navigateTo"></app-header>
-        </div>
-        <main class="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
-          <!-- Modul Mandiri (Self-Contained) -->
-          <app-profile v-if="currentPage === 'profil'"></app-profile>
-          <app-settings v-if="currentPage === 'pengaturan' && isAdmin"></app-settings>
-
-          <!-- Halaman Spesifik Aplikasi -->
-          <div v-if="currentPage === 'dashboard'" class="card p-6">
-            <h2 class="text-xl font-bold">Dashboard {{ appTitle }}</h2>
-            <p class="text-sm text-slate-500 mt-2">Konten spesifik aplikasi dimuat di sini.</p>
-          </div>
-        </main>
-      </div>
-    </div>
-
-    <!-- Toast Notification Global -->
-    <div class="toast-container">
-      <div v-for="t in toasts" :key="t.id" class="toast-item" :class="'toast-'+t.type">
-        <span class="flex-1">{{ t.message }}</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- JAVASCRIPT BERSAMA DARI CDN -->
-  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/frontend/app-components.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/frontend/app-modules.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@main/frontend/app-core.min.js"></script>
-  <script>
-    const app = AppCore.create({
-      appTitle: 'SI-PELAPORAN',
-      storagePrefix: 'sipelaporan',
-      platformUrl: 'https://script.google.com/macros/s/XXXX/exec',
-      brand: { title: 'SI-PELAPORAN', subtitle: 'Pemkab Trenggalek', logoChar: 'P', logoIcon: 'fa-solid fa-file-lines' },
-      menu: [
-        { name: 'Utama', items: [
-          { id: 'dashboard', label: 'Dashboard', icon: 'fa-solid fa-gauge-high' },
-          { id: 'pelaporan', label: 'Pelaporan', icon: 'fa-solid fa-file-lines' }
-        ]},
-        { name: 'Sistem', items: [
-          { id: 'pengaturan', label: 'Pengaturan', icon: 'fa-solid fa-gear', adminOnly: true }
-        ]}
-      ],
-      pageIcons: { dashboard: 'fa-solid fa-gauge-high', pelaporan: 'fa-solid fa-file-lines', profil: 'fa-solid fa-id-card', pengaturan: 'fa-solid fa-gear' },
-      initApp: async (vm) => {
-        // Panggil data awal jika diperlukan
-      }
-    });
-    app.mount('#app');
-  </script>
-</body>
-</html>
+<!-- JS Components, Modules, & Core Minified (di akhir <body>) -->
+<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.2.0/frontend/app-components.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.2.0/frontend/app-modules.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.2.0/frontend/app-core.min.js"></script>
 ```
 
 ---
 
-## ⚙️ Deployment Otomatis Backend (CI/CD Clasp)
+## ⚙️ 2. Penggunaan Backend di Aplikasi Dinas (Consumer Web App)
 
-Repository ini telah dilengkapi dengan GitHub Actions workflow `.github/workflows/deploy-gas.yml`. Setiap kali Anda melakukan *push* ke branch `main`, kode backend akan otomatis ter-deploy ke Google Apps Script target.
+Ada **2 cara** menghubungkan backend ke aplikasi web GAS Anda:
 
-### Konfigurasi GitHub Secrets:
-1. Buka repository di GitHub ➡️ **Settings** ➡️ **Secrets and variables** ➡️ **Actions**.
-2. Tambahkan Secrets berikut:
-   * **`CLASPRC_JSON`**: Isi konten file `~/.clasprc.json` Anda (hasil login clasp lokal `clasp login`).
-   * **`CLASP_SCRIPT_ID`**: ID Script Google Apps Script tujuan deploy Anda.
+### Cara A: Menggunakan Library GAS (Sangat Praktis & Tanpa Copy-Paste)
+1. Buka editor Google Apps Script aplikasi dinas Anda.
+2. Di sidebar kiri, klik **Libraries (+)** ➡️ Masukkan Script ID:
+   ```text
+   1GmeYflfMpRa1iTVgFHRD6K1DMoxc9OoKqpuucPJXgNZ9XBK06O7wgDkO
+   ```
+3. Pilih versi rilis terbaru ➡️ Beri Identifier: **`CoreLib`** ➡️ Klik **Save**.
+4. Di file `Code.gs` aplikasi Anda, cukup tulis kode ringkas berikut:
+
+```javascript
+function doGet(e) {
+  return HtmlService.createTemplateFromFile('Index')
+    .evaluate()
+    .setTitle('SI-PELAPORAN Kab. Trenggalek')
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+function handleAction(payload) {
+  var props = PropertiesService.getScriptProperties();
+  return CoreLib.dispatchAction(payload, {
+    appCode: props.getProperty('APP_CODE') || 'SI-PELAPORAN',
+    spreadsheetId: props.getProperty('SPREADSHEET_ID'),
+    masterSsId: props.getProperty('MASTER_SPREADSHEET_ID'),
+    platformApiUrl: props.getProperty('PLATFORM_API_URL'),
+    headersMap: {
+      // Sheet khusus aplikasi Anda:
+      // PELAPORAN: ['id', 'nomor', 'judul', 'status', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at']
+    }
+  });
+}
+```
+
+### Cara B: Copy-Paste / Clasp Clone
+Salin seluruh file di folder `backend/` ke proyek Apps Script Anda, konfigurasikan `Script Properties`, dan panggil `dispatchAction(payload, getAppConfig_())`.
 
 ---
 
-## 🛠️ Minifikasi Frontend
+## 🔄 3. CI/CD Deployment Otomatis (GitHub Actions & Clasp)
 
-Untuk melakukan *build* ulang file minifikasi di folder `frontend/`:
-
-```bash
-npm run build
-```
+Setiap perubahan di folder `backend/` yang di-push ke branch `main` akan otomatis di-deploy ke library Google Apps Script via GitHub Actions (`.github/workflows/deploy-gas.yml`).
 
 ---
 
