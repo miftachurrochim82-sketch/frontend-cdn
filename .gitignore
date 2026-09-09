@@ -1,4 +1,8 @@
 node_modules/
-.npm/
+.clasp.json
 .DS_Store
 *.log
+.npm/
+si-pelaporan/
+si-platform/
+examples/

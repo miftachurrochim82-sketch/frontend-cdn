@@ -5,6 +5,27 @@ Repository ini adalah standar terpadu frontend (*Vue 3 + Tailwind CSS*) dan back
 
 ---
 
+## 🏛️ Arsitektur Ekosistem 3 Repository
+
+```text
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    1. frontend-cdn (Shared Core & CDN)                      │
+│   - Library Backend GAS: CoreLib (1GmeYflfMpRa1iTVgFHRD6K1DMoxc9OoK...)     │
+│   - Shared Frontend CDN: app-common.min.css, app-components, app-core.js    │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       │
+        ┌──────────────────────────────┴──────────────────────────────┐
+        ▼                                                             ▼
+┌─────────────────────────────────────────┐     ┌─────────────────────────────────────────┐
+│     2. si-platform (Portal & SIMPEG)    │     │      3. si-pelaporan (App Pelaporan)    │
+│ - Identity Provider & SSO Ticket Issuer │     │ - CRUD Pelaporan, Verifikasi & Analisa  │
+│ - Master Hub: Pegawai, Unit, & Jabatan  │     │ - Konsumsi SSO & Master Data SIMPEG     │
+│ - Beranda App Launcher ASN Trenggalek   │     │ - UI Khusus Operasional Pegawai         │
+└─────────────────────────────────────────┘     └─────────────────────────────────────────┘
+```
+
+---
+
 ## 🏛️ Identitas Library Google Apps Script
 
 | Properti | Nilai | Keterangan |
@@ -23,7 +44,7 @@ Repository ini adalah standar terpadu frontend (*Vue 3 + Tailwind CSS*) dan back
 
 ---
 
-## 📦 Struktur Folder Repository
+## 📦 Struktur Folder Repository `frontend-cdn`
 
 ```text
 frontend-cdn/
@@ -52,20 +73,8 @@ frontend-cdn/
 │   ├── 99_CoreTest.gs              # Automated Diagnostic & Regression Test Suite
 │   └── Code.gs                     # Template Entrypoint doGet() & Dispatcher handleAction()
 │
-├── 📂 examples/                     # TEMPLATE & IMPLEMENTASI CONTOH APLIKASI
-│   └── si-pelaporan/               # Implementasi Lengkap SI-PELAPORAN (Pemkab Trenggalek)
-│       ├── 01_ConfigAndBridge.gs   # Bridge & konfigurasi lokal (CoreLib integration)
-│       ├── 02_AppLogic.gs          # Endpoint doGet, doPost, pelaporan handlers, & analytics
-│       ├── 03_SeedData.gs          # Seeder data pelaporan & demo records
-│       ├── 99_TestSuite.gs         # Comprehensive automated test suite
-│       ├── A4_Dashboard.html       # Partial View: Dashboard & KPI Analytics
-│       ├── A5_Pelaporan.html       # Partial View: Manajemen Pelaporan & Verifikasi
-│       ├── A6_Analisa.html         # Partial View: Analisa & Rekapitulasi Statistik
-│       ├── A8_MasterData.html      # Partial View: Master Data Referensi SIMPEG (Pegawai/Jabatan/Unit)
-│       └── Index.html              # Template View Utama AppCore Consumer Web App
-│
 ├── .clasp.json                     # Konfigurasi Clasp root (target folder backend)
-├── .gitignore                      # Mengabaikan cache & node_modules
+├── .gitignore                      # Mengabaikan cache & standalone repos
 ├── package.json                    # Script minifikasi (npm run build)
 └── README.md                       # Dokumentasi lengkap & cara pemakaian
 ```
@@ -90,53 +99,15 @@ Salin tag CDN berikut ke dalam file `Index.html` aplikasi GAS Anda:
 
 ## ⚙️ 2. Penggunaan Backend di Aplikasi Dinas (Consumer Web App)
 
-Ada **2 cara** menghubungkan backend ke aplikasi web GAS Anda:
-
-### Cara A: Menggunakan Library GAS (Sangat Praktis & Tanpa Copy-Paste)
-1. Buka editor Google Apps Script aplikasi dinas Anda.
-2. Di sidebar kiri, klik **Libraries (+)** ➡️ Masukkan Script ID:
-   ```text
-   1GmeYflfMpRa1iTVgFHRD6K1DMoxc9OoKqpuucPJXgNZ9XBK06O7wgDkO
-   ```
-3. Pilih versi rilis terbaru ➡️ Beri Identifier: **`CoreLib`** ➡️ Klik **Save**.
-4. Di file `Code.gs` aplikasi Anda, cukup tulis kode ringkas berikut:
-
-```javascript
-function doGet(e) {
-  return HtmlService.createTemplateFromFile('Index')
-    .evaluate()
-    .setTitle('SI-PELAPORAN Kab. Trenggalek')
-    .addMetaTag('viewport', 'width=device-width, initial-scale=1')
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
-}
-
-function handleAction(payload) {
-  var props = PropertiesService.getScriptProperties();
-  return CoreLib.dispatchAction(payload, {
-    appCode: props.getProperty('APP_CODE') || 'SI-PELAPORAN',
-    spreadsheetId: props.getProperty('SPREADSHEET_ID'),
-    masterSsId: props.getProperty('MASTER_SPREADSHEET_ID'),
-    platformApiUrl: props.getProperty('PLATFORM_API_URL'),
-    headersMap: {
-      // Sheet khusus aplikasi Anda:
-      PELAPORAN: [
-        'id', 'pegawai_id', 'tanggal', 'jenis_laporan', 'judul', 'isi',
-        'status', 'catatan_verifikator', 'verifikator_id', 'tanggal_verifikasi',
-        'created_at', 'updated_at', 'created_by', 'updated_by', 'deleted_at'
-      ]
-    }
-  });
-}
-```
-
-### Cara B: Copy-Paste / Clasp Clone
-Lihat implementasi referensi lengkap di folder `examples/si-pelaporan/`.
+Hubungkan Library `CoreLib` di Google Apps Script (Script ID: `1GmeYflfMpRa1iTVgFHRD6K1DMoxc9OoKqpuucPJXgNZ9XBK06O7wgDkO`) dan panggil `CoreLib.dispatchAction(payload, config)`.
 
 ---
 
-## 🔄 3. CI/CD Deployment Otomatis (GitHub Actions & Clasp)
+## 🔄 3. Repository Terkait dalam Ekosistem
 
-Setiap perubahan di folder `backend/` yang di-push ke branch `main` akan otomatis di-deploy ke library Google Apps Script via GitHub Actions (`.github/workflows/deploy-gas.yml`).
+1. **[si-platform](https://github.com/miftachurrochim82-sketch/si-platform)**: Portal SSO & Pusat Data Master SIMPEG.
+2. **[si-pelaporan](https://github.com/miftachurrochim82-sketch/si-pelaporan)**: Sistem Informasi Pelaporan Pegawai Terintegrasi.
+3. **[si-dilan](https://github.com/miftachurrochim82-sketch/si-dilan)**: Sistem Informasi Diklat & Pelatihan ASN.
 
 ---
 
