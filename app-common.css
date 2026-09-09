@@ -1,12 +1,28 @@
-/* app-common.css — Shared frontend styles */
+/* ============================================================
+   app-common.css — CSS Global & Custom Utilities (Shared CDN)
+   Dipakai bersama oleh semua web app GAS Pemkab Trenggalek
+   (SI-KOMPETENSI, SI-PELAPORAN, dst.) via jsDelivr.
+
+   Isi: token warna, badge, modal, form, button, toast, tabel,
+   scrollbar, animasi, fallback utility, dan dark-mode overrides.
+   Kombinasi dengan Tailwind Play CDN (darkMode:'class').
+   ============================================================ */
+
 :root {
-  --primary: #047857;          /* emerald-700 (SILAHAR) */
-  --primary-dark: #065f46;
-  --primary-light: #ecfdf5;
+  /* Warna Utama (Teal / Emerald Palette) */
+  --primary: #0f766e;        /* teal-700 */
+  --primary-dark: #115e59;   /* teal-800 */
+  --primary-light: #f0fdfa;  /* teal-50 */
+
   --success: #16a34a;
+  --success-dark: #15803d;
   --danger: #dc2626;
+  --danger-dark: #b91c1c;
   --warning: #f59e0b;
-  --info: #3b82f6;
+  --warning-dark: #d97706;
+  --info: #0284c7;
+  --info-dark: #0369a1;
+
   --slate-50: #f8fafc;
   --slate-100: #f1f5f9;
   --slate-200: #e2e8f0;
@@ -16,30 +32,33 @@
   --slate-700: #334155;
   --slate-800: #1e293b;
   --slate-900: #0f172a;
-  --radius: 0.5rem;
-  --shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
-  --transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+
+  --radius: 0.75rem;          /* 12px rounded-xl */
+  --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+  --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Mencegah visual jitter Vue saat render awal */
 [v-cloak] { display: none !important; }
 
 body {
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   background-color: var(--slate-100);
   color: var(--slate-900);
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* Badges */
+/* BADGES STATUS & PILLS */
 .badge {
   display: inline-flex;
   align-items: center;
   padding: 0.25rem 0.625rem;
   border-radius: 9999px;
-  font-size: 0.725rem;
-  font-weight: 600;
+  font-size: 0.7rem;
+  font-weight: 700;
   line-height: 1;
-  letter-spacing: 0.025em;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
 }
 .badge-aktif, .badge-selesai, .badge-disetujui {
@@ -52,23 +71,24 @@ body {
   color: #b91c1c;
   border: 1px solid #fecaca;
 }
-.badge-revisi, .badge-verifikasi, .badge-terjadwal {
+.badge-revisi, .badge-verifikasi, .badge-terjadwal, .badge-diajukan {
   background-color: #fef3c7;
   color: #b45309;
   border: 1px solid #fde68a;
 }
-.badge-draft, .badge-belum {
+.badge-draft, .badge-belum, .badge-menunggu {
   background-color: #f1f5f9;
   color: #475569;
   border: 1px solid #e2e8f0;
 }
 
-/* Modal */
+/* GLASSMORPHISM MODAL BACKDROP */
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background-color: rgba(15,23,42,0.5);
+  background-color: rgba(15, 23, 42, 0.5);
   backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -76,31 +96,31 @@ body {
   padding: 1rem;
 }
 .modal-content {
-  background-color: #fff;
-  border-radius: 1rem;
+  background-color: #ffffff;
+  border-radius: 1.25rem;
   max-width: 680px;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: var(--shadow);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   border: 1px solid var(--slate-200);
 }
 
-/* Form */
+/* FORM INPUTS & SELECTS */
 .input, .select, .textarea {
   width: 100%;
   padding: 0.625rem 0.875rem;
   border: 1px solid var(--slate-300);
   border-radius: var(--radius);
   font-size: 0.8125rem;
-  background-color: #fff;
+  background-color: #ffffff;
   color: var(--slate-800);
   transition: var(--transition);
 }
 .input:focus, .select:focus, .textarea:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(4,120,87,0.2);
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.2);
 }
 .form-label {
   display: block;
@@ -110,7 +130,7 @@ body {
   margin-bottom: 0.35rem;
 }
 
-/* Buttons */
+/* BUTTONS UTILITY */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -125,14 +145,24 @@ body {
 }
 .btn:active { transform: scale(0.97); }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.btn-primary { background-color: var(--primary); color: #fff; }
+.btn-primary { background-color: var(--primary); color: #ffffff; }
 .btn-primary:hover:not(:disabled) { background-color: var(--primary-dark); }
-.btn-secondary { background-color: #fff; color: var(--slate-700); border-color: var(--slate-300); }
+.btn-secondary { background-color: #ffffff; color: var(--slate-700); border-color: var(--slate-300); }
 .btn-secondary:hover:not(:disabled) { background-color: var(--slate-50); }
-.btn-danger { background-color: var(--danger); color: #fff; }
-.btn-danger:hover:not(:disabled) { background-color: #b91c1c; }
+.btn-danger { background-color: var(--danger); color: #ffffff; }
+.btn-danger:hover:not(:disabled) { background-color: var(--danger-dark); }
+.btn-success { background-color: var(--success); color: #ffffff; }
+.btn-success:hover:not(:disabled) { background-color: var(--success-dark); }
+.btn-warning { background-color: var(--warning); color: #78350f; }
+.btn-warning:hover:not(:disabled) { background-color: var(--warning-dark); color: #ffffff; }
+.btn-info { background-color: var(--info); color: #ffffff; }
+.btn-info:hover:not(:disabled) { background-color: var(--info-dark); }
 
-/* Toast */
+/* TAB NAVIGATION */
+.tab-active { background-color: var(--primary); color: #ffffff; }
+.tab-inactive { background-color: var(--slate-200); color: var(--slate-700); }
+
+/* TOAST NOTIFICATIONS */
 .toast-container {
   position: fixed;
   top: 1.25rem;
@@ -150,10 +180,10 @@ body {
   padding: 0.875rem 1.25rem;
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  color: #fff;
+  color: #ffffff;
   font-size: 0.8125rem;
   font-weight: 600;
-  animation: slideIn 0.25s ease-out;
+  animation: slideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 .toast-success { background-color: var(--success); }
 .toast-error { background-color: var(--danger); }
@@ -165,7 +195,7 @@ body {
   to { transform: translateX(0); opacity: 1; }
 }
 
-/* Table */
+/* TABLE LAYOUT & STICKY HEADER */
 .table-scroll {
   overflow-x: auto;
   border-radius: var(--radius);
@@ -175,7 +205,7 @@ body {
   position: sticky;
   top: 0;
   background-color: var(--primary-dark);
-  color: #fff;
+  color: #ffffff;
   z-index: 10;
   font-weight: 700;
   white-space: nowrap;
@@ -193,18 +223,46 @@ body {
 .table-scroll tbody tr:hover { background-color: #f1f5f9; }
 .table-scroll table { font-size: 0.8125rem; width: 100%; border-collapse: collapse; }
 
-/* Scrollbar */
+/* ACTION BUTTON MINIMALIST */
+.btn-aksi {
+  padding: 0.35rem 0.6rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-active-light {
+  background-color: #f0fdfa; /* teal-50 */
+  color: #0f766e !important; /* teal-700 */
+  font-weight: 700;
+  border-right: 4px solid #16a34a;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);
+}
+
+/* CARD CONTAINER */
+.card {
+  background-color: #ffffff;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+/* MODERN SCROLLBAR STYLING */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
 ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* SEMBUNYIKAN SCROLLBAR (dipakai sidebar/tabs) */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* Border 3px */
+/* BORDER 3px (bukan utility Tailwind; dipakai spinner) */
 .border-3 { border-width: 3px; }
 
-/* Line clamp */
+/* FALLBACK line-clamp (aman bila CDN Tailwind tua) */
 .line-clamp-1, .line-clamp-2 {
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -213,11 +271,12 @@ body {
 .line-clamp-1 { -webkit-line-clamp: 1; }
 .line-clamp-2 { -webkit-line-clamp: 2; }
 
-/* Animations */
+/* KEYFRAME ANIMATIONS */
 @keyframes fadeIn {
   from { opacity: 0; transform: scale(0.97); }
   to { opacity: 1; transform: scale(1); }
 }
+.animate-fadeIn { animation: fadeIn 0.2s ease-out; }
 .animate-fade-in { animation: fadeIn 0.25s ease-out; }
 
 @keyframes scaleUp {
@@ -226,23 +285,35 @@ body {
 }
 .animate-scale-up { animation: scaleUp 0.25s ease-out; }
 
-/* Dark mode overrides */
+/* FULL DARK MODE OVERRIDES */
 .dark body {
-  background-color: #0f172a;
-  color: #f8fafc;
+  background-color: #0f172a; /* slate-900 */
+  color: #f8fafc;            /* slate-50 */
 }
+
 .dark .card,
 .dark .modal-content,
 .dark .table-scroll,
 .dark .bg-white {
-  background-color: #1e293b !important;
+  background-color: #1e293b !important; /* slate-800 */
   color: #f8fafc !important;
-  border-color: #334155 !important;
+  border-color: #334155 !important;       /* slate-700 */
 }
+
 .dark .table-scroll thead th {
-  background-color: #0f172a !important;
-  color: #34d399 !important;
+  background-color: #0f172a !important; /* slate-900 */
+  color: #34d399 !important;            /* emerald-400 */
+  border-bottom: 1px solid #334155 !important;
 }
+
+.dark .table-scroll tbody tr:nth-child(even) {
+  background-color: #182234 !important;
+}
+
+.dark .table-scroll tbody tr:hover {
+  background-color: #334155 !important; /* slate-700 */
+}
+
 .dark .input,
 .dark .select,
 .dark .textarea {
@@ -250,9 +321,20 @@ body {
   color: #f8fafc !important;
   border-color: #334155 !important;
 }
-.dark .form-label { color: #cbd5e1 !important; }
+
+.dark .form-label {
+  color: #cbd5e1 !important;
+}
+
 .dark .btn-secondary {
   background-color: #1e293b !important;
   color: #e2e8f0 !important;
   border-color: #334155 !important;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
 }
