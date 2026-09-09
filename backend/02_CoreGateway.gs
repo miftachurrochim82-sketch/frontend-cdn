@@ -265,11 +265,11 @@ function handleDeclarativeResourceAction_(action, data, currentUser, localConfig
     var isAdmin = userRole === 'admin' || userRole === 'super';
     var userPegawaiId = String((currentUser && (currentUser.pegawai_id || currentUser.user_id || currentUser.id)) || '').trim();
 
-    // Match Action Patterns
-    var isList = (act === 'get_' + normKey + '_list' || act === 'get_' + normKey + 's' || act === 'get_' + normKey || act === normKey + '_list');
-    var isDetail = (act === 'get_' + normKey + '_detail' || act === 'get_' + normKey + '_by_id' || act === normKey + '_detail');
-    var isSave = (act === 'save_' + normKey || act === 'create_' + normKey || act === 'update_' + normKey);
-    var isDelete = (act === 'delete_' + normKey || act === 'remove_' + normKey);
+    // Match Action Patterns (supports snake_case and dot.notation)
+    var isList = (act === 'get_' + normKey + '_list' || act === 'get_' + normKey + 's' || act === 'get_' + normKey || act === normKey + '_list' || act === normKey + '.list');
+    var isDetail = (act === 'get_' + normKey + '_detail' || act === 'get_' + normKey + '_by_id' || act === normKey + '_detail' || act === normKey + '.get' || act === normKey + '.detail');
+    var isSave = (act === 'save_' + normKey || act === 'create_' + normKey || act === 'update_' + normKey || act === normKey + '.create' || act === normKey + '.update' || act === normKey + '.save');
+    var isDelete = (act === 'delete_' + normKey || act === 'remove_' + normKey || act === normKey + '.delete' || act === normKey + '.remove');
 
     if (isList) {
       var needRole = roles.read || 'viewer';
