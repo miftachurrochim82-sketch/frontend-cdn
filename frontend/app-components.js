@@ -85,7 +85,7 @@
   };
 
   /* ----------------------------------------------------------
-     2. <app-sidebar> — Navigasi samping
+     2. <app-sidebar> — Navigasi Samping Modern & Elegan
      ---------------------------------------------------------- */
   var AppSidebar = {
     name: 'AppSidebar',
@@ -122,106 +122,31 @@
         }).filter(function (g) { return g.items.length > 0; });
       },
       brandTitle:    function () { return this.brand.title || 'Aplikasi'; },
-      brandSubtitle: function () { return this.brand.subtitle || ''; },
+      brandSubtitle: function () { return this.brand.subtitle || 'Pemkab Trenggalek'; },
       logoChar:      function () { return this.brand.logoChar || (this.brandTitle.charAt(0) || 'A'); },
       logoIcon:      function () { return this.brand.logoIcon || 'fa-solid fa-cube'; }
     },
     methods: {
       itemClass: function (id) {
         var active = this.currentPage === id;
-        var base = 'relative flex items-center px-3.5 py-2.5 rounded-xl cursor-pointer transition-all duration-200 group';
-        if (active) return base + (this.dark ? ' bg-emerald-500/15 text-emerald-400 font-bold' : ' bg-emerald-50 text-emerald-700 font-bold');
-        return base + (this.dark ? ' text-slate-400 hover:bg-slate-800/60 hover:text-slate-200' : ' text-slate-600 hover:bg-slate-100/80 hover:text-slate-900');
+        var base = 'relative flex items-center px-3.5 py-2.5 rounded-xl cursor-pointer transition-all duration-200 group text-xs sm:text-sm font-semibold';
+        if (active) return base + ' bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-extrabold shadow-md shadow-emerald-950/50';
+        return base + ' text-slate-300 hover:bg-slate-800/70 hover:text-white';
       },
       iconClass: function (id) {
         var active = this.currentPage === id;
-        var base = 'w-6 text-center text-base shrink-0 transition-transform group-hover:scale-110';
-        return base + (active ? ' text-emerald-600 dark:text-emerald-400' : ' text-slate-400 group-hover:text-emerald-600');
+        var base = 'w-6 text-center text-sm shrink-0 transition-transform group-hover:scale-110';
+        return base + (active ? ' text-white' : ' text-slate-400 group-hover:text-emerald-400');
       },
       go: function (id) { this.$emit('navigate', id); }
     },
     template: '\
     <aside :class="[\
-        \'fixed lg:static inset-y-0 left-0 z-50 flex flex-col shrink-0 transition-all duration-300 ease-in-out border-r select-none shadow-xl lg:shadow-none\',\
+        \'fixed lg:static inset-y-0 left-0 z-50 flex flex-col shrink-0 transition-all duration-300 ease-in-out border-r select-none shadow-2xl lg:shadow-none bg-gradient-to-b from-slate-900 via-slate-900 to-indigo-950 text-slate-100 border-slate-800/80\',\
         collapsed ? \'w-20\' : \'w-64\',\
-        mobileOpen ? \'translate-x-0\' : \'-translate-x-full lg:translate-x-0\',\
-        dark ? \'bg-slate-900 text-slate-100 border-slate-800\' : \'bg-white text-slate-700 border-slate-200/80\'\
-      ]">\
-      <div :class="[\
-        \'h-20 px-4 border-b flex items-center justify-between shrink-0 transition-colors\',\
-        dark ? \'border-slate-800 bg-slate-900/80\' : \'border-slate-100 bg-white\'\
-      ]">\
-        <div v-if="!collapsed" class="flex items-center gap-3 overflow-hidden animate-fade-in">\
-          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center font-bold text-lg shadow-lg shadow-emerald-600/20 shrink-0">\
-            <i :class="logoIcon"></i>\
-          </div>\
-          <div class="min-w-0">\
-            <h2 class="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white truncate">{{ brandTitle }}</h2>\
-            <p class="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 tracking-wider uppercase truncate">{{ brandSubtitle }}</p>\
-          </div>\
-        </div>\
-        <div v-else class="mx-auto">\
-          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center font-black text-lg shadow-lg shadow-emerald-600/20">\
-            {{ logoChar }}\
-          </div>\
-        </div>\
-        <button v-if="!collapsed" @click="$emit(\'toggle\')"\
-                :class="[\
-                  \'hidden lg:flex w-8 h-8 rounded-xl border items-center justify-center text-xs transition-all duration-200 shadow-sm shrink-0\',\
-                  dark ? \'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-300\' : \'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-600\'\
-                ]" title="Kecilkan Sidebar">\
-          <i class="fa-solid fa-chevron-left"></i>\
-        </button>\
-        <button @click="$emit(\'close\')" class="lg:hidden p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-base shrink-0" title="Tutup Menu">\
-          <i class="fa-solid fa-xmark"></i>\
-        </button>\
-      </div>\
-      <nav class="flex-1 px-3 py-4 space-y-6 overflow-y-auto no-scrollbar">\
-        <div v-for="(group, gi) in visibleItems" :key="gi">\
-          <div v-if="group.name && !collapsed" class="px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">\
-            {{ group.name }}\
-          </div>\
-          <div class="space-y-1">\
-            <a v-for="item in group.items" :key="item.id" @click="go(item.id)"\
-               :class="itemClass(item.id)" :title="collapsed ? item.label : \'\'">\
-              <div v-if="currentPage === item.id" class="absolute left-0 top-2 bottom-2 w-1 bg-emerald-600 rounded-r-full"></div>\
-              <i :class="[item.icon, iconClass(item.id)]"></i>\
-              <span v-if="!collapsed" class="ml-2.5 text-sm truncate">{{ item.label }}</span>\
-            </a>\
-          </div>\
-        </div>\
-      </nav>\
-      <div :class="[\
-        \'p-3 border-t shrink-0 flex flex-col gap-2\',\
-        dark ? \'border-slate-800 bg-slate-900/80\' : \'border-slate-100 bg-slate-50/50\'\
-      ]">\
-        <div v-if="!collapsed && user && user.email" class="p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 flex items-center gap-3 shadow-sm">\
-          <div class="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 font-bold text-xs flex items-center justify-center shrink-0 uppercase">\
-            {{ (user.display_name || user.email).charAt(0) }}\
-          </div>\
-          <div class="min-w-0 flex-1">\
-            <p class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{{ user.display_name || user.email }}</p>\
-            <span class="inline-block text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">{{ user.role || \'User\' }}</span>\
-          </div>\
-        </div>\
-        <button v-if="collapsed" @click="$emit(\'toggle\')"\
-                class="hidden lg:flex w-full h-10 rounded-xl border items-center justify-center text-xs transition border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 mb-1"\
-                title="Perluas Sidebar">\
-          <i class="fa-solid fa-chevron-right"></i>\
-        </button>\
-        <button @click="$emit(\'logout\')"\
-                :class="[\
-                  \'w-full flex items-center justify-center px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200\',\
-                  dark\
-                    ? \'bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border border-rose-900/50\'\
-                    : \'bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/60\'\
-                ]" :title="collapsed ? \'Keluar dari Aplikasi\' : \'\'">\
-          <i class="fa-solid fa-power-off text-sm shrink-0"></i>\
-          <span v-if="!collapsed" class="ml-2.5">Keluar Sesi</span>\
-        </button>\
-      </div>\
-    </aside>\
-    <div v-if="mobileOpen" @click="$emit(\'close\')" class="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-sm lg:hidden"></div>'
+        mobileOpen ? \'translate-x-0\' : \'-translate-x-full lg:translate-x-0\'\
+      ]">      <div class="h-20 px-4 border-b border-slate-800/80 bg-slate-950/60 backdrop-blur-md flex items-center justify-between shrink-0 transition-colors">        <div v-if="!collapsed" class="flex items-center gap-3 overflow-hidden animate-fade-in">          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-emerald-400 text-white flex items-center justify-center font-bold text-lg shadow-lg shadow-emerald-500/20 shrink-0 border border-emerald-400/30">            <i :class="logoIcon"></i>          </div>          <div class="min-w-0">            <h2 class="text-sm font-extrabold tracking-tight text-white truncate">{{ brandTitle }}</h2>            <p class="text-[10px] font-semibold text-emerald-400 tracking-wider uppercase truncate">{{ brandSubtitle }}</p>          </div>        </div>        <div v-else class="mx-auto">          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-emerald-400 text-white flex items-center justify-center font-black text-lg shadow-lg shadow-emerald-500/20 border border-emerald-400/30">            {{ logoChar }}          </div>        </div>        <button v-if="!collapsed" @click="$emit(\'toggle\')"                class="hidden lg:flex w-8 h-8 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300 items-center justify-center text-xs transition-all duration-200 shadow-sm shrink-0" title="Kecilkan Sidebar">          <i class="fa-solid fa-chevron-left"></i>        </button>        <button @click="$emit(\'close\')" class="lg:hidden p-2 text-slate-400 hover:text-slate-200 text-base shrink-0" title="Tutup Menu">          <i class="fa-solid fa-xmark"></i>        </button>      </div>      <nav class="flex-1 px-3 py-5 space-y-6 overflow-y-auto no-scrollbar">        <div v-for="(group, gi) in visibleItems" :key="gi" class="space-y-1.5">          <div v-if="group.name && !collapsed" class="px-3 pb-1 text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80 flex items-center gap-1.5">            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>            <span>{{ group.name }}</span>          </div>          <div class="space-y-1">            <a v-for="item in group.items" :key="item.id" @click="go(item.id)"               :class="itemClass(item.id)" :title="collapsed ? item.label : \'\'">              <div v-if="currentPage === item.id" class="absolute left-0 top-1.5 bottom-1.5 w-1 bg-emerald-300 rounded-r-full"></div>              <i :class="[item.icon, iconClass(item.id)]"></i>              <span v-if="!collapsed" class="ml-2.5 text-xs sm:text-sm truncate font-semibold">{{ item.label }}</span>            </a>          </div>        </div>      </nav>      <div class="p-3.5 border-t border-slate-800/80 bg-slate-950/80 backdrop-blur-md shrink-0 flex flex-col gap-2">        <button v-if="collapsed" @click="$emit(\'toggle\')"                class="hidden lg:flex w-full h-10 rounded-xl border items-center justify-center text-xs transition border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300 mb-1"                title="Perluas Sidebar">          <i class="fa-solid fa-chevron-right"></i>        </button>        <button @click="$emit(\'logout\')"                class="w-full flex items-center justify-center py-3 px-4 rounded-xl bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white transition-all text-xs font-extrabold shadow-lg shadow-rose-950/40 active:scale-[0.98]"                :title="collapsed ? \'Keluar dari Aplikasi\' : \'\'">          <i class="fa-solid fa-power-off text-sm shrink-0"></i>          <span v-if="!collapsed" class="ml-2.5">Keluar Sesi</span>        </button>      </div>    </aside>    <div v-if="mobileOpen" @click="$emit(\'close\')" class="fixed inset-0 z-40 bg-slate-950/70 backdrop-blur-sm lg:hidden"></div>\
+    '
   };
 
   /* ----------------------------------------------------------
