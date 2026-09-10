@@ -129,7 +129,16 @@
           if (!platformUrl) { this.showToast('platformUrl belum dikonfigurasi', 'error'); return; }
           var back = window.location.href.split('?')[0];
           var sep = platformUrl.indexOf('?') >= 0 ? '&' : '?';
-          window.location.href = platformUrl + sep + 'redirect=' + encodeURIComponent(back);
+          var targetUrl = platformUrl + sep + 'redirect=' + encodeURIComponent(back);
+          try {
+            if (window.top && window.top !== window) {
+              window.top.location.href = targetUrl;
+            } else {
+              window.location.href = targetUrl;
+            }
+          } catch (e) {
+            window.open(targetUrl, '_top');
+          }
         },
 
         navigateTo: function (page) {
