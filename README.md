@@ -1,7 +1,7 @@
 # Ekosistem Aplikasi Pemerintah Kabupaten Trenggalek
-### Platform Single Sign-On (SSO), Master Data & Aplikasi Dinas Terintegrasi
+### Platform Single Sign-On (SSO), Master Data & Aplikasi Terpadu
 
-Repositori ini memuat seluruh sumber kode ekosistem digital terpadu Pemerintah Kabupaten Trenggalek berbasis **Google Apps Script (GAS)**, **Vue 3**, dan **Tailwind CSS**.
+Repositori ini memuat pustaka antarmuka bersama (*Shared UI Components*), arsitektur desain sistem, dan pedoman integrasi untuk seluruh ekosistem digital Pemerintah Kabupaten Trenggalek berbasis **Google Apps Script (GAS)**, **Vue 3**, dan **Tailwind CSS**.
 
 ---
 
@@ -19,34 +19,29 @@ Repositori ini memuat seluruh sumber kode ekosistem digital terpadu Pemerintah K
        ▼                       ▼                       ▼
 ┌──────────────┐        ┌──────────────┐        ┌──────────────┐
 │SI-KOMPETENSI │        │ SI-PELAPORAN │        │  SI-DIKLAT   │
-│(Kompetensi)  │        │ (Pelaporan)  │        │ (Diklat ASN) │
+│ (Kompetensi) │        │ (Pelaporan)  │        │ (Diklat ASN) │
 └──────────────┘        └──────────────┘        └──────────────┘
 ```
 
 ---
 
-## 📦 Daftar Proyek & Repositori
+## 📦 Daftar Proyek & Repositori Resmi
 
-| Proyek | Deskripsi | Arsitektur Tampilan |
-|---|---|---|
-| **`si-platform`** | Portal SSO, User Management, Role RBAC, Storage & Audit Log | **Modular 5-View System** (`V_Layout`, `V_Portal`, `V_Akses`, `V_Layanan`, `V_Sistem`) |
-| **`si-kompetensi`** | Aplikasi Riwayat & Analisis Pengembangan Kompetensi ASN | SPA Vue 3 + Shared CDN UI |
-| **`si-pelaporan`** | Aplikasi Manajemen & Verifikasi Pelaporan Kinerja ASN | SPA Vue 3 + Shared CDN UI |
-| **`frontend-cdn`** | Desain Sistem, Komponen Bersama (`<app-sidebar>`, `<app-header>`, Token CSS) | Shared CDN Repository |
-
----
-
-## 🚀 Keunggulan Arsitektur Modular (Ringkas & Tablet-Friendly)
-
-1. **Jumlah File Sedikit & Ringkas**:
-   - `si-platform` hanya menggunakan **6 file tampilan** (`Index.html`, `V_Layout.html`, `V_Portal.html`, `V_Akses.html`, `V_Layanan.html`, `V_Sistem.html`), sangat nyaman diedit dari browser tablet/mobile.
-2. **Performa Tinggi**:
-   - Backend dilengkapi mekanisme caching otomatis dan lock transaksional untuk mencegah *race conditions*.
-3. **CI/CD Otomatis**:
-   - Setiap `git push` ke GitHub otomatis sinkron ke Google Apps Script via GitHub Actions & Google Clasp.
+| Proyek | Deskripsi | Struktur Frontend | Tautan Repositori |
+|---|---|---|---|
+| **`si-platform`** | Portal SSO, User Management, Role RBAC, Storage & Audit Log | 2 File HTML (`Index.html` + `V_Layout.html`) | [GitHub Repo](https://github.com/miftachurrochim82-sketch/si-platform) |
+| **`si-kompetensi`** | Aplikasi Riwayat & Analisis Pengembangan Kompetensi ASN | 2 File HTML (`Index.html` + `V_Layout.html`) | [GitHub Repo](https://github.com/miftachurrochim82-sketch/si-kompetensi) |
+| **`si-pelaporan`** | Aplikasi Manajemen & Verifikasi Pelaporan Kinerja ASN | 2 File HTML (`Index.html` + `V_Layout.html`) | [GitHub Repo](https://github.com/miftachurrochim82-sketch/si-pelaporan) |
+| **`frontend-cdn`** | Pustaka CDN Bersama (`app-components`, `app-core`, `app-common.css`) | Shared CDN Repository | [GitHub Repo](https://github.com/miftachurrochim82-sketch/frontend-cdn) |
 
 ---
 
-## 📝 Lisensi
-Dikelola oleh Pemerintah Kabupaten Trenggalek.  
-Lisensi: MIT.
+## 🚀 Keunggulan Arsitektur 2-Berkas HTML (Single Include)
+
+1. **Ringan & Bebas Bug di Apps Script**:
+   - Google Apps Script hanya perlu memproses **satu kali include** (`<?!= include('V_Layout'); ?>`) di dalam `Index.html`.
+   - Menghilangkan resiko *nested include* atau *recursion error* yang sering terjadi jika template dipecah ke belasan file terpisah.
+2. **Sangat Nyaman Dikelola di Browser Tablet**:
+   - Struktur berkas di editor Google Apps Script tetap ramping (hanya 4-5 berkas `.gs` dan 2 berkas `.html`).
+3. **Pustaka Terpusat via CDN jsDelivr**:
+   - Seluruh aplikasi dinas berbagi komponen `<app-sidebar>`, `<app-header>`, `<app-badge>`, `<app-login>`, `<app-crud-table>`, `<app-profile>`, dan `<app-settings>` dari repository `frontend-cdn`.
