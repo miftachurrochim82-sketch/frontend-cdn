@@ -104,8 +104,8 @@
       groups: function () {
         var out = [];
         var flat = [];
-        for (var i = 0; i < this.menu.length; i++) {
-          var m = this.menu[i];
+        var menu = this.menu || []; for (var i = 0; i < menu.length; i++) {
+          var m = menu[i];
           if (m && m.items) { out.push({ name: m.name || '', items: m.items }); }
           else if (m) { flat.push(m); }
         }
@@ -114,7 +114,7 @@
       },
       visibleItems: function () {
         var self = this;
-        return this.groups.map(function (g) {
+        return (this.groups || []).map(function (g) {
           return {
             name: g.name,
             items: g.items.filter(function (it) { return !it.adminOnly || self.isAdmin; })
@@ -408,15 +408,15 @@
           </thead>\
           <tbody class="divide-y divide-slate-100 dark:divide-slate-700/60">\
             <tr v-if="loading">\
-              <td :colspan="columns.length" class="py-12 text-center text-slate-400">\
+              <td :colspan="(columns || []).length" class="py-12 text-center text-slate-400">\
                 <div class="inline-flex items-center gap-2 font-semibold">\
                   <i class="fa-solid fa-spinner fa-spin text-emerald-600 text-base"></i>\
                   <span>Memuat data...</span>\
                 </div>\
               </td>\
             </tr>\
-            <tr v-else-if="!items.length">\
-              <td :colspan="columns.length" class="py-12 text-center text-slate-400">\
+            <tr v-else-if="!(items || []).length">\
+              <td :colspan="(columns || []).length" class="py-12 text-center text-slate-400">\
                 <div class="flex flex-col items-center justify-center space-y-2">\
                   <i :class="emptyIcon" class="text-3xl text-slate-300 dark:text-slate-600"></i>\
                   <p class="font-medium text-xs">{{ emptyText }}</p>\
