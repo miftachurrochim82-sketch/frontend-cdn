@@ -1,18 +1,22 @@
 /* ============================================================
-   app-common.css — CSS Global & Custom Utilities (Shared CDN)
+   app-common.css — CSS Global & Custom Utilities (Shared CDN v1.1.0)
    Dipakai bersama oleh semua web app GAS Pemkab Trenggalek
    (SI-KOMPETENSI, SI-PELAPORAN, dst.) via jsDelivr.
-
-   Isi: token warna, badge, modal, form, button, toast, tabel,
-   scrollbar, animasi, fallback utility, dan dark-mode overrides.
-   Kombinasi dengan Tailwind Play CDN (darkMode:'class').
+   ============================================================
+   Changelog v1.1.0 (2026-09-13):
+   - Warna --primary dari teal-700 (#0f766e) → emerald-600 (#059669)
+     agar sinkron dengan brand SI-KOMPETENSI (theme-color #059669).
+   - --primary-dark → emerald-700 (#047857)
+   - --primary-light → emerald-50 (#ecfdf5)
+   - nav-active-light & focus ring disesuaikan ke emerald.
+   - Sisanya tidak berubah dari v1.0.0.
    ============================================================ */
 
 :root {
-  /* Warna Utama (Teal / Emerald Palette) */
-  --primary: #0f766e;        /* teal-700 */
-  --primary-dark: #115e59;   /* teal-800 */
-  --primary-light: #f0fdfa;  /* teal-50 */
+  /* Warna Utama (Emerald Palette — sinkron brand SI) */
+  --primary: #059669;        /* emerald-600 */
+  --primary-dark: #047857;   /* emerald-700 */
+  --primary-light: #ecfdf5;  /* emerald-50 */
 
   --success: #16a34a;
   --success-dark: #15803d;
@@ -33,12 +37,12 @@
   --slate-800: #1e293b;
   --slate-900: #0f172a;
 
-  --radius: 0.75rem;          /* 12px rounded-xl */
+  --radius: 0.75rem;
   --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
   --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Mencegah visual jitter Vue saat render awal */
+/* Anti-flicker Vue */
 [v-cloak] { display: none !important; }
 
 body {
@@ -49,7 +53,7 @@ body {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* BADGES STATUS & PILLS */
+/* BADGES STATUS */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -82,7 +86,7 @@ body {
   border: 1px solid #e2e8f0;
 }
 
-/* GLASSMORPHISM MODAL BACKDROP */
+/* MODAL BACKDROP */
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -106,7 +110,7 @@ body {
   border: 1px solid var(--slate-200);
 }
 
-/* FORM INPUTS & SELECTS */
+/* FORM INPUTS */
 .input, .select, .textarea {
   width: 100%;
   padding: 0.625rem 0.875rem;
@@ -120,7 +124,7 @@ body {
 .input:focus, .select:focus, .textarea:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.2);
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.2); /* emerald-600/20 */
 }
 .form-label {
   display: block;
@@ -130,7 +134,7 @@ body {
   margin-bottom: 0.35rem;
 }
 
-/* BUTTONS UTILITY */
+/* BUTTONS */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -158,11 +162,11 @@ body {
 .btn-info { background-color: var(--info); color: #ffffff; }
 .btn-info:hover:not(:disabled) { background-color: var(--info-dark); }
 
-/* TAB NAVIGATION */
+/* TABS */
 .tab-active { background-color: var(--primary); color: #ffffff; }
 .tab-inactive { background-color: var(--slate-200); color: var(--slate-700); }
 
-/* TOAST NOTIFICATIONS */
+/* TOAST */
 .toast-container {
   position: fixed;
   top: 1.25rem;
@@ -195,7 +199,7 @@ body {
   to { transform: translateX(0); opacity: 1; }
 }
 
-/* TABLE LAYOUT & STICKY HEADER */
+/* TABLE */
 .table-scroll {
   overflow-x: auto;
   border-radius: var(--radius);
@@ -223,7 +227,7 @@ body {
 .table-scroll tbody tr:hover { background-color: #f1f5f9; }
 .table-scroll table { font-size: 0.8125rem; width: 100%; border-collapse: collapse; }
 
-/* ACTION BUTTON MINIMALIST */
+/* ACTION BUTTON */
 .btn-aksi {
   padding: 0.35rem 0.6rem;
   border-radius: 0.5rem;
@@ -235,34 +239,32 @@ body {
 }
 
 .nav-active-light {
-  background-color: #f0fdfa; /* teal-50 */
-  color: #0f766e !important; /* teal-700 */
+  background-color: var(--primary-light); /* emerald-50 */
+  color: var(--primary) !important;       /* emerald-600 */
   font-weight: 700;
-  border-right: 4px solid #16a34a;
+  border-right: 4px solid var(--primary);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);
 }
 
-/* CARD CONTAINER */
+/* CARD */
 .card {
   background-color: #ffffff;
   border-radius: var(--radius);
   box-shadow: var(--shadow);
 }
 
-/* MODERN SCROLLBAR STYLING */
+/* SCROLLBAR */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
 ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-/* SEMBUNYIKAN SCROLLBAR (dipakai sidebar/tabs) */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* BORDER 3px (bukan utility Tailwind; dipakai spinner) */
 .border-3 { border-width: 3px; }
 
-/* FALLBACK line-clamp (aman bila CDN Tailwind tua) */
+/* LINE CLAMP FALLBACK */
 .line-clamp-1, .line-clamp-2 {
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -271,7 +273,7 @@ body {
 .line-clamp-1 { -webkit-line-clamp: 1; }
 .line-clamp-2 { -webkit-line-clamp: 2; }
 
-/* KEYFRAME ANIMATIONS */
+/* ANIMATIONS */
 @keyframes fadeIn {
   from { opacity: 0; transform: scale(0.97); }
   to { opacity: 1; transform: scale(1); }
@@ -285,24 +287,24 @@ body {
 }
 .animate-scale-up { animation: scaleUp 0.25s ease-out; }
 
-/* FULL DARK MODE OVERRIDES */
+/* DARK MODE */
 .dark body {
-  background-color: #0f172a; /* slate-900 */
-  color: #f8fafc;            /* slate-50 */
+  background-color: #0f172a;
+  color: #f8fafc;
 }
 
 .dark .card,
 .dark .modal-content,
 .dark .table-scroll,
 .dark .bg-white {
-  background-color: #1e293b !important; /* slate-800 */
+  background-color: #1e293b !important;
   color: #f8fafc !important;
-  border-color: #334155 !important;       /* slate-700 */
+  border-color: #334155 !important;
 }
 
 .dark .table-scroll thead th {
-  background-color: #0f172a !important; /* slate-900 */
-  color: #34d399 !important;            /* emerald-400 */
+  background-color: #0f172a !important;
+  color: #34d399 !important; /* emerald-400 */
   border-bottom: 1px solid #334155 !important;
 }
 
@@ -311,7 +313,7 @@ body {
 }
 
 .dark .table-scroll tbody tr:hover {
-  background-color: #334155 !important; /* slate-700 */
+  background-color: #334155 !important;
 }
 
 .dark .input,
