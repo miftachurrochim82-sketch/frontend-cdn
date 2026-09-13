@@ -1,5 +1,5 @@
 /* ============================================================
-   app-modules.js — Modul halaman mandiri (Shared CDN)
+   app-modules.js — Modul halaman mandiri (Shared CDN v2.1.0)
    Port dari A7_Profil & A9_Pengaturan: state + logika dibungkus
    di dalam komponen (self-contained), sehingga aplikasi GAS
    tidak perlu lagi include file lokal / mixin untuk keduanya.
@@ -9,20 +9,23 @@
    currentUser. Kontrak backend:
    - Profil : get_my_profile, save_my_profile
    - Sistem : get_config, save_config_item,
-              delete { entity:'KONFIGURASI', id }
+              delete { entity:'KONFIGURASI', id:<key> }
 
    Diregistrasi otomatis oleh AppCore.create() bila file ini
    dimuat SEBELUM app-core.js ... ATAU sesudahnya — AppCore
    membaca window.AppModules saat create() dipanggil.
+   ============================================================
+   Changelog v2.1.0 (2026-09-13):
+   - FIX AppSettings.confirmDelete: kirim `id: config.key` (bukan
+     `config.id || config.key`). Backend SI deleteConfigItem_ butuh
+     `key` untuk props.deleteProperty(key). Row id sheet berbeda
+     dengan key, sehingga delete sebelumnya gagal senyap.
    ============================================================ */
 (function (global) {
   'use strict';
 
   /* ----------------------------------------------------------
      <app-profile> — Profil Saya (ID Card UI + edit kontak)
-     Muat data otomatis saat komponen muncul (mounted).
-     Email identitas DISABLED (kunci session; server pun
-     mengabaikan email dari payload).
      ---------------------------------------------------------- */
   var AppProfile = {
     name: 'AppProfile',
@@ -227,9 +230,7 @@
   };
 
   /* ----------------------------------------------------------
-     <app-settings> — Pengaturan & Parameter Sistem (admin-only;
-     gate akses dilakukan di template aplikasi via isAdmin)
-     Muat data otomatis saat komponen muncul (mounted).
+     <app-settings> — Pengaturan & Parameter Sistem (admin-only)
      ---------------------------------------------------------- */
   var AppSettings = {
     name: 'AppSettings',
@@ -244,7 +245,7 @@
         editConfigValue: '',
         editConfigKeterangan: '',
         configSaving: false,
-        // Modal Konfirmasi Hapus Kustom
+        // Modal Konfirmasi Hapus
         showDeleteModal: false,
         configToDelete: null,
         deleteProcessing: false
@@ -269,8 +270,6 @@
           .then(function (res) {
             if (res && res.success) {
               self.configList = res.data || [];
-            } else if (res && res.code === 'UNAUTHORIZED') {
-              // handled in AppCore
             }
           })
           .catch(function (e) {
@@ -320,7 +319,13 @@
         if (!this.configToDelete) return;
         var self = this;
         this.deleteProcessing = true;
-        this.$root.callServer('delete', { entity: 'KONFIGURASI', id: this.configToDelete.id || this.configToDelete.key })
+
+        // v2.1.0 FIX: backend SI deleteConfigItem_ butuh `key` (untuk
+        // Properties.deleteProperty). Kirim config.key, BUKAN row id.
+        this.$root.callServer('delete', {
+          entity: 'KONFIGURASI',
+          id: this.configToDelete.key
+        })
           .then(function (res) {
             if (res && res.success) {
               self.showDeleteModal = false;
@@ -489,7 +494,7 @@
   global.AppModules = {
     'app-profile': AppProfile,
     'app-settings': AppSettings,
-    version: '2.0.0'
+    version: '2.1.0'
   };
 
 })(window);
