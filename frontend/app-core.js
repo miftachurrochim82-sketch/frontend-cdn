@@ -1,20 +1,27 @@
 /* ============================================================
-   app-core.js — Factory Inisialisasi Vue App (Shared CDN v2.4.0)
+   app-core.js — Factory Inisialisasi Vue App (Shared CDN v2.5.0)
 
    AppCore.create(AppConfig) mengembalikan instance aplikasi Vue 3
    yang sudah terkonfigurasi lengkap dengan optimasi performa tinggi:
-   - High Performance Core : Dynamic script loading (on-demand SheetJS/jsPDF/Chart.js),
-                             In-flight request deduplication,
-                             Stale-While-Revalidate Master SIMPEG Cache (LocalStorage)
+   - High Performance Core : Dynamic script loading (on-demand SheetJS/
+                             jsPDF/Chart.js), In-flight request
+                             deduplication, Stale-While-Revalidate
+                             Master SIMPEG Cache (LocalStorage).
    - State Shell           : token, currentUser, currentPage, sidebar,
-                             dark mode, toasts, loading, modal, pagination
+                             dark mode, toasts, loading, modal, pagination.
    - Auth SSO              : exchange_platform_ticket, validasi sesi,
-                             logout, handleSessionExpired
-   - Bridge Backend        : callServer(action, data) via google.script.run
-   - Master SIMPEG         : Auto-caching & Lookup Helpers (Pegawai, Unit, Jabatan)
-   - Exporter Kit          : On-demand exportExcel, exportPDF
+                             logout, handleSessionExpired.
+   - Bridge Backend        : callServer(action, data) via google.script.run.
+   - Master SIMPEG         : Auto-caching & Lookup Helpers.
+   - Exporter Kit          : On-demand exportExcel, exportPDF.
    - Komponen Shell        : <app-login>, <app-sidebar>, <app-header>,
-                             <app-badge>, <app-stat-card>, <app-modal>, <app-crud-table>
+                             <app-badge>, <app-stat-card>, <app-modal>,
+                             <app-crud-table>.
+
+   Changelog v2.5.0 (2026-09-13):
+   - Konsolidasi CDN URL jsPDF & jspdf-autotable ke jsDelivr (konsisten
+     dengan pustaka lain). Sebelumnya dari cdnjs.cloudflare.com.
+   - Version bump: 2.4.0 → 2.5.0.
    ============================================================ */
 (function (global) {
   'use strict';
@@ -162,7 +169,7 @@
           if (typeof config.onDarkToggle === 'function') config.onDarkToggle(this);
         },
 
-        // ================= GAS BACKEND BRIDGE (WITH DEDUPLICATION) =================
+        // ================= GAS BACKEND BRIDGE =================
         callServer: function (action, data) {
           data = data || {};
           var self = this;
@@ -215,7 +222,7 @@
           this.showToast('Sesi berakhir, silakan login ulang', 'error');
         },
 
-        // ================= MASTER DATA SIMPEG STALE-WHILE-REVALIDATE =================
+        // ================= MASTER DATA SIMPEG =================
         loadMasterSIMPEG: async function (forceReload) {
           var self = this;
           var CACHE_MAX_AGE = 15 * 60 * 1000; // 15 menit
@@ -236,9 +243,9 @@
 
                 var isFresh = (Date.now() - (c.time || 0)) < CACHE_MAX_AGE;
                 if (!forceReload && isFresh) {
-                  return; // Instant zero-latency return from LocalStorage!
+                  return; // Instant zero-latency return dari LocalStorage
                 }
-                hasValidCache = true; // Ada cache lama, fetch pembaruan di latar belakang
+                hasValidCache = true;
               }
             } catch (e) {}
           }
@@ -283,7 +290,6 @@
           if (!hasValidCache || forceReload) {
             await networkFetch();
           } else {
-            // Background sync tanpa blocking
             networkFetch();
           }
         },
@@ -328,7 +334,7 @@
           }
         },
 
-        // ================= HIGH PERFORMANCE EXPORT KIT (ON-DEMAND) =================
+        // ================= HIGH PERFORMANCE EXPORT KIT =================
         exportExcel: async function (data, filename, sheetName) {
           filename = filename || ('Export_' + this.todayIso_() + '.xlsx');
           if (!filename.endsWith('.xlsx')) filename += '.xlsx';
@@ -359,8 +365,9 @@
           if (typeof jspdf === 'undefined' || !jspdf.jsPDF) {
             this.showToast('Memuat pustaka PDF...', 'info');
             try {
-              await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
-              await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js');
+              // v2.5.0: konsolidasi ke jsDelivr
+              await loadScript('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js');
+              await loadScript('https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js');
             } catch (e) {
               this.showToast('Gagal memuat modul PDF: ' + e.message, 'error');
               return;
@@ -563,7 +570,7 @@
     create: create,
     loadScript: loadScript,
     debounce: debounce,
-    version: '2.4.0'
+    version: '2.5.0'
   };
 
 })(window);
