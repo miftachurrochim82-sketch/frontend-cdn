@@ -1,5 +1,5 @@
 /* ============================================================
-   app-components.js — Komponen Vue 3 Siap Pakai (Shared CDN v2.3.1)
+   app-components.js — Komponen Vue 3 Siap Pakai (Shared CDN v2.3.2)
    Komponen global:
    1. <app-login>      : Layar Autentikasi Single Sign-On (SSO)
    2. <app-sidebar>    : Navigasi Samping Responsif
@@ -9,6 +9,12 @@
    6. <app-modal>      : Universal Modal Box
    7. <app-crud-table> : Smart Data Table
 
+   Changelog v2.3.2 (2026-09-13):
+   - 🔴 FIX: AppHeader — `currentPage.replace('_', ' ')` hanya
+     mengganti underscore PERTAMA. Diganti regex `replace(/_/g, ' ')`
+     agar breadcrumb "usulan_diklat_tahunan" tampil
+     "usulan diklat tahunan" (bukan "usulan diklat_tahunan").
+   - Bump default version string ke v2.3.2.
    Changelog v2.3.1 (2026-09-13):
    - FIX: AppHeader — tambah `<slot name="extra-actions">` sehingga
      tombol Panduan/Install dari Index.html bisa ditampilkan.
@@ -28,7 +34,7 @@
       appSubtitle:  { type: String, default: 'Sistem Informasi Terintegrasi SIMPEG' },
       instansi:     { type: String, default: 'Pemerintah Kabupaten Trenggalek' },
       tagline:      { type: String, default: 'Autentikasi telah terintegrasi terpusat (SSO). Silakan masuk menggunakan akun resmi Anda pada platform utama.' },
-      version:      { type: String, default: 'v2.3.1' },
+      version:      { type: String, default: 'v2.3.2' },
       logoSvg:      { type: String, default: '' },
       isProcessing: { type: Boolean, default: false },
       errorMessage: { type: String, default: '' }
@@ -207,7 +213,7 @@
   };
 
   /* ----------------------------------------------------------
-     3. <app-header> — v2.3.1: + slot extra-actions
+     3. <app-header> — v2.3.2: fix replace regex
      ---------------------------------------------------------- */
   var AppHeader = {
     name: 'AppHeader',
@@ -221,7 +227,11 @@
     emits: ['toggle-dark', 'toggle-mobile', 'navigate'],
     computed: {
       pageIcon: function () { return this.pageIcons[this.currentPage] || 'fa-solid fa-circle'; },
-      userName: function () { return (this.user && (this.user.display_name || this.user.email)) || 'Pengguna'; }
+      userName: function () { return (this.user && (this.user.display_name || this.user.email)) || 'Pengguna'; },
+      // v2.3.2: helper untuk format breadcrumb (semua underscore → spasi)
+      currentPageLabel: function () {
+        return String(this.currentPage || '').replace(/_/g, ' ');
+      }
     },
     template: '\
     <header :class="[\
@@ -241,7 +251,7 @@
           <span class="text-slate-300 dark:text-slate-700 font-light hidden sm:inline-block">/</span>\
           <span class="text-xs sm:text-sm font-semibold text-emerald-600 dark:text-emerald-400 capitalize bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-200/60 dark:border-emerald-800/40">\
             <i :class="pageIcon" class="mr-1.5 text-xs"></i>\
-            {{ currentPage.replace(\'_\', \' \') }}\
+            {{ currentPageLabel }}\
           </span>\
         </div>\
       </div>\
@@ -432,7 +442,7 @@
   };
 
   /* ----------------------------------------------------------
-     7. <app-crud-table> — v2.3.1: fix v-else + v-for
+     7. <app-crud-table>
      ---------------------------------------------------------- */
   var AppCrudTable = {
     name: 'AppCrudTable',
@@ -514,7 +524,7 @@
     'app-stat-card': AppStatCard,
     'app-modal': AppModal,
     'app-crud-table': AppCrudTable,
-    version: '2.3.1'
+    version: '2.3.2'
   };
 
 })(window);
