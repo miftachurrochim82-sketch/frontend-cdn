@@ -1,29 +1,37 @@
 /* ============================================================
-   app-common.css — CSS Global & Custom Utilities (Shared CDN v1.2.0)
-   Dipakai bersama oleh semua web app GAS Pemkab Trenggalek
-   (SI-KOMPETENSI, SI-PELAPORAN, dst.) via jsDelivr.
+   app-common.css — CSS Global & Custom Utilities (Shared CDN v1.3.0)
+   Dipakai bersama oleh semua web app GAS Pemkab Trenggalek.
    ============================================================
+   Changelog v1.3.0 (2026-09-13):
+   - 🎨 THEMING SYSTEM: Extend CSS variables dengan --primary-lighter,
+     --primary-text, --primary-accent, --primary-rgb. Setiap web app
+     bisa override via <style> di Index.html untuk ganti warna brand.
+   - Sidebar light theme (.app-sidebar) menggunakan var(--primary-*)
+     — otomatis menyesuaikan tema per app (hijau/biru/kuning).
+   - Dark mode sidebar tetap gelap, accent text pakai --primary-accent.
    Changelog v1.2.0 (2026-09-13):
-   - 🔴 FIX: Tambah badge variants yang sebelumnya TIDAK terdefinisi:
-     .badge-success, .badge-danger, .badge-warning, .badge-info,
-     .badge-emerald, .badge-purple + dark mode variants.
-     Dipakai di V_DiklatPortofolio, V_Dashboard, V_AnalisaGap,
-     V_MasterSatelit — sebelumnya badge tampil tanpa warna.
-   - Tambah util .min-w-0 untuk flex-child overflow fix.
+   - Tambah badge variants (.badge-success/danger/warning/info/
+     emerald/purple) + dark mode variants.
    Changelog v1.1.0 (2026-09-13):
-   - Warna --primary dari teal-700 (#0f766e) → emerald-600 (#059669)
-     agar sinkron dengan brand SI-KOMPETENSI (theme-color #059669).
-   - --primary-dark → emerald-700 (#047857)
-   - --primary-light → emerald-50 (#ecfdf5)
-   - nav-active-light & focus ring disesuaikan ke emerald.
+   - --primary dari teal-700 → emerald-600.
    ============================================================ */
 
 :root {
-  /* Warna Utama (Emerald Palette — sinkron brand SI) */
-  --primary: #059669;        /* emerald-600 */
-  --primary-dark: #047857;   /* emerald-700 */
-  --primary-light: #ecfdf5;  /* emerald-50 */
+  /* ============================================================
+     THEME PALETTE — Override di Index.html tiap web app
+     ------------------------------------------------------------
+     Default: EMERALD (SI-KOMPETENSI)
+     Salinan preset biru & kuning ada di komentar bawah.
+     ============================================================ */
+  --primary:          #059669;   /* emerald-600 — tombol utama, sidebar active */
+  --primary-dark:     #047857;   /* emerald-700 — hover tombol utama */
+  --primary-light:    #ecfdf5;   /* emerald-50  — sidebar bg, tint */
+  --primary-lighter:  #d1fae5;   /* emerald-100 — hover sidebar, border tint */
+  --primary-text:     #064e3b;   /* emerald-900 — judul text di atas primary-light */
+  --primary-accent:   #34d399;   /* emerald-400 — accent di dark mode */
+  --primary-rgb:      5, 150, 105; /* untuk rgba(--primary-rgb, opacity) */
 
+  /* Semantic colors (tidak diubah per app) */
   --success: #16a34a;
   --success-dark: #15803d;
   --danger: #dc2626;
@@ -47,6 +55,43 @@
   --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
   --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* ============================================================
+   PRESET TEMA (salin ke <style> di Index.html app ke-2 & ke-3)
+   ------------------------------------------------------------
+   TEMA BIRU (SI-PELAPORAN):
+   :root {
+     --primary:         #2563eb;
+     --primary-dark:    #1d4ed8;
+     --primary-light:   #eff6ff;
+     --primary-lighter: #dbeafe;
+     --primary-text:    #1e3a8a;
+     --primary-accent:  #60a5fa;
+     --primary-rgb:     37, 99, 235;
+   }
+
+   TEMA KUNING (SI-ASET):
+   :root {
+     --primary:         #d97706;
+     --primary-dark:    #b45309;
+     --primary-light:   #fffbeb;
+     --primary-lighter: #fef3c7;
+     --primary-text:    #78350f;
+     --primary-accent:  #fbbf24;
+     --primary-rgb:     217, 119, 6;
+   }
+
+   TEMA UNGU (SI-ARSIP):
+   :root {
+     --primary:         #7c3aed;
+     --primary-dark:    #6d28d9;
+     --primary-light:   #f5f3ff;
+     --primary-lighter: #ede9fe;
+     --primary-text:    #4c1d95;
+     --primary-accent:  #a78bfa;
+     --primary-rgb:     124, 58, 237;
+   }
+   ============================================================ */
 
 /* Anti-flicker Vue */
 [v-cloak] { display: none !important; }
@@ -73,59 +118,153 @@ body {
   letter-spacing: 0.03em;
   text-transform: uppercase;
 }
-
-/* --- Semantic variants (legacy nama domain) --- */
 .badge-aktif, .badge-selesai, .badge-disetujui {
-  background-color: #dcfce7;
-  color: #15803d;
-  border: 1px solid #bbf7d0;
+  background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0;
 }
 .badge-nonaktif, .badge-ditolak, .badge-batal {
-  background-color: #fee2e2;
-  color: #b91c1c;
-  border: 1px solid #fecaca;
+  background-color: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;
 }
 .badge-revisi, .badge-verifikasi, .badge-terjadwal, .badge-diajukan {
-  background-color: #fef3c7;
-  color: #b45309;
-  border: 1px solid #fde68a;
+  background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a;
 }
 .badge-draft, .badge-belum, .badge-menunggu {
-  background-color: #f1f5f9;
-  color: #475569;
-  border: 1px solid #e2e8f0;
+  background-color: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;
+}
+.badge-success { background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+.badge-danger  { background-color: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+.badge-warning { background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+.badge-info    { background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+.badge-emerald { background-color: #d1fae5; color: #047857; border: 1px solid #a7f3d0; }
+.badge-purple  { background-color: #f3e8ff; color: #7e22ce; border: 1px solid #e9d5ff; }
+
+/* ============================================================
+   SIDEBAR THEME — Tinted sesuai --primary-light per app
+   ============================================================ */
+.app-sidebar {
+  background: linear-gradient(180deg,
+    var(--primary-light) 0%,
+    #ffffff 55%,
+    #ffffff 100%);
+  border-right: 1px solid var(--primary-lighter);
+  color: var(--slate-800);
 }
 
-/* --- v1.2.0: Generic color variants (dipakai di view modern) --- */
-.badge-success {
-  background-color: #dcfce7;
-  color: #15803d;
-  border: 1px solid #bbf7d0;
+.app-sidebar-header {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--primary-lighter);
 }
-.badge-danger {
-  background-color: #fee2e2;
-  color: #b91c1c;
-  border: 1px solid #fecaca;
+
+.app-sidebar-brand-title {
+  color: var(--primary-text);
 }
-.badge-warning {
-  background-color: #fef3c7;
-  color: #b45309;
-  border: 1px solid #fde68a;
+
+.app-sidebar-brand-subtitle {
+  color: var(--primary);
 }
-.badge-info {
-  background-color: #e0f2fe;
-  color: #0369a1;
-  border: 1px solid #bae6fd;
+
+.app-sidebar-group-label {
+  color: var(--primary);
+  opacity: 0.8;
 }
-.badge-emerald {
-  background-color: #d1fae5;
-  color: #047857;
-  border: 1px solid #a7f3d0;
+
+.app-sidebar-item {
+  color: var(--slate-700);
 }
-.badge-purple {
-  background-color: #f3e8ff;
-  color: #7e22ce;
-  border: 1px solid #e9d5ff;
+
+.app-sidebar-item:hover {
+  background-color: var(--primary-lighter);
+  color: var(--primary-text);
+}
+
+.app-sidebar-item.active {
+  background: linear-gradient(90deg,
+    var(--primary) 0%,
+    var(--primary-dark) 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.25);
+}
+
+.app-sidebar-icon {
+  color: var(--slate-500);
+}
+.app-sidebar-item:hover .app-sidebar-icon {
+  color: var(--primary);
+}
+.app-sidebar-item.active .app-sidebar-icon {
+  color: #ffffff;
+}
+
+.app-sidebar-footer {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid var(--primary-lighter);
+}
+
+.app-sidebar-toggle {
+  background: #ffffff;
+  border: 1px solid var(--primary-lighter);
+  color: var(--primary);
+}
+.app-sidebar-toggle:hover {
+  background: var(--primary-light);
+}
+
+/* Dark mode sidebar: kembali gelap, accent pakai --primary-accent */
+.dark .app-sidebar {
+  background: linear-gradient(180deg, #0f172a 0%, #0f172a 55%, #1a1f3a 100%);
+  border-right-color: #1e293b;
+  color: #e2e8f0;
+}
+.dark .app-sidebar-header {
+  background: rgba(2, 6, 23, 0.6);
+  border-bottom-color: #1e293b;
+}
+.dark .app-sidebar-brand-title {
+  color: #ffffff;
+}
+.dark .app-sidebar-brand-subtitle {
+  color: var(--primary-accent);
+}
+.dark .app-sidebar-group-label {
+  color: var(--primary-accent);
+  opacity: 0.85;
+}
+.dark .app-sidebar-item {
+  color: #cbd5e1;
+}
+.dark .app-sidebar-item:hover {
+  background-color: rgba(30, 41, 59, 0.7);
+  color: #ffffff;
+}
+.dark .app-sidebar-item.active {
+  background: linear-gradient(90deg,
+    var(--primary) 0%,
+    var(--primary-dark) 100%);
+  color: #ffffff;
+}
+.dark .app-sidebar-icon {
+  color: #94a3b8;
+}
+.dark .app-sidebar-item:hover .app-sidebar-icon {
+  color: var(--primary-accent);
+}
+.dark .app-sidebar-item.active .app-sidebar-icon {
+  color: #ffffff;
+}
+.dark .app-sidebar-footer {
+  background: rgba(2, 6, 23, 0.7);
+  border-top-color: #1e293b;
+}
+.dark .app-sidebar-toggle {
+  background: #1e293b;
+  border-color: #334155;
+  color: #cbd5e1;
+}
+.dark .app-sidebar-toggle:hover {
+  background: #334155;
 }
 
 /* ============================================================
@@ -170,7 +309,7 @@ body {
 .input:focus, .select:focus, .textarea:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.2);
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.2);
 }
 .form-label {
   display: block;
@@ -181,7 +320,7 @@ body {
 }
 
 /* ============================================================
-   BUTTONS
+   BUTTONS — Otomatis pakai --primary per app
    ============================================================ */
 .btn {
   display: inline-flex;
@@ -281,9 +420,6 @@ body {
 .table-scroll tbody tr:hover { background-color: #f1f5f9; }
 .table-scroll table { font-size: 0.8125rem; width: 100%; border-collapse: collapse; }
 
-/* .table-custom — dipakai di app modern (V_UsulanDiklat,
-   V_MasterSatelit, V_DiklatPortofolio, V_AnalisaGap).
-   Body cell top-aligned agar baris multi-line tetap rapi. */
 .table-custom {
   width: 100%;
   border-collapse: collapse;
@@ -385,14 +521,13 @@ body {
 
 .dark .table-scroll thead th {
   background-color: #0f172a !important;
-  color: #34d399 !important;
+  color: var(--primary-accent) !important;
   border-bottom: 1px solid #334155 !important;
 }
 
 .dark .table-scroll tbody tr:nth-child(even) {
   background-color: #182234 !important;
 }
-
 .dark .table-scroll tbody tr:hover {
   background-color: #334155 !important;
 }
@@ -404,52 +539,22 @@ body {
   color: #f8fafc !important;
   border-color: #334155 !important;
 }
-
 .dark .form-label {
   color: #cbd5e1 !important;
 }
-
 .dark .btn-secondary {
   background-color: #1e293b !important;
   color: #e2e8f0 !important;
   border-color: #334155 !important;
 }
 
-/* v1.2.0: Dark mode badge variants */
-.dark .badge-success {
-  background-color: rgba(22, 163, 74, 0.15) !important;
-  color: #4ade80 !important;
-  border-color: rgba(22, 163, 74, 0.3) !important;
-}
-.dark .badge-danger {
-  background-color: rgba(220, 38, 38, 0.15) !important;
-  color: #f87171 !important;
-  border-color: rgba(220, 38, 38, 0.3) !important;
-}
-.dark .badge-warning {
-  background-color: rgba(245, 158, 11, 0.15) !important;
-  color: #fbbf24 !important;
-  border-color: rgba(245, 158, 11, 0.3) !important;
-}
-.dark .badge-info {
-  background-color: rgba(2, 132, 199, 0.15) !important;
-  color: #38bdf8 !important;
-  border-color: rgba(2, 132, 199, 0.3) !important;
-}
-.dark .badge-emerald {
-  background-color: rgba(5, 150, 105, 0.15) !important;
-  color: #34d399 !important;
-  border-color: rgba(5, 150, 105, 0.3) !important;
-}
-.dark .badge-purple {
-  background-color: rgba(147, 51, 234, 0.15) !important;
-  color: #c084fc !important;
-  border-color: rgba(147, 51, 234, 0.3) !important;
-}
+/* Dark mode badge variants */
+.dark .badge-success { background-color: rgba(22, 163, 74, 0.15) !important; color: #4ade80 !important; border-color: rgba(22, 163, 74, 0.3) !important; }
+.dark .badge-danger  { background-color: rgba(220, 38, 38, 0.15) !important; color: #f87171 !important; border-color: rgba(220, 38, 38, 0.3) !important; }
+.dark .badge-warning { background-color: rgba(245, 158, 11, 0.15) !important; color: #fbbf24 !important; border-color: rgba(245, 158, 11, 0.3) !important; }
+.dark .badge-info    { background-color: rgba(2, 132, 199, 0.15) !important; color: #38bdf8 !important; border-color: rgba(2, 132, 199, 0.3) !important; }
+.dark .badge-emerald { background-color: rgba(5, 150, 105, 0.15) !important; color: #34d399 !important; border-color: rgba(5, 150, 105, 0.3) !important; }
+.dark .badge-purple  { background-color: rgba(147, 51, 234, 0.15) !important; color: #c084fc !important; border-color: rgba(147, 51, 234, 0.3) !important; }
 
-.dark ::-webkit-scrollbar-thumb {
-  background: #475569;
-}
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
-}
+.dark ::-webkit-scrollbar-thumb { background: #475569; }
+.dark ::-webkit-scrollbar-thumb:hover { background: #64748b; }
