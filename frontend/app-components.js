@@ -1,22 +1,25 @@
 /* ============================================================
-   app-components.js — Komponen Vue 3 Siap Pakai (Shared CDN v2.3.0)
+   app-components.js — Komponen Vue 3 Siap Pakai (Shared CDN v2.3.1)
    Komponen global:
    1. <app-login>      : Layar Autentikasi Single Sign-On (SSO)
-   2. <app-sidebar>    : Navigasi Samping Responsif (Desktop & Mobile)
-   3. <app-header>     : Top Bar Universal & Profil Ringkas
-   4. <app-crud-table> : Smart Declarative Data Table dengan Filter, Sort, Pagination, & Ekspor
-   5. <app-modal>      : Universal Modal Box dengan Transisi Halus
-   6. <app-stat-card>  : Kartu Widget Metrik Dashboard
-   7. <app-badge>      : Status Badge Multi-domain Terstandarisasi
+   2. <app-sidebar>    : Navigasi Samping Responsif
+   3. <app-header>     : Top Bar Universal + Slot extra-actions
+   4. <app-badge>      : Status Badge Multi-domain
+   5. <app-stat-card>  : Kartu Widget Metrik Dashboard
+   6. <app-modal>      : Universal Modal Box
+   7. <app-crud-table> : Smart Data Table
 
-   Kebutuhan runtime: Vue 3 + Tailwind CSS + FontAwesome 6 / Phosphor.
-   Dipasang otomatis oleh AppCore.create() (app-core.js).
+   Changelog v2.3.1 (2026-09-13):
+   - FIX: AppHeader — tambah `<slot name="extra-actions">` sehingga
+     tombol Panduan/Install dari Index.html bisa ditampilkan.
+   - FIX: AppCrudTable — v-else + v-for di elemen sama → dibungkus
+     <template v-else> untuk hilangkan Vue warn.
    ============================================================ */
 (function (global) {
   'use strict';
 
   /* ----------------------------------------------------------
-     1. <app-login> — Layar SSO redirect ke platform
+     1. <app-login>
      ---------------------------------------------------------- */
   var AppLogin = {
     name: 'AppLogin',
@@ -25,7 +28,7 @@
       appSubtitle:  { type: String, default: 'Sistem Informasi Terintegrasi SIMPEG' },
       instansi:     { type: String, default: 'Pemerintah Kabupaten Trenggalek' },
       tagline:      { type: String, default: 'Autentikasi telah terintegrasi terpusat (SSO). Silakan masuk menggunakan akun resmi Anda pada platform utama.' },
-      version:      { type: String, default: 'v2.3.0' },
+      version:      { type: String, default: 'v2.3.1' },
       logoSvg:      { type: String, default: '' },
       isProcessing: { type: Boolean, default: false },
       errorMessage: { type: String, default: '' }
@@ -85,7 +88,7 @@
   };
 
   /* ----------------------------------------------------------
-     2. <app-sidebar> — Navigasi Samping Modern & Elegan
+     2. <app-sidebar>
      ---------------------------------------------------------- */
   var AppSidebar = {
     name: 'AppSidebar',
@@ -104,7 +107,8 @@
       groups: function () {
         var out = [];
         var flat = [];
-        var menu = this.menu || []; for (var i = 0; i < menu.length; i++) {
+        var menu = this.menu || [];
+        for (var i = 0; i < menu.length; i++) {
           var m = menu[i];
           if (m && m.items) { out.push({ name: m.name || '', items: m.items }); }
           else if (m) { flat.push(m); }
@@ -145,12 +149,65 @@
         \'fixed lg:static inset-y-0 left-0 z-50 flex flex-col shrink-0 transition-all duration-300 ease-in-out border-r select-none shadow-2xl lg:shadow-none bg-gradient-to-b from-slate-900 via-slate-900 to-indigo-950 text-slate-100 border-slate-800/80\',\
         collapsed ? \'w-20\' : \'w-64\',\
         mobileOpen ? \'translate-x-0\' : \'-translate-x-full lg:translate-x-0\'\
-      ]">      <div class="h-20 px-4 border-b border-slate-800/80 bg-slate-950/60 backdrop-blur-md flex items-center justify-between shrink-0 transition-colors">        <div v-if="!collapsed" class="flex items-center gap-3 overflow-hidden animate-fade-in">          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-emerald-400 text-white flex items-center justify-center font-bold text-lg shadow-lg shadow-emerald-500/20 shrink-0 border border-emerald-400/30">            <i :class="logoIcon"></i>          </div>          <div class="min-w-0">            <h2 class="text-sm font-extrabold tracking-tight text-white truncate">{{ brandTitle }}</h2>            <p class="text-[10px] font-semibold text-emerald-400 tracking-wider uppercase truncate">{{ brandSubtitle }}</p>          </div>        </div>        <div v-else class="mx-auto">          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-emerald-400 text-white flex items-center justify-center font-black text-lg shadow-lg shadow-emerald-500/20 border border-emerald-400/30">            {{ logoChar }}          </div>        </div>        <button v-if="!collapsed" @click="$emit(\'toggle\')"                class="hidden lg:flex w-8 h-8 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300 items-center justify-center text-xs transition-all duration-200 shadow-sm shrink-0" title="Kecilkan Sidebar">          <i class="fa-solid fa-chevron-left"></i>        </button>        <button @click="$emit(\'close\')" class="lg:hidden p-2 text-slate-400 hover:text-slate-200 text-base shrink-0" title="Tutup Menu">          <i class="fa-solid fa-xmark"></i>        </button>      </div>      <nav class="flex-1 px-3 py-5 space-y-6 overflow-y-auto no-scrollbar">        <div v-for="(group, gi) in visibleItems" :key="gi" class="space-y-1.5">          <div v-if="group.name && !collapsed" class="px-3 pb-1 text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80 flex items-center gap-1.5">            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>            <span>{{ group.name }}</span>          </div>          <div class="space-y-1">            <a v-for="item in group.items" :key="item.id" @click="go(item.id)"               :class="itemClass(item.id)" :title="collapsed ? item.label : \'\'">              <div v-if="currentPage === item.id" class="absolute left-0 top-1.5 bottom-1.5 w-1 bg-emerald-300 rounded-r-full"></div>              <i :class="[item.icon, iconClass(item.id)]"></i>              <span v-if="!collapsed" class="ml-2.5 text-xs sm:text-sm truncate font-semibold">{{ item.label }}</span>            </a>          </div>        </div>      </nav>      <div class="p-3.5 border-t border-slate-800/80 bg-slate-950/80 backdrop-blur-md shrink-0 flex flex-col gap-2">        <button v-if="collapsed" @click="$emit(\'toggle\')"                class="hidden lg:flex w-full h-10 rounded-xl border items-center justify-center text-xs transition border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300 mb-1"                title="Perluas Sidebar">          <i class="fa-solid fa-chevron-right"></i>        </button>        <button @click="$emit(\'logout\')"                class="w-full flex items-center justify-center py-3 px-4 rounded-xl bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white transition-all text-xs font-extrabold shadow-lg shadow-rose-950/40 active:scale-[0.98]"                :title="collapsed ? \'Keluar dari Aplikasi\' : \'\'">          <i class="fa-solid fa-power-off text-sm shrink-0"></i>          <span v-if="!collapsed" class="ml-2.5">Keluar Sesi</span>        </button>      </div>    </aside>    <div v-if="mobileOpen" @click="$emit(\'close\')" class="fixed inset-0 z-40 bg-slate-950/70 backdrop-blur-sm lg:hidden"></div>\
-    '
+      ]">\
+      <div class="h-20 px-4 border-b border-slate-800/80 bg-slate-950/60 backdrop-blur-md flex items-center justify-between shrink-0 transition-colors">\
+        <div v-if="!collapsed" class="flex items-center gap-3 overflow-hidden animate-fade-in">\
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-emerald-400 text-white flex items-center justify-center font-bold text-lg shadow-lg shadow-emerald-500/20 shrink-0 border border-emerald-400/30">\
+            <i :class="logoIcon"></i>\
+          </div>\
+          <div class="min-w-0">\
+            <h2 class="text-sm font-extrabold tracking-tight text-white truncate">{{ brandTitle }}</h2>\
+            <p class="text-[10px] font-semibold text-emerald-400 tracking-wider uppercase truncate">{{ brandSubtitle }}</p>\
+          </div>\
+        </div>\
+        <div v-else class="mx-auto">\
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-emerald-400 text-white flex items-center justify-center font-black text-lg shadow-lg shadow-emerald-500/20 border border-emerald-400/30">\
+            {{ logoChar }}\
+          </div>\
+        </div>\
+        <button v-if="!collapsed" @click="$emit(\'toggle\')"\
+                class="hidden lg:flex w-8 h-8 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300 items-center justify-center text-xs transition-all duration-200 shadow-sm shrink-0" title="Kecilkan Sidebar">\
+          <i class="fa-solid fa-chevron-left"></i>\
+        </button>\
+        <button @click="$emit(\'close\')" class="lg:hidden p-2 text-slate-400 hover:text-slate-200 text-base shrink-0" title="Tutup Menu">\
+          <i class="fa-solid fa-xmark"></i>\
+        </button>\
+      </div>\
+      <nav class="flex-1 px-3 py-5 space-y-6 overflow-y-auto no-scrollbar">\
+        <div v-for="(group, gi) in visibleItems" :key="gi" class="space-y-1.5">\
+          <div v-if="group.name && !collapsed" class="px-3 pb-1 text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80 flex items-center gap-1.5">\
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>\
+            <span>{{ group.name }}</span>\
+          </div>\
+          <div class="space-y-1">\
+            <a v-for="item in group.items" :key="item.id" @click="go(item.id)"\
+               :class="itemClass(item.id)" :title="collapsed ? item.label : \'\'">\
+              <div v-if="currentPage === item.id" class="absolute left-0 top-1.5 bottom-1.5 w-1 bg-emerald-300 rounded-r-full"></div>\
+              <i :class="[item.icon, iconClass(item.id)]"></i>\
+              <span v-if="!collapsed" class="ml-2.5 text-xs sm:text-sm truncate font-semibold">{{ item.label }}</span>\
+            </a>\
+          </div>\
+        </div>\
+      </nav>\
+      <div class="p-3.5 border-t border-slate-800/80 bg-slate-950/80 backdrop-blur-md shrink-0 flex flex-col gap-2">\
+        <button v-if="collapsed" @click="$emit(\'toggle\')"\
+                class="hidden lg:flex w-full h-10 rounded-xl border items-center justify-center text-xs transition border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300 mb-1"\
+                title="Perluas Sidebar">\
+          <i class="fa-solid fa-chevron-right"></i>\
+        </button>\
+        <button @click="$emit(\'logout\')"\
+                class="w-full flex items-center justify-center py-3 px-4 rounded-xl bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white transition-all text-xs font-extrabold shadow-lg shadow-rose-950/40 active:scale-[0.98]"\
+                :title="collapsed ? \'Keluar dari Aplikasi\' : \'\'">\
+          <i class="fa-solid fa-power-off text-sm shrink-0"></i>\
+          <span v-if="!collapsed" class="ml-2.5">Keluar Sesi</span>\
+        </button>\
+      </div>\
+    </aside>\
+    <div v-if="mobileOpen" @click="$emit(\'close\')" class="fixed inset-0 z-40 bg-slate-950/70 backdrop-blur-sm lg:hidden"></div>'
   };
 
   /* ----------------------------------------------------------
-     3. <app-header> — Top bar universal
+     3. <app-header> — v2.3.1: + slot extra-actions
      ---------------------------------------------------------- */
   var AppHeader = {
     name: 'AppHeader',
@@ -189,6 +246,7 @@
         </div>\
       </div>\
       <div class="flex items-center gap-2.5 sm:gap-3">\
+        <slot name="extra-actions"></slot>\
         <button @click="$emit(\'toggle-dark\')"\
                 :class="[\
                   \'w-9 h-9 rounded-xl border flex items-center justify-center transition-all duration-200 shadow-sm active:scale-90\',\
@@ -223,8 +281,7 @@
   };
 
   /* ----------------------------------------------------------
-     4. <app-badge> — Status badge universal
-     Props: status, label, size ('sm', 'md')
+     4. <app-badge>
      ---------------------------------------------------------- */
   var AppBadge = {
     name: 'AppBadge',
@@ -281,8 +338,7 @@
   };
 
   /* ----------------------------------------------------------
-     5. <app-stat-card> — Widget metrik dashboard
-     Props: title, value, icon, color, subtext
+     5. <app-stat-card>
      ---------------------------------------------------------- */
   var AppStatCard = {
     name: 'AppStatCard',
@@ -290,18 +346,18 @@
       title:   { type: String, default: 'Metrik' },
       value:   { type: [Number, String], default: 0 },
       icon:    { type: String, default: 'fa-solid fa-chart-simple' },
-      color:   { type: String, default: 'emerald' }, // emerald, sky, amber, purple, rose
+      color:   { type: String, default: 'emerald' },
       subtext: { type: String, default: '' }
     },
     computed: {
       colorClasses: function () {
         var c = this.color;
         var map = {
-          emerald: { bg: 'from-emerald-600 to-teal-500', text: 'text-emerald-600 dark:text-emerald-400', border: 'border-emerald-500' },
-          sky:     { bg: 'from-sky-600 to-blue-500',     text: 'text-sky-600 dark:text-sky-400',         border: 'border-sky-500' },
-          amber:   { bg: 'from-amber-500 to-yellow-500', text: 'text-amber-600 dark:text-amber-400',     border: 'border-amber-500' },
-          purple:  { bg: 'from-purple-600 to-indigo-500',text: 'text-purple-600 dark:text-purple-400',   border: 'border-purple-500' },
-          rose:    { bg: 'from-rose-600 to-pink-500',    text: 'text-rose-600 dark:text-rose-400',       border: 'border-rose-500' }
+          emerald: { bg: 'from-emerald-600 to-teal-500' },
+          sky:     { bg: 'from-sky-600 to-blue-500' },
+          amber:   { bg: 'from-amber-500 to-yellow-500' },
+          purple:  { bg: 'from-purple-600 to-indigo-500' },
+          rose:    { bg: 'from-rose-600 to-pink-500' }
         };
         return map[c] || map.emerald;
       }
@@ -322,9 +378,7 @@
   };
 
   /* ----------------------------------------------------------
-     6. <app-modal> — Dialog modal universal
-     Props: show, title, icon, size ('sm', 'md', 'lg', 'xl', '2xl'), loading, confirmText, cancelText, showFooter, showConfirm
-     Emits: close, confirm
+     6. <app-modal>
      ---------------------------------------------------------- */
   var AppModal = {
     name: 'AppModal',
@@ -332,7 +386,7 @@
       show:        { type: Boolean, default: false },
       title:       { type: String, default: 'Konfirmasi' },
       icon:        { type: String, default: '' },
-      size:        { type: String, default: 'md' }, // sm, md, lg, xl, 2xl
+      size:        { type: String, default: 'md' },
       loading:     { type: Boolean, default: false },
       confirmText: { type: String, default: 'Simpan' },
       cancelText:  { type: String, default: 'Batal' },
@@ -378,15 +432,13 @@
   };
 
   /* ----------------------------------------------------------
-     7. <app-crud-table> — Smart table dengan filter & pagination
-     Props: items, columns, loading, page, totalPages, totalData, emptyText, emptyIcon
-     Emits: change-page(page)
+     7. <app-crud-table> — v2.3.1: fix v-else + v-for
      ---------------------------------------------------------- */
   var AppCrudTable = {
     name: 'AppCrudTable',
     props: {
       items:      { type: Array, default: function () { return []; } },
-      columns:    { type: Array, default: function () { return []; } }, // [{ key, label, class, thClass }]
+      columns:    { type: Array, default: function () { return []; } },
       loading:    { type: Boolean, default: false },
       page:       { type: Number, default: 1 },
       totalPages: { type: Number, default: 1 },
@@ -423,13 +475,15 @@
                 </div>\
               </td>\
             </tr>\
-            <tr v-else v-for="(row, ri) in items" :key="row.id || ri" class="hover:bg-slate-50/80 dark:hover:bg-slate-700/30 transition-colors">\
-              <slot name="row" :row="row" :index="ri">\
-                <td v-for="(col, ci) in columns" :key="ci" class="py-3 px-4 text-slate-700 dark:text-slate-300" :class="col.class || \'\'">\
-                  {{ row[col.key] }}\
-                </td>\
-              </slot>\
-            </tr>\
+            <template v-else>\
+              <tr v-for="(row, ri) in items" :key="row.id || ri" class="hover:bg-slate-50/80 dark:hover:bg-slate-700/30 transition-colors">\
+                <slot name="row" :row="row" :index="ri">\
+                  <td v-for="(col, ci) in columns" :key="ci" class="py-3 px-4 text-slate-700 dark:text-slate-300" :class="col.class || \'\'">\
+                    {{ row[col.key] }}\
+                  </td>\
+                </slot>\
+              </tr>\
+            </template>\
           </tbody>\
         </table>\
       </div>\
@@ -460,7 +514,7 @@
     'app-stat-card': AppStatCard,
     'app-modal': AppModal,
     'app-crud-table': AppCrudTable,
-    version: '2.3.0'
+    version: '2.3.1'
   };
 
 })(window);
