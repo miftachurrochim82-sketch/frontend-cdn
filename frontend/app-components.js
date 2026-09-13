@@ -1,25 +1,25 @@
 /* ============================================================
-   app-components.js — Komponen Vue 3 Siap Pakai (Shared CDN v2.3.2)
+   app-components.js — Komponen Vue 3 Siap Pakai (Shared CDN v2.4.0)
    Komponen global:
    1. <app-login>      : Layar Autentikasi Single Sign-On (SSO)
-   2. <app-sidebar>    : Navigasi Samping Responsif
+   2. <app-sidebar>    : Navigasi Samping Themed (per-app colors)
    3. <app-header>     : Top Bar Universal + Slot extra-actions
    4. <app-badge>      : Status Badge Multi-domain
    5. <app-stat-card>  : Kartu Widget Metrik Dashboard
    6. <app-modal>      : Universal Modal Box
    7. <app-crud-table> : Smart Data Table
 
+   Changelog v2.4.0 (2026-09-13):
+   - 🎨 THEMING: <app-sidebar> sekarang pakai CSS class .app-sidebar*
+     (didefinisikan di app-common.css). Warna mengikuti --primary-*
+     CSS variables — tiap web app cukup override :root di Index.html
+     untuk ganti tema (hijau/biru/kuning/dst).
+   - Sidebar light mode kini tinted sesuai tema (bukan gelap).
+   - Dark mode sidebar tetap gelap dengan accent --primary-accent.
    Changelog v2.3.2 (2026-09-13):
-   - 🔴 FIX: AppHeader — `currentPage.replace('_', ' ')` hanya
-     mengganti underscore PERTAMA. Diganti regex `replace(/_/g, ' ')`
-     agar breadcrumb "usulan_diklat_tahunan" tampil
-     "usulan diklat tahunan" (bukan "usulan diklat_tahunan").
-   - Bump default version string ke v2.3.2.
+   - FIX: AppHeader — replace(/_/g, ' ') agar semua underscore → spasi.
    Changelog v2.3.1 (2026-09-13):
-   - FIX: AppHeader — tambah `<slot name="extra-actions">` sehingga
-     tombol Panduan/Install dari Index.html bisa ditampilkan.
-   - FIX: AppCrudTable — v-else + v-for di elemen sama → dibungkus
-     <template v-else> untuk hilangkan Vue warn.
+   - FIX: AppHeader — slot extra-actions; AppCrudTable — v-else fix.
    ============================================================ */
 (function (global) {
   'use strict';
@@ -34,7 +34,7 @@
       appSubtitle:  { type: String, default: 'Sistem Informasi Terintegrasi SIMPEG' },
       instansi:     { type: String, default: 'Pemerintah Kabupaten Trenggalek' },
       tagline:      { type: String, default: 'Autentikasi telah terintegrasi terpusat (SSO). Silakan masuk menggunakan akun resmi Anda pada platform utama.' },
-      version:      { type: String, default: 'v2.3.2' },
+      version:      { type: String, default: 'v2.4.0' },
       logoSvg:      { type: String, default: '' },
       isProcessing: { type: Boolean, default: false },
       errorMessage: { type: String, default: '' }
@@ -43,38 +43,39 @@
     template: '\
     <div class="min-h-screen flex items-center justify-center p-4 bg-slate-900 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-950/60 via-slate-900 to-slate-950">\
       <div class="bg-white dark:bg-slate-800/95 backdrop-blur-md p-8 rounded-3xl shadow-2xl w-full max-w-md border border-slate-100 dark:border-slate-700/60 transition-all duration-300 relative overflow-hidden">\
-        <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600"></div>\
+        <div class="absolute top-0 left-0 right-0 h-1.5" :style="{ background: \'linear-gradient(90deg, var(--primary), var(--primary-dark))\' }"></div>\
         <div class="text-center mb-6 pt-2">\
           <div class="relative inline-block group">\
-            <div class="absolute -inset-1 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-300"></div>\
+            <div class="absolute -inset-1 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-300" :style="{ background: \'linear-gradient(90deg, var(--primary), var(--primary-dark))\' }"></div>\
             <img v-if="logoSvg" :src="logoSvg" :alt="\'Logo \' + instansi"\
                  class="relative w-24 h-24 mx-auto mb-3 object-contain drop-shadow-md transform transition-transform duration-300 hover:scale-105">\
-            <div v-else class="relative w-24 h-24 mx-auto mb-3 rounded-3xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center text-4xl shadow-xl shadow-emerald-600/30">\
+            <div v-else class="relative w-24 h-24 mx-auto mb-3 rounded-3xl text-white flex items-center justify-center text-4xl shadow-xl" :style="{ background: \'linear-gradient(135deg, var(--primary), var(--primary-dark))\', boxShadow: \'0 20px 25px -5px rgba(var(--primary-rgb), 0.3)\' }">\
               <i class="fa-solid fa-cube"></i>\
             </div>\
           </div>\
           <h1 class="text-2xl font-extrabold text-slate-800 dark:text-white tracking-tight">{{ appTitle }}</h1>\
-          <p class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5 uppercase tracking-wider">{{ instansi }}</p>\
+          <p class="text-xs font-semibold mt-0.5 uppercase tracking-wider" :style="{ color: \'var(--primary)\' }">{{ instansi }}</p>\
           <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">{{ appSubtitle }}</p>\
         </div>\
         <div class="space-y-4">\
-          <div class="p-3.5 bg-emerald-50 dark:bg-emerald-950/40 rounded-2xl border border-emerald-200/60 dark:border-emerald-800/40 flex items-start gap-3">\
-            <div class="p-2 bg-emerald-100 dark:bg-emerald-900/50 rounded-xl text-emerald-700 dark:text-emerald-300 shrink-0 mt-0.5">\
+          <div class="p-3.5 rounded-2xl flex items-start gap-3" :style="{ background: \'var(--primary-light)\', border: \'1px solid var(--primary-lighter)\' }">\
+            <div class="p-2 rounded-xl shrink-0 mt-0.5" :style="{ background: \'var(--primary-lighter)\', color: \'var(--primary-dark)\' }">\
               <i class="fa-solid fa-shield-halved text-base"></i>\
             </div>\
             <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">{{ tagline }}</p>\
           </div>\
           <button v-if="!isProcessing" @click="$emit(\'login\')"\
-                  class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold py-3.5 px-4 rounded-xl shadow-lg shadow-emerald-600/20 hover:shadow-emerald-600/30 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2.5 group">\
+                  class="w-full text-white font-semibold py-3.5 px-4 rounded-xl active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2.5 group"\
+                  :style="{ background: \'linear-gradient(90deg, var(--primary), var(--primary-dark))\', boxShadow: \'0 10px 15px -3px rgba(var(--primary-rgb), 0.2)\' }">\
             <i class="fa-solid fa-right-to-bracket text-lg transition-transform group-hover:translate-x-1"></i>\
             <span>Masuk via SI-Platform</span>\
           </button>\
           <div v-else class="py-4 px-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-700/50 flex flex-col items-center justify-center space-y-2.5">\
             <div class="relative flex items-center justify-center">\
-              <div class="w-9 h-9 rounded-full border-3 border-emerald-200 dark:border-emerald-900 border-t-emerald-600 animate-spin"></div>\
-              <i class="fa-solid fa-key text-[10px] text-emerald-600 absolute"></i>\
+              <div class="w-9 h-9 rounded-full border-3 animate-spin" :style="{ borderColor: \'var(--primary-lighter)\', borderTopColor: \'var(--primary)\' }"></div>\
+              <i class="fa-solid fa-key text-[10px] absolute" :style="{ color: \'var(--primary)\' }"></i>\
             </div>\
-            <p class="text-xs font-semibold text-emerald-700 dark:text-emerald-400 animate-pulse">Menghubungkan &amp; memvalidasi tiket SSO...</p>\
+            <p class="text-xs font-semibold animate-pulse" :style="{ color: \'var(--primary-dark)\' }">Menghubungkan &amp; memvalidasi tiket SSO...</p>\
           </div>\
           <div v-if="errorMessage" class="p-3.5 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-700 dark:text-rose-300 text-xs rounded-2xl flex items-start gap-2.5 transition-all">\
             <i class="fa-solid fa-circle-exclamation text-base text-rose-500 shrink-0 mt-0.5"></i>\
@@ -94,7 +95,7 @@
   };
 
   /* ----------------------------------------------------------
-     2. <app-sidebar>
+     2. <app-sidebar> — v2.4.0: Themed via CSS classes
      ---------------------------------------------------------- */
   var AppSidebar = {
     name: 'AppSidebar',
@@ -138,71 +139,70 @@
     },
     methods: {
       itemClass: function (id) {
-        var active = this.currentPage === id;
-        var base = 'relative flex items-center px-3.5 py-2.5 rounded-xl cursor-pointer transition-all duration-200 group text-xs sm:text-sm font-semibold';
-        if (active) return base + ' bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-extrabold shadow-md shadow-emerald-950/50';
-        return base + ' text-slate-300 hover:bg-slate-800/70 hover:text-white';
+        var base = 'app-sidebar-item relative flex items-center px-3.5 py-2.5 rounded-xl cursor-pointer transition-all duration-200 group text-xs sm:text-sm font-semibold';
+        if (this.currentPage === id) return base + ' active';
+        return base;
       },
       iconClass: function (id) {
-        var active = this.currentPage === id;
-        var base = 'w-6 text-center text-sm shrink-0 transition-transform group-hover:scale-110';
-        return base + (active ? ' text-white' : ' text-slate-400 group-hover:text-emerald-400');
+        return 'app-sidebar-icon w-6 text-center text-sm shrink-0 transition-transform group-hover:scale-110';
       },
       go: function (id) { this.$emit('navigate', id); }
     },
     template: '\
     <aside :class="[\
-        \'fixed lg:static inset-y-0 left-0 z-50 flex flex-col shrink-0 transition-all duration-300 ease-in-out border-r select-none shadow-2xl lg:shadow-none bg-gradient-to-b from-slate-900 via-slate-900 to-indigo-950 text-slate-100 border-slate-800/80\',\
+        \'app-sidebar fixed lg:static inset-y-0 left-0 z-50 flex flex-col shrink-0 transition-all duration-300 ease-in-out select-none shadow-2xl lg:shadow-none\',\
         collapsed ? \'w-20\' : \'w-64\',\
         mobileOpen ? \'translate-x-0\' : \'-translate-x-full lg:translate-x-0\'\
       ]">\
-      <div class="h-20 px-4 border-b border-slate-800/80 bg-slate-950/60 backdrop-blur-md flex items-center justify-between shrink-0 transition-colors">\
+      <div class="app-sidebar-header h-20 px-4 flex items-center justify-between shrink-0 transition-colors">\
         <div v-if="!collapsed" class="flex items-center gap-3 overflow-hidden animate-fade-in">\
-          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-emerald-400 text-white flex items-center justify-center font-bold text-lg shadow-lg shadow-emerald-500/20 shrink-0 border border-emerald-400/30">\
+          <div class="w-10 h-10 rounded-2xl text-white flex items-center justify-center font-bold text-lg shadow-lg shrink-0 border"\
+               :style="{ background: \'linear-gradient(135deg, var(--primary), var(--primary-dark))\', boxShadow: \'0 8px 12px -2px rgba(var(--primary-rgb), 0.25)\', borderColor: \'var(--primary-lighter)\' }">\
             <i :class="logoIcon"></i>\
           </div>\
           <div class="min-w-0">\
-            <h2 class="text-sm font-extrabold tracking-tight text-white truncate">{{ brandTitle }}</h2>\
-            <p class="text-[10px] font-semibold text-emerald-400 tracking-wider uppercase truncate">{{ brandSubtitle }}</p>\
+            <h2 class="app-sidebar-brand-title text-sm font-extrabold tracking-tight truncate">{{ brandTitle }}</h2>\
+            <p class="app-sidebar-brand-subtitle text-[10px] font-semibold tracking-wider uppercase truncate">{{ brandSubtitle }}</p>\
           </div>\
         </div>\
         <div v-else class="mx-auto">\
-          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-emerald-400 text-white flex items-center justify-center font-black text-lg shadow-lg shadow-emerald-500/20 border border-emerald-400/30">\
+          <div class="w-10 h-10 rounded-2xl text-white flex items-center justify-center font-black text-lg shadow-lg border"\
+               :style="{ background: \'linear-gradient(135deg, var(--primary), var(--primary-dark))\', boxShadow: \'0 8px 12px -2px rgba(var(--primary-rgb), 0.25)\', borderColor: \'var(--primary-lighter)\' }">\
             {{ logoChar }}\
           </div>\
         </div>\
         <button v-if="!collapsed" @click="$emit(\'toggle\')"\
-                class="hidden lg:flex w-8 h-8 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300 items-center justify-center text-xs transition-all duration-200 shadow-sm shrink-0" title="Kecilkan Sidebar">\
+                class="app-sidebar-toggle hidden lg:flex w-8 h-8 rounded-xl items-center justify-center text-xs transition-all duration-200 shrink-0" title="Kecilkan Sidebar">\
           <i class="fa-solid fa-chevron-left"></i>\
         </button>\
-        <button @click="$emit(\'close\')" class="lg:hidden p-2 text-slate-400 hover:text-slate-200 text-base shrink-0" title="Tutup Menu">\
+        <button @click="$emit(\'close\')" class="lg:hidden p-2 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 text-base shrink-0" title="Tutup Menu">\
           <i class="fa-solid fa-xmark"></i>\
         </button>\
       </div>\
       <nav class="flex-1 px-3 py-5 space-y-6 overflow-y-auto no-scrollbar">\
         <div v-for="(group, gi) in visibleItems" :key="gi" class="space-y-1.5">\
-          <div v-if="group.name && !collapsed" class="px-3 pb-1 text-[10px] font-extrabold uppercase tracking-widest text-emerald-400/80 flex items-center gap-1.5">\
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>\
+          <div v-if="group.name && !collapsed" class="app-sidebar-group-label px-3 pb-1 text-[10px] font-extrabold uppercase tracking-widest flex items-center gap-1.5">\
+            <span class="w-1.5 h-1.5 rounded-full" :style="{ background: \'var(--primary)\' }"></span>\
             <span>{{ group.name }}</span>\
           </div>\
           <div class="space-y-1">\
             <a v-for="item in group.items" :key="item.id" @click="go(item.id)"\
                :class="itemClass(item.id)" :title="collapsed ? item.label : \'\'">\
-              <div v-if="currentPage === item.id" class="absolute left-0 top-1.5 bottom-1.5 w-1 bg-emerald-300 rounded-r-full"></div>\
+              <div v-if="currentPage === item.id" class="absolute left-0 top-1.5 bottom-1.5 w-1 bg-white/60 rounded-r-full"></div>\
               <i :class="[item.icon, iconClass(item.id)]"></i>\
               <span v-if="!collapsed" class="ml-2.5 text-xs sm:text-sm truncate font-semibold">{{ item.label }}</span>\
             </a>\
           </div>\
         </div>\
       </nav>\
-      <div class="p-3.5 border-t border-slate-800/80 bg-slate-950/80 backdrop-blur-md shrink-0 flex flex-col gap-2">\
+      <div class="app-sidebar-footer p-3.5 shrink-0 flex flex-col gap-2">\
         <button v-if="collapsed" @click="$emit(\'toggle\')"\
-                class="hidden lg:flex w-full h-10 rounded-xl border items-center justify-center text-xs transition border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300 mb-1"\
+                class="app-sidebar-toggle hidden lg:flex w-full h-10 rounded-xl items-center justify-center text-xs transition mb-1"\
                 title="Perluas Sidebar">\
           <i class="fa-solid fa-chevron-right"></i>\
         </button>\
         <button @click="$emit(\'logout\')"\
-                class="w-full flex items-center justify-center py-3 px-4 rounded-xl bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white transition-all text-xs font-extrabold shadow-lg shadow-rose-950/40 active:scale-[0.98]"\
+                class="w-full flex items-center justify-center py-3 px-4 rounded-xl bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white transition-all text-xs font-extrabold shadow-lg shadow-rose-600/20 active:scale-[0.98]"\
                 :title="collapsed ? \'Keluar dari Aplikasi\' : \'\'">\
           <i class="fa-solid fa-power-off text-sm shrink-0"></i>\
           <span v-if="!collapsed" class="ml-2.5">Keluar Sesi</span>\
@@ -213,7 +213,7 @@
   };
 
   /* ----------------------------------------------------------
-     3. <app-header> — v2.3.2: fix replace regex
+     3. <app-header> — v2.4.0: pakai --primary vars
      ---------------------------------------------------------- */
   var AppHeader = {
     name: 'AppHeader',
@@ -228,7 +228,6 @@
     computed: {
       pageIcon: function () { return this.pageIcons[this.currentPage] || 'fa-solid fa-circle'; },
       userName: function () { return (this.user && (this.user.display_name || this.user.email)) || 'Pengguna'; },
-      // v2.3.2: helper untuk format breadcrumb (semua underscore → spasi)
       currentPageLabel: function () {
         return String(this.currentPage || '').replace(/_/g, ' ');
       }
@@ -249,7 +248,8 @@
         <div class="flex items-center gap-2">\
           <span class="font-extrabold tracking-tight text-base sm:text-lg text-slate-900 dark:text-white hidden sm:inline-block">{{ appTitle }}</span>\
           <span class="text-slate-300 dark:text-slate-700 font-light hidden sm:inline-block">/</span>\
-          <span class="text-xs sm:text-sm font-semibold text-emerald-600 dark:text-emerald-400 capitalize bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-200/60 dark:border-emerald-800/40">\
+          <span class="text-xs sm:text-sm font-semibold px-2.5 py-1 rounded-lg border capitalize"\
+                :style="{ color: \'var(--primary)\', background: \'var(--primary-light)\', borderColor: \'var(--primary-lighter)\' }">\
             <i :class="pageIcon" class="mr-1.5 text-xs"></i>\
             {{ currentPageLabel }}\
           </span>\
@@ -264,25 +264,25 @@
                 ]" :title="dark ? \'Beralih ke Mode Terang\' : \'Beralih ke Mode Gelap\'">\
           <i :class="dark ? \'fa-solid fa-sun\' : \'fa-solid fa-moon\'" class="text-sm"></i>\
         </button>\
-        <div :class="[\
-          \'hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border\',\
-          dark ? \'bg-emerald-950/60 text-emerald-400 border-emerald-800/50\' : \'bg-emerald-50 text-emerald-700 border-emerald-200/60\'\
-        ]">\
+        <div class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border"\
+             :style="{ color: \'var(--primary-dark)\', background: \'var(--primary-light)\', borderColor: \'var(--primary-lighter)\' }">\
           <span class="relative flex h-2 w-2">\
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>\
-            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>\
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" :style="{ background: \'var(--primary)\' }"></span>\
+            <span class="relative inline-flex rounded-full h-2 w-2" :style="{ background: \'var(--primary)\' }"></span>\
           </span>\
           <span>Online</span>\
         </div>\
         <div class="h-5 w-px bg-slate-200 dark:bg-slate-800 hidden md:block"></div>\
         <div class="flex items-center gap-2.5 cursor-pointer group" @click="$emit(\'navigate\', \'profil\')">\
-          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white font-bold text-xs flex items-center justify-center shadow-md shadow-emerald-600/20 group-hover:scale-105 transition-transform uppercase">\
+          <div class="w-9 h-9 rounded-xl text-white font-bold text-xs flex items-center justify-center shadow-md group-hover:scale-105 transition-transform uppercase"\
+               :style="{ background: \'linear-gradient(135deg, var(--primary), var(--primary-dark))\', boxShadow: \'0 4px 6px -1px rgba(var(--primary-rgb), 0.2)\' }">\
             {{ userName.charAt(0) }}\
           </div>\
           <div class="hidden md:block text-left min-w-0 max-w-[160px]">\
-            <p class="text-xs font-bold leading-tight text-slate-800 dark:text-slate-100 truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{{ userName }}</p>\
+            <p class="text-xs font-bold leading-tight text-slate-800 dark:text-slate-100 truncate">{{ userName }}</p>\
             <div class="flex items-center gap-1 mt-0.5">\
-              <span class="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 tracking-wider">{{ (user && user.role) || \'Pegawai\' }}</span>\
+              <span class="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded tracking-wider"\
+                    :style="{ color: \'var(--primary-dark)\', background: \'var(--primary-lighter)\' }">{{ (user && user.role) || \'Pegawai\' }}</span>\
             </div>\
           </div>\
         </div>\
@@ -361,7 +361,6 @@
     },
     computed: {
       colorClasses: function () {
-        var c = this.color;
         var map = {
           emerald: { bg: 'from-emerald-600 to-teal-500' },
           sky:     { bg: 'from-sky-600 to-blue-500' },
@@ -369,7 +368,7 @@
           purple:  { bg: 'from-purple-600 to-indigo-500' },
           rose:    { bg: 'from-rose-600 to-pink-500' }
         };
-        return map[c] || map.emerald;
+        return map[this.color] || map.emerald;
       }
     },
     template: '\
@@ -400,7 +399,7 @@
       loading:     { type: Boolean, default: false },
       confirmText: { type: String, default: 'Simpan' },
       cancelText:  { type: String, default: 'Batal' },
-      confirmClass:{ type: String, default: 'bg-emerald-600 hover:bg-emerald-700 text-white' },
+      confirmClass:{ type: String, default: '' },
       showFooter:  { type: Boolean, default: true },
       showConfirm: { type: Boolean, default: true }
     },
@@ -409,6 +408,10 @@
       maxWidthClass: function () {
         var map = { sm: 'max-w-sm', md: 'max-w-md', lg: 'max-w-lg', xl: 'max-w-xl', '2xl': 'max-w-2xl' };
         return map[this.size] || 'max-w-md';
+      },
+      confirmStyle: function () {
+        if (this.confirmClass) return {};
+        return { background: 'var(--primary)', color: '#ffffff' };
       }
     },
     template: '\
@@ -417,7 +420,7 @@
         <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col max-h-[90vh] transition-all" :class="maxWidthClass">\
           <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700/80 flex items-center justify-between shrink-0 bg-slate-50/50 dark:bg-slate-800/50">\
             <h3 class="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2.5">\
-              <i v-if="icon" :class="icon" class="text-emerald-600 dark:text-emerald-400"></i>\
+              <i v-if="icon" :class="icon" :style="{ color: \'var(--primary)\' }"></i>\
               <span>{{ title }}</span>\
             </h3>\
             <button @click="$emit(\'close\')" class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition" title="Tutup">\
@@ -431,7 +434,7 @@
             <button @click="$emit(\'close\')" :disabled="loading" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-semibold transition">\
               {{ cancelText }}\
             </button>\
-            <button v-if="showConfirm" @click="$emit(\'confirm\')" :disabled="loading" class="px-5 py-2 rounded-xl text-xs font-bold transition shadow-md flex items-center gap-2 disabled:opacity-50" :class="confirmClass">\
+            <button v-if="showConfirm" @click="$emit(\'confirm\')" :disabled="loading" class="px-5 py-2 rounded-xl text-xs font-bold transition shadow-md flex items-center gap-2 disabled:opacity-50" :class="confirmClass" :style="confirmStyle">\
               <i v-if="loading" class="fa-solid fa-spinner fa-spin"></i>\
               <span>{{ loading ? \'Memproses...\' : confirmText }}</span>\
             </button>\
@@ -472,7 +475,7 @@
             <tr v-if="loading">\
               <td :colspan="(columns || []).length" class="py-12 text-center text-slate-400">\
                 <div class="inline-flex items-center gap-2 font-semibold">\
-                  <i class="fa-solid fa-spinner fa-spin text-emerald-600 text-base"></i>\
+                  <i class="fa-solid fa-spinner fa-spin text-base" :style="{ color: \'var(--primary)\' }"></i>\
                   <span>Memuat data...</span>\
                 </div>\
               </td>\
@@ -524,7 +527,7 @@
     'app-stat-card': AppStatCard,
     'app-modal': AppModal,
     'app-crud-table': AppCrudTable,
-    version: '2.3.2'
+    version: '2.4.0'
   };
 
 })(window);
