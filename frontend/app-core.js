@@ -1,5 +1,5 @@
 /* ============================================================
-   app-core.js — Factory Inisialisasi Vue App (Shared CDN v2.5.0)
+   app-core.js — Factory Inisialisasi Vue App (Shared CDN v2.5.1)
 
    AppCore.create(AppConfig) mengembalikan instance aplikasi Vue 3
    yang sudah terkonfigurasi lengkap dengan optimasi performa tinggi:
@@ -17,6 +17,15 @@
    - Komponen Shell        : <app-login>, <app-sidebar>, <app-header>,
                              <app-badge>, <app-stat-card>, <app-modal>,
                              <app-crud-table>.
+
+   Changelog v2.5.1 (2026-09-14):
+   - 🆕 ADD: cache busting via `_cacheBust` timestamp di payload
+     callServer. Backend HARUS mengabaikan field ini (hapus sebelum
+     diproses). Efek: GAS tidak cache response, selalu fresh.
+   - In-flight dedup tetap bekerja karena reqKey dihitung dari data
+     ORIGINAL (sebelum _cacheBust ditambahkan).
+   - ⚠️ Backend Code.gs perlu tambah: delete data._cacheBust di
+     handleAction(req).
 
    Changelog v2.5.0 (2026-09-13):
    - Konsolidasi CDN URL jsPDF & jspdf-autotable ke jsDelivr (konsisten
@@ -170,10 +179,13 @@
         },
 
         // ================= GAS BACKEND BRIDGE =================
+        // v2.5.1: + cache busting (_cacheBust timestamp)
         callServer: function (action, data) {
           data = data || {};
           var self = this;
           var isReadOnly = String(action).startsWith('get_') || action === 'dashboard' || action === 'analytics';
+
+          // v2.5.1: In-flight dedup berdasarkan data ORIGINAL (tanpa cache bust)
           var reqKey = isReadOnly ? (action + ':' + JSON.stringify(data) + ':' + this.token) : null;
 
           if (reqKey && inFlightRequests[reqKey]) {
@@ -187,6 +199,12 @@
               resolve({ success: false, error: mockError });
               return;
             }
+
+            // v2.5.1: CACHE BUSTING — tambah _cacheBust di payload FINAL
+            // saja (setelah reqKey dihitung). Backend HARUS mengabaikan
+            // field ini. Efek: GAS tidak cache response, selalu fresh.
+            var payloadFinal = Object.assign({}, data, { _cacheBust: Date.now() });
+
             google.script.run
               .withSuccessHandler(function (res) {
                 res = res || { success: false, error: 'Respons kosong dari server' };
@@ -197,7 +215,7 @@
                 console.error('[callServer] Fail \'' + action + '\':', err);
                 reject(new Error(err.message || 'Gagal terhubung ke server'));
               })
-              .handleAction({ action: action, data: data, token: self.token });
+              .handleAction({ action: action, data: payloadFinal, token: self.token });
           });
 
           if (reqKey) {
@@ -570,7 +588,7 @@
     create: create,
     loadScript: loadScript,
     debounce: debounce,
-    version: '2.5.0'
+    version: '2.5.1'
   };
 
 })(window);
