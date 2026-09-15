@@ -1,4 +1,4 @@
-# 📋 Snippet Standar Pemuatan CDN — v2.6.0
+# 📋 Snippet Standar Pemuatan CDN — v2.6.4
 
 > **Salin blok di bawah ini ke `Index.html` setiap web app baru.**
 > Dokumen ini dibuat untuk menghentikan tiga pola pemuatan yang saling
@@ -26,7 +26,7 @@
        3. JANGAN muat chart.js / xlsx / jspdf / pdf-lib di sini.
           Semua itu dimuat otomatis saat dibutuhkan lewat AppCore.loadLib().
   -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.6.0/frontend/app-common.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.6.4/frontend/app-common.min.css">
 ```
 
 ## 2. Blok standar sebelum `</body>`
@@ -34,9 +34,9 @@
 ```html
   <!-- Shared CDN: JS (urutan bebas — AppCore membaca window.AppComponents
        & window.AppModules saat create() dipanggil) -->
-  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.6.0/frontend/app-components.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.6.0/frontend/app-modules.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.6.0/frontend/app-core.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.6.4/frontend/app-components.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.6.4/frontend/app-modules.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.6.4/frontend/app-core.min.js"></script>
 
   <!-- Local App JS -->
   <?!= include('J_State'); ?>
@@ -121,6 +121,11 @@ setelah masuk ke GitHub**. Urutannya:
    — ini yang membuat URL `@v2.6.0` bisa dipakai dan cache-nya permanen
 5. Baru ubah `Index.html` aplikasi untuk menunjuk tag tersebut
 
+> ⚠️ PELAJARAN v2.6.3: buat tag HANYA setelah SEMUA berkas terunggah.
+> Tag v2.6.3 sempat menunjuk app-components lama karena tag dibuat lebih
+> dulu daripada unggahan. Mulai v2.6.4 seluruh berkas memakai SATU nomor
+> versi ekosistem — satu tag berlaku untuk semua berkas.
+
 > Selama tag belum dibuat, URL `@v2.6.0` akan mengembalikan **404**.
 > Jika Anda ingin menguji sebelum membuat tag, sementara pakai
 > `@main` + `?v=2.6.0`, lalu ganti ke `@v2.6.0` setelah rilis.
@@ -132,8 +137,9 @@ setelah masuk ke GitHub**. Urutannya:
 Buka aplikasi, jalankan di Console browser:
 
 ```javascript
-AppCore.version        // harus "2.6.0"
+AppCore.version        // harus "2.6.4" (atau lebih baru)
 Object.keys(AppCore.libs)   // ['chart','xlsx','jspdf','autotable','pdflib','pdf']
+AppComponents.version  // harus sama dengan tag yang Anda rujuk
 ```
 
 Kalau `AppCore.version` masih `2.5.1`, berarti jsDelivr belum menyegarkan
