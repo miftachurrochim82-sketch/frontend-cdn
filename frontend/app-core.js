@@ -1,5 +1,5 @@
 /* ============================================================
-   app-core.js — Factory Inisialisasi Vue App (Shared CDN v2.6.2)
+   app-core.js — Factory Inisialisasi Vue App (Shared CDN v2.6.4)
 
    AppCore.create(AppConfig) mengembalikan instance aplikasi Vue 3
    yang sudah terkonfigurasi lengkap dengan optimasi performa tinggi:
@@ -19,6 +19,13 @@
    - Komponen Shell        : <app-login>, <app-sidebar>, <app-header>,
                              <app-badge>, <app-stat-card>, <app-modal>,
                              <app-crud-table>.
+
+   Changelog v2.6.4 (2026-09-15):
+   - 🔢 KEMBALI KE VERSI TUNGGAL: mulai rilis ini SELURUH berkas CDN
+     (app-core, app-components, app-modules, app-common.css) memakai SATU
+     nomor versi ekosistem (2.6.4), menggantikan skema versi-per-berkas.
+     Satu tag git = satu nomor untuk semua berkas = lebih mudah dikelola.
+   - Tidak ada perubahan perilaku pada berkas ini di rilis 2.6.4.
 
    Changelog v2.6.2 (2026-09-15):
    - 🔴 FIX: uji registry `autotable` memakai nama properti resmi plugin,
@@ -789,7 +796,7 @@
     loadLib: loadLib,
     libs: LIBS,
     debounce: debounce,
-    version: '2.6.2'
+    version: '2.6.4'
   };
 
 })(window);
