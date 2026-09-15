@@ -1,20 +1,40 @@
 // ============================================================
-// CORE LIBRARY GLOBAL v2.0 - 02_CoreGateway.gs
+// CORE LIBRARY GLOBAL v2.2.0 - 02_CoreGateway.gs
+// Changelog v2.2.0 (2026-09-12):
+// - AUTHZ PUBLIK BARU (dipanggil app via CoreLib.xxx):
+//     requireRole_(user, minRole, customLevels)     — throw bila kurang
+//     checkRole_(user, action, actionRoleMap)       — {allowed, minRole, error}
+//     getRoleForEmail_(email, store)                — 'admin'|'verifikator'|'viewer'
+// - CONFIG KEY WHITELIST BARU:
+//     ALLOWED_CONFIG_KEYS_                          — daftar default
+//     isAllowedConfigKey_(key, extraKeys)           — app bisa pass extraKeys
+//     ⚠ ADMIN_EMAILS/VERIFIKATOR_EMAILS DIHAPUS dari default demi keamanan
+//        (cegah privilege escalation via UI). App yang butuh, extend sendiri.
+// - PUBLIC API WRAPPER (tanpa underscore untuk konsumsi app):
+//     requireRole, checkRole, getRoleForEmail, isAllowedConfigKey
+// - P1-B1 FIX: appendAuditLog invalidate cache AUDIT_LOGS setelah append.
+//              Sebelumnya pembaca AUDIT_LOGS via cache dapat data basi.
+// - P1-B5 FIX: handleDeclarativeResourceAction_ konsisten meneruskan
+//              masterSsId ke executeResourceList_ dan getSheetDataCached
+//              (isDetail). Sebelumnya bergantung pada ssId-switch implisit.
+// Changelog v2.1 (2026-09-12):
+// - P1-B1 FIX: getHighestRole() mengembalikan 5 level kanonik.
+// - P1-B2 FIX: apiGet() menerima parameter opsional masterSsId.
+// - P1-B3 FIX: 'save_my_profile' default level 'viewer' (self-service).
 // Changelog v2:
 // - C1 FIX: binding appCode tiket vs config (assertTicketBinding_).
 // - C2 FIX: prefix session unik per app (sessionPrefixFor_).
-// - C3 FIX: testMode DIHAPUS TOTAL (exchange menolak + log ERROR).
+// - C3 FIX: testMode DIHAPUS TOTAL.
 // - C4 FIX: TTL session di-cap 21600.
 // - H1 FIX: tabel role Global->library standar + customLevels.
-// - H2 FIX: pegawai_id/nip di-resolve dari master by email (tanpa fabrikasi).
+// - H2 FIX: pegawai_id/nip di-resolve dari master by email.
 // - H3 FIX: allowlist entitas + entityPermissions per tabel.
 // - H4 FIX: apiSave menghapus paksa field audit client.
 // - H5 FIX: AUDIT_LOGS via header default sistem + details dipotong 40rb.
 // - H6/H7 FIX: apiSave 1x-scan (upsertRow_ langsung).
 // - BARU: Declarative Resource Routing (Auto-CRUD with Row-Level Security,
 //         Multi-Field Search, CacheService acceleration, Hooks & Permissions).
-// - BARU: case 'save_config_item'; actionLevels kustom; kode error (code) standar.
-// Breaking changes: baca 00_MIGRATION_v2.md
+// - BARU: case 'save_config_item'; actionLevels kustom; kode error standar.
 // ============================================================
 
 function jsonResponse(obj) {
@@ -33,7 +53,10 @@ function extractRecord(data) {
   return record;
 }
 
-// ==================== SSO ====================
+// ============================================================
+// §1 SSO
+// ============================================================
+
 // testMode DIHAPUS (argumen ke-3 diabaikan demi kompatibilitas signature).
 function validatePlatformTicket(ticket, platformApiUrl, testMode, appCode) {
   if (testMode) logError('CoreAuth', '⛔ testMode telah DIHAPUS. Validasi memakai server SSO asli.');
@@ -77,6 +100,7 @@ function resolvePegawaiFromRows_(rows, email) {
   }
   return out;
 }
+
 function resolvePegawaiByEmail_(email, masterSsId) {
   var empty = { pegawai_id: '', nip: '', nama: '' };
   if (!email || !masterSsId) return empty;
@@ -102,12 +126,23 @@ function exchangePlatformTicket(ticket, config) {
     var role = getHighestRole(roles, config.roleLevels);
     var ident = resolvePegawaiByEmail_(email, config.masterSsId); // H2: tanpa fabrikasi
     var localToken = Utilities.getUuid();
-    var payload = { user_id: platformUser.id || platformUser.user_id || email, email: email, role: role, pegawai_id: ident.pegawai_id, nip: ident.nip, display_name: platformUser.display_name || platformUser.nama || platformUser.name || ident.nama || email };
+    var payload = {
+      user_id: platformUser.id || platformUser.user_id || email,
+      email: email,
+      role: role,
+      pegawai_id: ident.pegawai_id,
+      nip: ident.nip,
+      display_name: platformUser.display_name || platformUser.nama || platformUser.name || ident.nama || email
+    };
     CacheService.getScriptCache().put(prefix + localToken, JSON.stringify(payload), ttl);
     logInfo('CoreAuth', 'Penukaran tiket SSO berhasil: ' + email + ' [' + role + ']');
     return { success: true, data: { token: localToken, user: payload } };
   } catch (err) { logError('CoreAuth', err.message); return { success: false, code: 'UNAUTHORIZED', error: err.message }; }
 }
+
+// ============================================================
+// §2 SESSION
+// ============================================================
 
 function logoutUser(token, sessionPrefix) {
   if (!token) return { success: false, code: 'BAD_REQUEST', error: 'Token sesi wajib diisi.' };
@@ -126,34 +161,217 @@ function checkAuth(token, minLevel, sessionPrefix, customRoleLevels) {
     var currentLevel = roleMap[userRole] || 1;
     var requiredLevel = (typeof minLevel === 'number') ? minLevel : (roleMap[String(minLevel).toLowerCase()] || 1);
     if (currentLevel < requiredLevel) return { success: false, code: 'FORBIDDEN', error: 'Akses ditolak. Butuh hak akses minimal "' + minLevel + '".' };
-    return { success: true, token: token, user: { id: session.user_id, email: session.email, role: userRole, pegawai_id: session.pegawai_id || '', nip: session.nip || '', display_name: session.display_name || session.email || '' } };
+    return {
+      success: true,
+      token: token,
+      user: {
+        id: session.user_id,
+        email: session.email,
+        role: userRole,
+        pegawai_id: session.pegawai_id || '',
+        nip: session.nip || '',
+        display_name: session.display_name || session.email || ''
+      }
+    };
   } catch (err) { logError('CoreAuth', err.message); return { success: false, code: 'UNAUTHORIZED', error: err.message }; }
 }
 
-// H1: mapping standar Global -> library. customLevels di-merge menimpa default.
+// ============================================================
+// §3 ROLE MAPPING
+// ============================================================
+
+// P1-B1 (v2.1): Mapping role dari SI-PLATFORM ke 5 level kanonik CoreLib.
+// - Level 0 (viewer)      : viewer, tamu
+// - Level 1 (user)        : user, pegawai, operator, auditor, bendahara, staf, pelaksana
+// - Level 2 (verifikator) : verifikator, kasubbag, kasi
+// - Level 3 (admin)       : admin, administrator, kasat, kabid, sekretaris, kepala_dinas
+// - Level 4 (super)       : super, superadmin
+// customLevels di-merge menimpa default.
+var ROLE_LEVELS_MAP_ = {
+  viewer: 0, tamu: 0,
+  user: 1, pegawai: 1, operator: 1, auditor: 1, bendahara: 1, staf: 1, pelaksana: 1,
+  verifikator: 2, kasubbag: 2, kasi: 2,
+  admin: 3, administrator: 3, kasat: 3, kabid: 3, sekretaris: 3, kepala_dinas: 3,
+  super: 4, superadmin: 4
+};
+
+// Mapping eksplisit role apapun -> canonical (5 level)
+var ROLE_TO_CANONICAL_ = {
+  viewer: 'viewer', tamu: 'viewer',
+  user: 'user', pegawai: 'user', operator: 'user', auditor: 'user', bendahara: 'user', staf: 'user', pelaksana: 'user',
+  verifikator: 'verifikator', kasubbag: 'verifikator', kasi: 'verifikator',
+  admin: 'admin', administrator: 'admin', kasat: 'admin', kabid: 'admin', sekretaris: 'admin', kepala_dinas: 'admin',
+  super: 'super', superadmin: 'super'
+};
+
+// Prioritas canonical saat level sama (mis. viewer vs user, dua-duanya lv=1... 
+// tapi di v2.1 viewer=0, user=1 jadi tidak bentrok. Dijaga untuk safety kalau
+// custom level bentrok).
+var CANONICAL_PRIORITY_ = { viewer: 1, user: 2, verifikator: 3, admin: 4, super: 5 };
+
 function getHighestRole(roles, customLevels) {
-  var roleLevels = { viewer: 1, user: 1, pegawai: 1, auditor: 1, bendahara: 1, tamu: 1, operator: 2, admin: 2, administrator: 2, kasat: 2, kabid: 2, kasi: 2, sekretaris: 2, kepala_dinas: 2, super: 3, superadmin: 3 };
+  var roleLevels = {};
+  Object.keys(ROLE_LEVELS_MAP_).forEach(function(k) { roleLevels[k] = ROLE_LEVELS_MAP_[k]; });
   if (customLevels) Object.keys(customLevels).forEach(function(k) { roleLevels[String(k).toLowerCase()] = customLevels[k]; });
+
   if (!roles || !Array.isArray(roles) || roles.length === 0) return 'viewer';
-  var highest = 'viewer', level = 0;
+
+  var highestLevel = 0;
+  var highestPriority = 0;
+  var canonicalRole = 'viewer';
+
   roles.forEach(function(r) {
-    var lv = roleLevels[String(r).toLowerCase().trim()] || 1;
-    if (lv > level) { level = lv; highest = (lv >= 3) ? 'super' : (lv === 2 ? 'admin' : 'viewer'); }
+    var rl = String(r).toLowerCase().trim();
+    var lv = roleLevels[rl];
+    if (lv === undefined) lv = 1;
+    var canon = ROLE_TO_CANONICAL_[rl] || 'viewer';
+    var pri = CANONICAL_PRIORITY_[canon] || 1;
+
+    if (lv > highestLevel || (lv === highestLevel && pri > highestPriority)) {
+      highestLevel = lv;
+      highestPriority = pri;
+      canonicalRole = canon;
+    }
   });
-  return highest;
+  return canonicalRole;
 }
 
-// ==================== CRUD HANDLERS ====================
-function apiGet(ssId, sheetName, id, query, headersMap, pkField) {
+// ============================================================
+// §4 AUTHZ PUBLIK BARU (v2.2)
+// ============================================================
+
+/**
+ * Validasi role user terhadap minRole. Throw bila tidak cukup.
+ *
+ * @param {Object} user - { role: 'viewer'|'user'|'verifikator'|'admin'|'super' }
+ * @param {string} minRole
+ * @param {Object} customLevels - optional, override map level
+ * @throws {Error} bila user.role < minRole
+ * @returns {boolean} true bila lolos
+ */
+function requireRole_(user, minRole, customLevels) {
+  var roleMap = customLevels || MASTER_ROLE_LEVELS;
+  var userRole = String((user && user.role) || 'viewer').toLowerCase();
+  var userLevel = roleMap[userRole];
+  var needLevel = roleMap[String(minRole).toLowerCase()];
+  if (userLevel === undefined) userLevel = 0;
+  if (needLevel === undefined) needLevel = 0;
+  if (userLevel < needLevel) {
+    throw new Error('Akses ditolak: butuh role minimal "' + minRole + '".');
+  }
+  return true;
+}
+
+/**
+ * Cek apakah user boleh melakukan action menurut actionRoleMap.
+ * actionRoleMap: { actionName: minRole, ... }
+ *
+ * Return:
+ *   { allowed: true,  minRole: 'admin' }                     — boleh
+ *   { allowed: true,  minRole: null }                        — action tidak di-map = bebas
+ *   { allowed: false, minRole: 'admin', error: 'Akses...' }  — ditolak
+ *
+ * @param {Object} user
+ * @param {string} action
+ * @param {Object} actionRoleMap
+ * @returns {Object}
+ */
+function checkRole_(user, action, actionRoleMap) {
+  if (!actionRoleMap || !actionRoleMap[action]) {
+    return { allowed: true, minRole: null };
+  }
+  var minRole = actionRoleMap[action];
+  try {
+    requireRole_(user, minRole);
+    return { allowed: true, minRole: minRole };
+  } catch (e) {
+    return { allowed: false, minRole: minRole, error: e.message };
+  }
+}
+
+/**
+ * Tentukan role dari email via whitelist di Script Properties.
+ * App harus set ADMIN_EMAILS & VERIFIKATOR_EMAILS (pisahkan dengan koma).
+ *
+ * @param {string} email
+ * @param {Properties} store - WAJIB dari kode app (bukan library),
+ *                             kecuali app memang simpan di library props.
+ * @returns {string} 'admin' | 'verifikator' | 'viewer'
+ */
+function getRoleForEmail_(email, store) {
+  if (!email) return 'viewer';
+  var e = String(email).toLowerCase().trim();
+  var st;
+  try {
+    st = store || PropertiesService.getScriptProperties();
+  } catch (err) { return 'viewer'; }
+
+  var adminEmails = String(st.getProperty('ADMIN_EMAILS') || '').toLowerCase();
+  var verifEmails = String(st.getProperty('VERIFIKATOR_EMAILS') || '').toLowerCase();
+
+  if (adminEmails) {
+    var adm = adminEmails.split(',').map(function(x) { return x.trim(); });
+    if (adm.indexOf(e) !== -1) return 'admin';
+  }
+  if (verifEmails) {
+    var vrf = verifEmails.split(',').map(function(x) { return x.trim(); });
+    if (vrf.indexOf(e) !== -1) return 'verifikator';
+  }
+  return 'viewer';
+}
+
+// ============================================================
+// §5 CONFIG KEY WHITELIST BARU (v2.2)
+// ============================================================
+
+// Daftar default key config yang boleh diubah dari UI.
+// ⚠ ADMIN_EMAILS & VERIFIKATOR_EMAILS SENGAJA TIDAK ADA DI SINI — 
+//    mencegah privilege escalation lewat UI. App yang memang butuh
+//    mengelola whitelist email via UI harus pass extraKeys eksplisit
+//    (dengan kesadaran risikonya).
+var ALLOWED_CONFIG_KEYS_ = [
+  'app_title',
+  'app_version',
+  'instansi',
+  'target_jp_pns',
+  'target_jp_pppk',
+  'tahun_evaluasi_aktif',
+  'alert_h_days_lisensi',
+  'auto_approve_sertifikat',
+  'max_pdf_upload_mb'
+];
+
+/**
+ * Cek apakah key config boleh diubah dari UI.
+ * @param {string} key
+ * @param {string[]} extraKeys - optional, tambahan dari app
+ * @returns {boolean}
+ */
+function isAllowedConfigKey_(key, extraKeys) {
+  var k = String(key);
+  if (ALLOWED_CONFIG_KEYS_.indexOf(k) !== -1) return true;
+  if (Array.isArray(extraKeys) && extraKeys.indexOf(k) !== -1) return true;
+  return false;
+}
+
+// ============================================================
+// §6 CRUD HANDLERS
+// ============================================================
+
+// P1-B2 (v2.1): masterSsId opsional di akhir. Sheet referensi (PEGAWAI/JABATAN/UNIT_KERJA)
+// otomatis dibaca dari master lewat getSheetDataCached (opsi.masterSsId).
+function apiGet(ssId, sheetName, id, query, headersMap, pkField, masterSsId) {
   try {
     query = query || {};
     var canonical = String(sheetName || '').toUpperCase().trim();
     if (!canonical) return { success: false, code: 'BAD_REQUEST', error: 'Nama sheet tidak valid.' };
-    var rows = getSheetDataCached(ssId, canonical, headersMap, 180).filter(function(row) { return !row.deleted_at; });
+    var rows = getSheetDataCached(ssId, canonical, headersMap, 180, { masterSsId: masterSsId }).filter(function(row) { return !row.deleted_at; });
     var headers = (headersMap && headersMap[canonical]) ? headersMap[canonical] : [];
     if (id) {
       var found = null;
-      for (var i = 0; i < rows.length; i++) { if (String(getRecordPrimaryId_(rows[i], pkField)) === String(id)) { found = rows[i]; break; } }
+      for (var i = 0; i < rows.length; i++) {
+        if (String(getRecordPrimaryId_(rows[i], pkField)) === String(id)) { found = rows[i]; break; }
+      }
       return { success: true, data: found };
     }
     if (query.filters) {
@@ -198,7 +416,7 @@ function apiSave(ssId, sheetName, record, actor, headersMap, isRefSheetFunc, pre
     }
     var r = resolveHeaders_(canonical, headersMap, record);
     var sh = ensureSheet(ssId, canonical, headersMap, { isRefFunc: isRefSheetFunc });
-    var out = upsertRow_(sh, record, actor, pkField, null); // H7: 1x-scan insert-or-update
+    var out = upsertRow_(sh, record, actor, pkField, null);
     invalidateSheetCache(canonical, ssId);
     var userId = actor && (actor.id || actor.user_id) ? (actor.id || actor.user_id) : 'system';
     appendAuditLog(ssId, userId, (out.isUpdate ? 'UPDATE_' : 'INSERT_') + canonical, out.record, headersMap);
@@ -228,18 +446,28 @@ function apiDelete(ssId, sheetName, id, actor, headersMap, isRefSheetFunc, pkFie
   finally { try { lock.releaseLock(); } catch (e) {} }
 }
 
+// P1-B1 (v2.2): invalidate cache AUDIT_LOGS setelah append.
 function appendAuditLog(ssId, userId, action, details, headersMap) {
   try {
     var det = (typeof details === 'object') ? JSON.stringify(details) : String(details || '');
     if (det.length > 40000) det = det.slice(0, 40000) + '…[truncated]';
     var sh = ensureSheet(ssId, 'AUDIT_LOGS', headersMap || {}, {});
     var headers = sheetHeaders_(sh);
-    if (headers.length === 0) { headers = DEFAULT_SYSTEM_HEADERS.AUDIT_LOGS.slice(); sh.getRange(1, 1, 1, headers.length).setValues([headers]); sh.setFrozenRows(1); }
+    if (headers.length === 0) {
+      headers = DEFAULT_SYSTEM_HEADERS.AUDIT_LOGS.slice();
+      sh.getRange(1, 1, 1, headers.length).setValues([headers]);
+      sh.setFrozenRows(1);
+    }
     sh.appendRow(toAlignedRow_(headers, { id: makeId('audit'), user_id: userId || 'system', action: action || 'UNKNOWN', timestamp: nowIso(), details: det }));
+    // P1-B1 (v2.2): invalidate cache setelah append
+    invalidateSheetCache('AUDIT_LOGS', ssId);
   } catch (e) { logError('CoreHandlers.appendAuditLog', e.message); }
 }
 
-// ==================== DECLARATIVE RESOURCE ROUTER ====================
+// ============================================================
+// §7 DECLARATIVE RESOURCE ROUTER
+// ============================================================
+
 function handleDeclarativeResourceAction_(action, data, currentUser, localConfig) {
   var resources = localConfig.resources;
   if (!resources || typeof resources !== 'object') return null;
@@ -276,7 +504,8 @@ function handleDeclarativeResourceAction_(action, data, currentUser, localConfig
       if (userLevel < levelOf_(needRole, roleMap)) {
         return { success: false, code: 'FORBIDDEN', error: 'Akses baca "' + canonical + '" butuh hak akses "' + needRole + '".' };
       }
-      return executeResourceList_(ssId, canonical, data, headersMap, pkField, searchFields, resCfg.defaultSort);
+      // P1-B5 (v2.2): teruskan masterSsId eksplisit
+      return executeResourceList_(ssId, canonical, data, headersMap, pkField, searchFields, resCfg.defaultSort, localConfig.masterSsId);
     }
 
     if (isDetail) {
@@ -286,7 +515,8 @@ function handleDeclarativeResourceAction_(action, data, currentUser, localConfig
       }
       var targetId = data.id || (data.record && data.record[pkField]) || '';
       if (!targetId) return { success: false, code: 'BAD_REQUEST', error: 'ID ' + canonical + ' wajib diisi.' };
-      var rows = getSheetDataCached(ssId, canonical, headersMap, 180).filter(function(r) { return !r.deleted_at; });
+      // P1-B5 (v2.2): teruskan masterSsId eksplisit
+      var rows = getSheetDataCached(ssId, canonical, headersMap, 180, { masterSsId: localConfig.masterSsId }).filter(function(r) { return !r.deleted_at; });
       var found = null;
       for (var j = 0; j < rows.length; j++) {
         if (String(getRecordPrimaryId_(rows[j], pkField)) === String(targetId)) { found = rows[j]; break; }
@@ -306,7 +536,7 @@ function handleDeclarativeResourceAction_(action, data, currentUser, localConfig
       // Row-level owner guard
       if (ownerField && !isAdmin) {
         if (isUpdate) {
-          var rowsS = getSheetDataCached(ssId, canonical, headersMap, 180).filter(function(r) { return !r.deleted_at; });
+          var rowsS = getSheetDataCached(ssId, canonical, headersMap, 180, { masterSsId: localConfig.masterSsId }).filter(function(r) { return !r.deleted_at; });
           var oldRec = null;
           for (var k = 0; k < rowsS.length; k++) {
             if (String(getRecordPrimaryId_(rowsS[k], pkField)) === String(record[pkField])) { oldRec = rowsS[k]; break; }
@@ -337,7 +567,7 @@ function handleDeclarativeResourceAction_(action, data, currentUser, localConfig
       if (!delId) return { success: false, code: 'BAD_REQUEST', error: 'ID ' + canonical + ' wajib diisi.' };
 
       if (ownerField && !isAdmin) {
-        var rowsD = getSheetDataCached(ssId, canonical, headersMap, 180).filter(function(r) { return !r.deleted_at; });
+        var rowsD = getSheetDataCached(ssId, canonical, headersMap, 180, { masterSsId: localConfig.masterSsId }).filter(function(r) { return !r.deleted_at; });
         var targetRec = null;
         for (var m = 0; m < rowsD.length; m++) {
           if (String(getRecordPrimaryId_(rowsD[m], pkField)) === String(delId)) { targetRec = rowsD[m]; break; }
@@ -359,10 +589,11 @@ function handleDeclarativeResourceAction_(action, data, currentUser, localConfig
   return null;
 }
 
-function executeResourceList_(ssId, canonical, query, headersMap, pkField, customSearchFields, defaultSort) {
+// P1-B5 (v2.2): parameter masterSsId ditambahkan (opsional, backward-compat).
+function executeResourceList_(ssId, canonical, query, headersMap, pkField, customSearchFields, defaultSort, masterSsId) {
   try {
     query = query || {};
-    var rows = getSheetDataCached(ssId, canonical, headersMap, 180).filter(function(r) { return !r.deleted_at; });
+    var rows = getSheetDataCached(ssId, canonical, headersMap, 180, { masterSsId: masterSsId }).filter(function(r) { return !r.deleted_at; });
     var headers = (headersMap && headersMap[canonical]) ? headersMap[canonical] : (rows.length > 0 ? Object.keys(rows[0]) : []);
 
     // Filters
@@ -409,12 +640,7 @@ function executeResourceList_(ssId, canonical, query, headersMap, pkField, custo
     return {
       success: true,
       data: rows.slice(start, start + limit),
-      meta: {
-        total: total,
-        page: page,
-        limit: limit,
-        total_pages: Math.max(1, Math.ceil(total / limit))
-      }
+      meta: { total: total, page: page, limit: limit, total_pages: Math.max(1, Math.ceil(total / limit)) }
     };
   } catch (err) {
     logError('CoreResource.list', err.message);
@@ -422,8 +648,12 @@ function executeResourceList_(ssId, canonical, query, headersMap, pkField, custo
   }
 }
 
-// ==================== DISPATCHER ====================
+// ============================================================
+// §8 DISPATCHER
+// ============================================================
+
 function levelOf_(role, map) { return (map && map[String(role).toLowerCase()]) || 1; }
+
 function entityGate_(entity, headersMap) {
   if (!entity || entity === 'UNDEFINED') return 'Entitas tidak valid.';
   if (headersMap && headersMap[entity]) return null;
@@ -455,7 +685,9 @@ function dispatchAction(payload, localConfig) {
       return localHandlers[action](data, payload);
     }
     // 2. Level minimal: actionLevels kustom menang atas default.
-    var minLevel = (localConfig.actionLevels && localConfig.actionLevels[action]) || ((['save', 'delete', 'save_my_profile', 'save_config_item'].indexOf(action) !== -1) ? 'admin' : 'viewer');
+    //    P1-B3 (v2.1): 'save_my_profile' DIPINDAH dari 'admin' ke 'viewer'.
+    var minLevel = (localConfig.actionLevels && localConfig.actionLevels[action]) ||
+      ((['save', 'delete', 'save_config_item'].indexOf(action) !== -1) ? 'admin' : 'viewer');
     var auth = checkAuth(token, minLevel, prefix, roleMap);
     if (!auth.success) return auth;
     var currentUser = auth.user;
@@ -494,8 +726,7 @@ function dispatchAction(payload, localConfig) {
         var needGet = 'viewer';
         if (localConfig.entityPermissions && localConfig.entityPermissions[entityGet] && localConfig.entityPermissions[entityGet].read) needGet = localConfig.entityPermissions[entityGet].read;
         if (levelOf_(currentUser.role, roleMap) < levelOf_(needGet, roleMap)) return { success: false, code: 'FORBIDDEN', error: 'Akses baca "' + entityGet + '" butuh "' + needGet + '".' };
-        var dbGet = (isReferenceSheet(entityGet) && localConfig.masterSsId) ? localConfig.masterSsId : ssId;
-        return apiGet(dbGet, entityGet, data.id || null, data, headersMap, pkFor_(localConfig, entityGet));
+        return apiGet(ssId, entityGet, data.id || null, data, headersMap, pkFor_(localConfig, entityGet), localConfig.masterSsId);
       }
       case 'save': {
         var entitySave = String(data.entity || data.sheetName || data.table || '').toUpperCase();
@@ -520,6 +751,25 @@ function dispatchAction(payload, localConfig) {
     }
   } catch (err) { logError('CoreRouter', 'CRITICAL: ' + err.message); return { success: false, code: 'BAD_REQUEST', error: err.message }; }
 }
+
 function pkFor_(localConfig, entity) {
   return (localConfig && localConfig.pkFields && localConfig.pkFields[entity]) || undefined;
 }
+
+// ============================================================
+// §9 PUBLIC API (v2.2) — wrapper tanpa underscore
+// ============================================================
+// Pintu API untuk app konsumer. Panggil via CoreLib.xxx.
+// ============================================================
+
+/** Validasi role user terhadap minRole. Throw bila kurang. */
+function requireRole(user, minRole, customLevels) { return requireRole_(user, minRole, customLevels); }
+
+/** Cek izin user terhadap action menurut actionRoleMap. */
+function checkRole(user, action, actionRoleMap) { return checkRole_(user, action, actionRoleMap); }
+
+/** Tentukan role dari email via whitelist ADMIN_EMAILS/VERIFIKATOR_EMAILS. */
+function getRoleForEmail(email, store) { return getRoleForEmail_(email, store); }
+
+/** Cek apakah key config boleh diubah dari UI. */
+function isAllowedConfigKey(key, extraKeys) { return isAllowedConfigKey_(key, extraKeys); }
