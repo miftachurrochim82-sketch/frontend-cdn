@@ -1,5 +1,5 @@
 /* ============================================================
-   app-modules.js — Modul halaman mandiri (Shared CDN v2.1.0)
+   app-modules.js — Modul halaman mandiri (Shared CDN v2.6.0)
    Port dari A7_Profil & A9_Pengaturan: state + logika dibungkus
    di dalam komponen (self-contained), sehingga aplikasi GAS
    tidak perlu lagi include file lokal / mixin untuk keduanya.
@@ -15,6 +15,10 @@
    dimuat SEBELUM app-core.js ... ATAU sesudahnya — AppCore
    membaca window.AppModules saat create() dipanggil.
    ============================================================
+   Changelog v2.6.0 (2026-09-15):
+   - 🔢 Penyelarasan versi bersama seluruh berkas CDN (2.1.0 → 2.6.0).
+     TIDAK ada perubahan perilaku pada <app-profile> / <app-settings>.
+
    Changelog v2.1.0 (2026-09-13):
    - FIX AppSettings.confirmDelete: kirim `id: config.key` (bukan
      `config.id || config.key`). Backend SI deleteConfigItem_ butuh
@@ -494,7 +498,7 @@
   global.AppModules = {
     'app-profile': AppProfile,
     'app-settings': AppSettings,
-    version: '2.1.0'
+    version: '2.6.0'
   };
 
 })(window);
