@@ -1,5 +1,5 @@
 /* ============================================================
-   app-components.js — Komponen Vue 3 Siap Pakai (Shared CDN v2.6.4)
+   app-components.js — Komponen Vue 3 Siap Pakai (Shared CDN v2.6.5)
    Komponen global:
    1. <app-login>      : Layar Autentikasi Single Sign-On (SSO)
    2. <app-sidebar>    : Navigasi Samping Themed (per-app colors)
@@ -9,7 +9,12 @@
    6. <app-modal>      : Universal Modal Box
    7. <app-crud-table> : Smart Data Table
 
-   Changelog v2.6.4 (2026-09-15):
+   Changelog v2.6.5 (2026-09-15):
+  - 🆕 AppBadge: prop `icon` (ikon FA menggantikan titik bila diisi).
+  - 🆕 AppBadge: status baru — info (sky), emerald/tuntas (hijau),
+    purple/pppk (ungu). Perilaku status lama tidak berubah.
+
+  Changelog v2.6.4 (2026-09-15):
    - 🔢 Penyelarasan versi tunggal ekosistem (lihat changelog app-core).
      Isi komponen TIDAK berubah sejak 2.6.3 (size 3xl/4xl/5xl + subtitle).
    - ⚠️ CATATAN OPERASIONAL: tag v2.6.3 di GitHub sempat menunjuk isi
@@ -55,7 +60,7 @@
       appSubtitle:  { type: String, default: 'Sistem Informasi Terintegrasi SIMPEG' },
       instansi:     { type: String, default: 'Pemerintah Kabupaten Trenggalek' },
       tagline:      { type: String, default: 'Autentikasi telah terintegrasi terpusat (SSO). Silakan masuk menggunakan akun resmi Anda pada platform utama.' },
-      version:      { type: String, default: 'v2.6.4' },
+      version:      { type: String, default: 'v2.6.5' },
       logoSvg:      { type: String, default: '' },
       isProcessing: { type: Boolean, default: false },
       errorMessage: { type: String, default: '' }
@@ -319,7 +324,8 @@
     props: {
       status: { type: String, default: 'menunggu' },
       label:  { type: String, default: '' },
-      size:   { type: String, default: 'sm' }
+      size:   { type: String, default: 'sm' },
+      icon:   { type: String, default: '' }
     },
     computed: {
       displayLabel: function () {
@@ -338,32 +344,37 @@
         var s = String(this.status || '').toLowerCase();
         var sz = this.size === 'md' ? 'px-3 py-1 text-xs' : 'px-2.5 py-0.5 text-[10px]';
         var base = 'inline-flex items-center gap-1.5 rounded-full font-bold uppercase tracking-wider border ' + sz;
-        if (['disetujui', 'approved', 'active', 'aktif', 'definitif', 'success'].indexOf(s) >= 0) {
+        if (['disetujui', 'approved', 'active', 'aktif', 'definitif', 'success', 'emerald', 'tuntas'].indexOf(s) >= 0) {
           return base + ' bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60';
         }
         if (['menunggu', 'pending', 'proses', 'plt', 'warning'].indexOf(s) >= 0) {
           return base + ' bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/60';
         }
-        if (['revisi', 'revision'].indexOf(s) >= 0) {
+        if (['revisi', 'revision', 'info'].indexOf(s) >= 0) {
           return base + ' bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-800/60';
         }
         if (['ditolak', 'rejected', 'inactive', 'kosong', 'danger', 'failed'].indexOf(s) >= 0) {
           return base + ' bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800/60';
         }
+        if (['purple', 'pppk'].indexOf(s) >= 0) {
+          return base + ' bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800/60';
+        }
         return base + ' bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700';
       },
       dotClass: function () {
         var s = String(this.status || '').toLowerCase();
-        if (['disetujui', 'approved', 'active', 'aktif', 'definitif', 'success'].indexOf(s) >= 0) return 'bg-emerald-500';
+        if (['disetujui', 'approved', 'active', 'aktif', 'definitif', 'success', 'emerald', 'tuntas'].indexOf(s) >= 0) return 'bg-emerald-500';
         if (['menunggu', 'pending', 'proses', 'plt', 'warning'].indexOf(s) >= 0) return 'bg-amber-500';
-        if (['revisi', 'revision'].indexOf(s) >= 0) return 'bg-sky-500';
+        if (['revisi', 'revision', 'info'].indexOf(s) >= 0) return 'bg-sky-500';
         if (['ditolak', 'rejected', 'inactive', 'kosong', 'danger', 'failed'].indexOf(s) >= 0) return 'bg-rose-500';
+        if (['purple', 'pppk'].indexOf(s) >= 0) return 'bg-purple-500';
         return 'bg-slate-400';
       }
     },
     template: '\
     <span :class="badgeClass">\
-      <span class="w-1.5 h-1.5 rounded-full" :class="dotClass"></span>\
+      <i v-if="icon" :class="icon"></i>\
+      <span v-else class="w-1.5 h-1.5 rounded-full" :class="dotClass"></span>\
       <span>{{ displayLabel }}</span>\
     </span>'
   };
@@ -550,7 +561,7 @@
     'app-stat-card': AppStatCard,
     'app-modal': AppModal,
     'app-crud-table': AppCrudTable,
-    version: '2.6.4'
+    version: '2.6.5'
   };
 
 })(window);
