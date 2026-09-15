@@ -1,5 +1,5 @@
 /* ============================================================
-   app-modules.js — Modul halaman mandiri (Shared CDN v2.6.4)
+   app-modules.js — Modul halaman mandiri (Shared CDN v2.6.5)
    Port dari A7_Profil & A9_Pengaturan: state + logika dibungkus
    di dalam komponen (self-contained), sehingga aplikasi GAS
    tidak perlu lagi include file lokal / mixin untuk keduanya.
@@ -501,7 +501,7 @@
   global.AppModules = {
     'app-profile': AppProfile,
     'app-settings': AppSettings,
-    version: '2.6.4'
+    version: '2.6.5'
   };
 
 })(window);
