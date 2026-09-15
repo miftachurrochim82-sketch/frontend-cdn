@@ -1,5 +1,8 @@
 // ============================================================
-// CORE LIBRARY GLOBAL v2.2.0 - 03_CoreServices.gs
+// CORE LIBRARY GLOBAL v2.2.2 - 03_CoreServices.gs
+// Changelog v2.2.2 (2026-09-15):
+// - Sinkron rilis v2.2.2 (perbaikan gating role ada di 02_CoreGateway).
+//   Tanpa perubahan fungsional di berkas ini.
 // Changelog v2.2.0 (2026-09-12):
 // - saveConfigItem() menerima parameter opsional `allowedKeys`.
 //   Jika di-pass, key di-lookup case-insensitive terhadap daftar ini

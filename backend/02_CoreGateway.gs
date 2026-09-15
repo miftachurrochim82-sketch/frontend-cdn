@@ -1,5 +1,14 @@
 // ============================================================
-// CORE LIBRARY GLOBAL v2.2.0 - 02_CoreGateway.gs
+// CORE LIBRARY GLOBAL v2.2.2 - 02_CoreGateway.gs
+// Changelog v2.2.2 (2026-09-15):
+// - FIX KEAMANAN (P1-C1): checkAuth & levelOf_ — fallback `|| 1` diganti pola
+//   `=== undefined → 0` (selaras requireRole_). Sejak MASTER_ROLE_LEVELS v2.2
+//   viewer=0 (falsy), fallback lama menaikkan level efektif viewer & role tak
+//   dikenal menjadi 1: viewer bisa save/update, akses list/detail viewer
+//   justru selalu FORBIDDEN, dan role typo lolos (fail-open).
+// - FIX: dispatchAction menghapus data._cacheBust (cache buster app-core
+//   v2.5.1) sebelum diproses + extractRecord mengecualikannya — sesuai
+//   kontrak changelog app-core v2.5.1 (cegah kolom _cacheBust tercipta).
 // Changelog v2.2.0 (2026-09-12):
 // - AUTHZ PUBLIK BARU (dipanggil app via CoreLib.xxx):
 //     requireRole_(user, minRole, customLevels)     — throw bila kurang
@@ -47,7 +56,7 @@ function extractRecord(data) {
   if (data.row) return data.row;
   var record = {};
   Object.keys(data).forEach(function(key) {
-    if (['entity', 'sheetName', 'table', 'token', 'action', 'id', 'page', 'limit', 'filters', 'search', 'sortBy', 'sortDir', 'sortOrder'].indexOf(key) === -1) record[key] = data[key];
+    if (['entity', 'sheetName', 'table', 'token', 'action', 'id', 'page', 'limit', 'filters', 'search', 'sortBy', 'sortDir', 'sortOrder', '_cacheBust'].indexOf(key) === -1) record[key] = data[key];
   });
   if (data.id !== undefined && record.id === undefined) record.id = data.id;
   return record;
@@ -158,8 +167,15 @@ function checkAuth(token, minLevel, sessionPrefix, customRoleLevels) {
     var session = JSON.parse(raw);
     var roleMap = customRoleLevels || MASTER_ROLE_LEVELS;
     var userRole = String(session.role || 'viewer').toLowerCase();
-    var currentLevel = roleMap[userRole] || 1;
-    var requiredLevel = (typeof minLevel === 'number') ? minLevel : (roleMap[String(minLevel).toLowerCase()] || 1);
+    // v2.2.2 FIX (P1-C1): sejak v2.2 viewer berlevel 0 (falsy). Fallback lama
+    // `|| 1` menaikkan viewer & role tak dikenal ke level 1 → viewer bisa
+    // save/update, sementara syarat 'viewer' (0) menjadi 1 sehingga akses
+    // baca justru selalu tertolak. Sekarang: undefined → 0 (fail-closed),
+    // selaras dengan requireRole_.
+    var currentLevel = roleMap[userRole];
+    if (currentLevel === undefined) currentLevel = 0;
+    var requiredLevel = (typeof minLevel === 'number') ? minLevel : roleMap[String(minLevel).toLowerCase()];
+    if (requiredLevel === undefined) requiredLevel = 0;
     if (currentLevel < requiredLevel) return { success: false, code: 'FORBIDDEN', error: 'Akses ditolak. Butuh hak akses minimal "' + minLevel + '".' };
     return {
       success: true,
