@@ -1,5 +1,5 @@
 /* ============================================================
-   app-core.js — Factory Inisialisasi Vue App (Shared CDN v2.6.1)
+   app-core.js — Factory Inisialisasi Vue App (Shared CDN v2.6.2)
 
    AppCore.create(AppConfig) mengembalikan instance aplikasi Vue 3
    yang sudah terkonfigurasi lengkap dengan optimasi performa tinggi:
@@ -19,6 +19,16 @@
    - Komponen Shell        : <app-login>, <app-sidebar>, <app-header>,
                              <app-badge>, <app-stat-card>, <app-modal>,
                              <app-crud-table>.
+
+   Changelog v2.6.2 (2026-09-15):
+   - 🔴 FIX: uji registry `autotable` memakai nama properti resmi plugin,
+     `API.autoTable` (huruf T besar). Uji v2.6.1 menulis `API.autotable`
+     (t kecil) sehingga SELALU bernilai false: loadLib('pdf') dan
+     loadLib('autotable') melaporkan gagal meski plugin termuat sempurna
+     (gejala: toast "Gagal memuat pustaka" saat cetak PDF).
+   - 🛡 ADD: guard `!!jspdf.jsPDF.API` pada uji autotable agar tidak
+     melempar TypeError bila jsPDF ada tanpa API.
+   - 🔢 Versi berkas: 2.6.1 → 2.6.2. Tag rilis ekosistem: v2.6.2.
 
    Changelog v2.6.1 (2026-09-15):
    - 🔴 FIX KRITIS: SAFE STORAGE. Akses sessionStorage/localStorage kini
@@ -125,7 +135,14 @@
     autotable: {
       url: 'https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js',
       // Plugin ini menempel ke jsPDF, jadi hanya bisa diuji setelah jsPDF ada.
-      test: function () { return typeof jspdf !== 'undefined' && !!jspdf.jsPDF && !!jspdf.jsPDF.API.autotable; },
+      // v2.6.2: nama properti RESMI plugin adalah `API.autoTable` (T besar).
+      // Uji v2.6.1 menulis `API.autotable` (t kecil) sehingga SELALU false
+      // dan loadLib('pdf') gagal meski plugin termuat sempurna.
+      // Kedua bentuk dicek agar tahan terhadap variasi versi plugin.
+      test: function () {
+        return typeof jspdf !== 'undefined' && !!jspdf.jsPDF && !!jspdf.jsPDF.API &&
+          !!(jspdf.jsPDF.API.autoTable || jspdf.jsPDF.API.autotable);
+      },
       label: 'jsPDF-AutoTable',
       after: 'jspdf'
     },
@@ -772,7 +789,7 @@
     loadLib: loadLib,
     libs: LIBS,
     debounce: debounce,
-    version: '2.6.1'
+    version: '2.6.2'
   };
 
 })(window);
