@@ -1,24 +1,41 @@
 // ============================================================
-// CORE LIBRARY GLOBAL v2.0 - 99_CoreTest.gs
+// CORE LIBRARY GLOBAL v2.2.1 - 99_CoreTest.gs
+// Changelog v2.2.1 (2026-09-13):
+// - P1-T6 FIX: testGenUniqueCodeV22 — rewrite total agar DETERMINISTIK.
+//              Sebelumnya berasumsi sheet ZZ_TEST_CRUD kosong; gagal
+//              bila ada sisa data dari test lain. Sekarang:
+//              wipe sheet dulu → uji incremental 001→002→003
+//              + uji isolasi prefix + uji ID tak berhubungan.
+// Changelog v2.2.0 (2026-09-12):
+// - P1-T2 FIX: testSheetHeaders — sheet sistem di-skip.
+// - P1-T5 FIX: testAll() baca TEST_SPREADSHEET_ID_B dari props.
+// - BARU: 9 test v2.2 untuk fungsi publik baru.
+// Changelog v2.1 (2026-09-12):
+// - P1-T1 FIX: testCacheIsolation assertion nyata.
+// - P1-T2 FIX: testRoleMapping sesuai MASTER_ROLE_LEVELS v2.1.
+// - P1-T3 BARU: 6 test baru (testRoleLevelsV21, testDateUtilsV21, ...).
+// - P1-T4 FIX: testDeclarativeResourceRouter pakai `nama`.
 // Changelog v2:
 // - T1 FIX: assert_ + runCoreTests(ctx) dengan rekap {passed, failed, skipped}.
-// - T4 FIX: testSheetHeaders CHECK-ONLY (tidak membuat/mengubah skema).
+// - T4 FIX: testSheetHeaders CHECK-ONLY.
 // - T3 FIX: testGenericCrud verifikasi jumlah baris + hard-cleanup.
 // - T5 FIX: matriks read-only 3 sheet x 5 jalur.
-// - BARU: regresi C1,C2,C3(row-index),C3(cache),H1,H4,H5(File1),C1/C2/C4/H1/H4(File2),H9(File3).
-// - BARU: tes otorisasi dispatcher (viewer-ditolak, entitas-asing-ditolak).
 // ctx = { ssId, ssIdB?, masterSsId?, headersMap, isRefFunc?, platformApiUrl?, appCode? }
-// PENTING: ctx.headersMap WAJIB memuat sheet 'ZZ_TEST_CRUD' untuk tes tulis.
 // ============================================================
 
 function assert_(cond, msg) { if (!cond) throw new Error('ASSERTION FAILED: ' + (msg || '')); }
 function skip_(msg) { throw { __skip: true, message: msg }; }
+function need_(cond, msg) { if (!cond) skip_(msg); }
 
-// Session khusus-uji. UNDERSCORE = privat library (tak bisa dipanggil 30 app consumer).
+// Session khusus-uji.
 function mintTestSession_(config, role, email) {
   var prefix = sessionPrefixFor_(config || {});
   var token = 'TEST_' + Utilities.getUuid();
-  CacheService.getScriptCache().put(prefix + token, JSON.stringify({ user_id: 'TEST-USER', email: email || 'tester@example.com', role: role || 'viewer', pegawai_id: '', nip: '', display_name: 'Tester' }), 600);
+  CacheService.getScriptCache().put(
+    prefix + token,
+    JSON.stringify({ user_id: 'TEST-USER', email: email || 'tester@example.com', role: role || 'viewer', pegawai_id: '', nip: '', display_name: 'Tester' }),
+    600
+  );
   return { prefix: prefix, token: token };
 }
 function burnTestSession_(prefix, token) { try { CacheService.getScriptCache().remove(prefix + token); } catch (e) {} }
@@ -26,12 +43,22 @@ function burnTestSession_(prefix, token) { try { CacheService.getScriptCache().r
 function runCoreTests(ctx) {
   ctx = ctx || {};
   var tests = [
+    // File 1 (Foundation)
     testDatabaseConnection, testSheetHeaders, testSystemContract, testReadOnlyProtection,
     testRowIndexWithGaps, testHeaderOrderDrift, testCacheIsolation, testCustomPk,
     testDateRoundTrip, testNullClears, testStrictUpsert, testHardDeleteConfig,
+    // File 2 (Gateway)
     testTicketBinding, testSessionPrefix, testTestModeRemoved, testTtlCap,
     testRoleMapping, testResolvePegawai, testAuditStrip, testDispatcherAuthz,
-    testDeclarativeResourceRouter, testSsoFlow, testGenericCrud
+    testDeclarativeResourceRouter, testSsoFlow, testGenericCrud,
+    // v2.1 baru
+    testRoleLevelsV21, testDateUtilsV21, testGetLevelJabatanV21,
+    testGetUnitBawahanV21, testActionNotFoundV21, testSessionExpiredV21,
+    // v2.2 baru
+    testNormUtilV22, testParseDateV22, testWhitelistV22,
+    testValidateFieldsV22, testGenUniqueCodeV22,
+    testRequireRoleV22, testCheckRoleV22,
+    testGetRoleForEmailV22, testIsAllowedConfigKeyV22
   ];
   var passed = 0, failed = 0, skipped = 0, details = [];
   tests.forEach(function(fn) {
@@ -44,7 +71,6 @@ function runCoreTests(ctx) {
   logInfo('CoreTest', 'SELESAI. PASS: ' + passed + ', FAIL: ' + failed + ', SKIP: ' + skipped);
   return { passed: passed, failed: failed, skipped: skipped, results: details };
 }
-function need_(cond, msg) { if (!cond) skip_(msg); }
 
 // ---- koneksi & skema (check-only) ----
 function testDatabaseConnection(ctx) {
@@ -52,19 +78,35 @@ function testDatabaseConnection(ctx) {
   var ss = getDb(ctx.ssId);
   assert_(ss.getName(), 'Nama spreadsheet terbaca.');
 }
+
+// P1-T2 (v2.2): sheet sistem & ref di-skip; hanya sheet internal yang di-assert.
 function testSheetHeaders(ctx) {
   need_(ctx.headersMap, 'ctx.headersMap kosong.');
   var ss = getDb(ctx.ssId);
   Object.keys(ctx.headersMap).forEach(function(key) {
     var canonical = resolveCanonical_(key, ctx.headersMap);
     var isRef = ctx.isRefFunc ? ctx.isRefFunc(canonical) : isReferenceSheet(canonical);
+    var isSystem = ['AUDIT_LOGS', 'KONFIGURASI', 'MAIN_DATA'].indexOf(canonical) !== -1;
+
+    if (isRef) {
+      var shRef = ss.getSheetByName(canonical);
+      if (!shRef) logWarn('CoreTest', 'Ref ' + canonical + ' belum ada lokal (baca via master).');
+      return;
+    }
+    if (isSystem) {
+      var shSys = ss.getSheetByName(canonical);
+      if (!shSys) logInfo('CoreTest', 'Sheet sistem ' + canonical + ' belum ada (dibuat otomatis saat write pertama).');
+      return;
+    }
     var sh = ss.getSheetByName(canonical);
-    if (isRef) { if (!sh) logWarn('CoreTest', 'Ref ' + canonical + ' belum ada (baca via master).'); return; }
     assert_(sh, 'Sheet internal ' + canonical + ' ada. Jalankan initDatabase dulu.');
     var have = sheetHeaders_(sh);
-    ctx.headersMap[key].forEach(function(h) { assert_(have.indexOf(h) !== -1, canonical + ' memuat kolom ' + h); });
+    ctx.headersMap[key].forEach(function(h) {
+      assert_(have.indexOf(h) !== -1, canonical + ' memuat kolom ' + h);
+    });
   });
 }
+
 // Kontrak tabel sistem (H5/H3): header default harus tersedia.
 function testSystemContract(ctx) {
   ['AUDIT_LOGS', 'KONFIGURASI', 'MAIN_DATA'].forEach(function(s) {
@@ -73,6 +115,7 @@ function testSystemContract(ctx) {
   });
   assert_(resolveHeaders_('AUDIT_LOGS', {}, null).headers.join(',') === DEFAULT_SYSTEM_HEADERS.AUDIT_LOGS.join(','), 'Default AUDIT_LOGS utuh.');
 }
+
 // Matriks read-only: 3 sheet x write/soft/hard/apiSave/apiDelete.
 function testReadOnlyProtection(ctx) {
   need_(ctx.ssId, 'ctx.ssId kosong.');
@@ -95,14 +138,14 @@ function testSheetForCrud_(ctx) {
   return ensureSheet(ctx.ssId, 'ZZ_TEST_CRUD', ctx.headersMap, {});
 }
 function wipeSheet_(sh) { if (sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, sh.getLastColumn()).clearContent(); }
-// C1: baris kosong di tengah TIDAK BOLEH menggeser target update.
+
 function testRowIndexWithGaps(ctx) {
   var sh = testSheetForCrud_(ctx);
   wipeSheet_(sh);
   var a = writeRecordNoLock(ctx.ssId, 'ZZ_TEST_CRUD', { id: 'GAP-1', nama: 'satu' }, false, systemActor(), ctx.headersMap);
   writeRecordNoLock(ctx.ssId, 'ZZ_TEST_CRUD', { id: 'GAP-2', nama: 'dua' }, false, systemActor(), ctx.headersMap);
   writeRecordNoLock(ctx.ssId, 'ZZ_TEST_CRUD', { id: 'GAP-3', nama: 'tiga' }, false, systemActor(), ctx.headersMap);
-  sh.getRange(3, 1, 1, sh.getLastColumn()).clearContent(); // baris fisik 3 dikosongkan
+  sh.getRange(3, 1, 1, sh.getLastColumn()).clearContent();
   writeRecordNoLock(ctx.ssId, 'ZZ_TEST_CRUD', { id: 'GAP-3', nama: 'TIGA-BARU' }, true, systemActor(), ctx.headersMap);
   var rows = readRecordsNoLock(ctx.ssId, 'ZZ_TEST_CRUD', ctx.headersMap);
   var r1 = null, r3 = null;
@@ -111,7 +154,7 @@ function testRowIndexWithGaps(ctx) {
   assert_(r1 && r1.nama === 'satu', 'GAP-1 tidak tertimpa.');
   assert_(a && a.id === 'GAP-1', 'Insert mengembalikan record.');
 }
-// C2: kolom config di tengah + kolom sheet di ujung = nilai tetap di kolom benar.
+
 function testHeaderOrderDrift(ctx) {
   var sh = testSheetForCrud_(ctx);
   wipeSheet_(sh);
@@ -128,21 +171,41 @@ function testHeaderOrderDrift(ctx) {
   back2.forEach(function(x) { if (x.id === 'DRIFT-1') r2 = x; });
   assert_(r2 && r2.nama === 'NamaUbah' && r2.catatan_baru === 'CatAsli', 'Update tidak mengacak kolom lain.');
 }
-// C3: DB berbeda = cache berbeda.
+
 function testCacheIsolation(ctx) {
-  need_(ctx.ssIdB, 'ctx.ssIdB kosong (butuh 2 spreadsheet uji).');
+  need_(ctx.ssId, 'ctx.ssId kosong.');
+  need_(ctx.ssIdB, 'ctx.ssIdB kosong (set TEST_SPREADSHEET_ID_B di Script Properties).');
   need_(ctx.headersMap && ctx.headersMap.ZZ_TEST_CRUD, 'headersMap.ZZ_TEST_CRUD wajib ada.');
+
+  var shA = ensureSheet(ctx.ssId, 'ZZ_TEST_CRUD', ctx.headersMap, {});
+  var shB = ensureSheet(ctx.ssIdB, 'ZZ_TEST_CRUD', ctx.headersMap, {});
+  wipeSheet_(shA);
+  wipeSheet_(shB);
+
+  var idA = 'CACHE-A-' + new Date().getTime();
+  var idB = 'CACHE-B-' + new Date().getTime();
+  writeRecordNoLock(ctx.ssId, 'ZZ_TEST_CRUD', { id: idA, nama: 'DB-A' }, false, systemActor(), ctx.headersMap);
+  writeRecordNoLock(ctx.ssIdB, 'ZZ_TEST_CRUD', { id: idB, nama: 'DB-B' }, false, systemActor(), ctx.headersMap);
+
   invalidateSheetCache('ZZ_TEST_CRUD', ctx.ssId);
   invalidateSheetCache('ZZ_TEST_CRUD', ctx.ssIdB);
-  var a = getSheetDataCached(ctx.ssId, 'ZZ_TEST_CRUD', ctx.headersMap, 300);
-  var b = getSheetDataCached(ctx.ssIdB, 'ZZ_TEST_CRUD', ctx.headersMap, 300);
-  assert_(JSON.stringify(a) !== '__force__' || true, 'baca dua DB.');
-  // fondasi: key terpisah => tulis di A lalu baca B tidak tercemar (diverifikasi via invalidate terpisah).
-  invalidateSheetCache('ZZ_TEST_CRUD', ctx.ssId);
-  var b2 = getSheetDataCached(ctx.ssIdB, 'ZZ_TEST_CRUD', ctx.headersMap, 300);
-  assert_(JSON.stringify(b) === JSON.stringify(b2), 'Invalidate A tidak merusak cache B.');
+  var dataA = getSheetDataCached(ctx.ssId, 'ZZ_TEST_CRUD', ctx.headersMap, 300);
+  var dataB = getSheetDataCached(ctx.ssIdB, 'ZZ_TEST_CRUD', ctx.headersMap, 300);
+
+  var aHasA = dataA.some(function(r) { return r.id === idA; });
+  var aHasB = dataA.some(function(r) { return r.id === idB; });
+  var bHasA = dataB.some(function(r) { return r.id === idA; });
+  var bHasB = dataB.some(function(r) { return r.id === idB; });
+
+  assert_(aHasA, 'DB A berisi record A.');
+  assert_(!aHasB, 'DB A TIDAK berisi record B (cache/read terisolasi).');
+  assert_(bHasB, 'DB B berisi record B.');
+  assert_(!bHasA, 'DB B TIDAK berisi record A (cache/read terisolasi).');
+
+  hardDeleteRecordNoLock(ctx.ssId, 'ZZ_TEST_CRUD', idA, systemActor());
+  hardDeleteRecordNoLock(ctx.ssIdB, 'ZZ_TEST_CRUD', idB, systemActor());
 }
-// H1: PK kustom terdeteksi; update tidak menduplikat.
+
 function testCustomPk(ctx) {
   var sh = testSheetForCrud_(ctx);
   wipeSheet_(sh);
@@ -154,7 +217,7 @@ function testCustomPk(ctx) {
   var auto = getRecordPrimaryId_({ laporan_id: 'LAP-9' });
   assert_(auto === 'LAP-9', 'Auto-deteksi *_id jalan.');
 }
-// H4: Date & ISO round-trip.
+
 function testDateRoundTrip(ctx) {
   var d = new Date(2026, 8, 8, 14, 30, 0);
   var iso = formatDateForSheet(d);
@@ -163,7 +226,7 @@ function testDateRoundTrip(ctx) {
   assert_(back && back.getFullYear() === 2026, 'ISO terbaca balik.');
   assert_(parseTanggalBackend('08/09/2026 14:30').getDate() === 8, 'Legacy dd/MM tetap terbaca.');
 }
-// H5: null mengosongkan; undefined mempertahankan.
+
 function testNullClears(ctx) {
   var sh = testSheetForCrud_(ctx);
   wipeSheet_(sh);
@@ -175,7 +238,7 @@ function testNullClears(ctx) {
   assert_(r && (r.no_hp === '' || r.no_hp === null), 'null mengosongkan field.');
   assert_(r && r.nama === 'isi', 'undefined mempertahankan field lain.');
 }
-// Strict: update-yatim & insert-duplikat DITOLAK.
+
 function testStrictUpsert(ctx) {
   testSheetForCrud_(ctx);
   var threwU = false, threwI = false;
@@ -186,6 +249,7 @@ function testStrictUpsert(ctx) {
   try { writeRecordNoLock(ctx.ssId, 'ZZ_TEST_CRUD', { id: dupId }, false, systemActor(), ctx.headersMap); } catch (e) { threwI = true; }
   assert_(threwI, 'Insert PK duplikat ditolak.');
 }
+
 function testHardDeleteConfig(ctx) {
   need_(ctx.ssId, 'ctx.ssId kosong.');
   var actor = systemActor(), key = 'test_key_temp_' + new Date().getTime();
@@ -206,6 +270,7 @@ function testTicketBinding(ctx) {
   try { assertTicketBinding_('SIMPEG', 'SIUJI'); } catch (e) { threw = true; }
   assert_(threw, 'AppCode beda ditolak.');
 }
+
 function testSessionPrefix(ctx) {
   var a = sessionPrefixFor_({ appCode: 'APP_A' }), b = sessionPrefixFor_({ appCode: 'APP_B' });
   assert_(a !== b, 'Prefix per appCode berbeda.');
@@ -217,10 +282,12 @@ function testSessionPrefix(ctx) {
   assert_(okA.success, 'Token valid di prefix sendiri.');
   assert_(!okB.success, 'Token DITOLAK di prefix app lain.');
 }
+
 function testTestModeRemoved(ctx) {
   var r = exchangePlatformTicket('tiket-apa-pun', { testMode: true, appCode: 'X' });
   assert_(!r.success, 'testMode tidak menghasilkan session.');
 }
+
 function testTtlCap(ctx) {
   assert_(capTtl_(28800) === 21600, '28800 di-cap 21600.');
   assert_(capTtl_(60) === 60 && capTtl_(10) === 60, 'Batas bawah 60.');
@@ -228,22 +295,44 @@ function testTtlCap(ctx) {
   assert_(CacheService.getScriptCache().get('__ttl_probe__') === 'x', 'Nilai cap lolos cache.put.');
   CacheService.getScriptCache().remove('__ttl_probe__');
 }
+
 function testRoleMapping(ctx) {
   assert_(getHighestRole(['kasat']) === 'admin', 'kasat->admin.');
-  assert_(getHighestRole(['kabid']) === 'admin' && getHighestRole(['kasi']) === 'admin', 'kabid/kasi->admin.');
-  assert_(getHighestRole(['operator']) === 'admin' && getHighestRole(['kepala_dinas']) === 'admin' && getHighestRole(['sekretaris']) === 'admin', 'operator/pejabat->admin.');
-  assert_(getHighestRole(['auditor']) === 'viewer' && getHighestRole(['bendahara']) === 'viewer', 'auditor/bendahara->viewer.');
+  assert_(getHighestRole(['kabid']) === 'admin', 'kabid->admin.');
+  assert_(getHighestRole(['kepala_dinas']) === 'admin', 'kepala_dinas->admin.');
+  assert_(getHighestRole(['sekretaris']) === 'admin', 'sekretaris->admin.');
+  assert_(getHighestRole(['admin']) === 'admin', 'admin->admin.');
+  assert_(getHighestRole(['administrator']) === 'admin', 'administrator->admin.');
+  assert_(getHighestRole(['kasi']) === 'verifikator', 'kasi->verifikator.');
+  assert_(getHighestRole(['kasubbag']) === 'verifikator', 'kasubbag->verifikator.');
+  assert_(getHighestRole(['verifikator']) === 'verifikator', 'verifikator->verifikator.');
+  assert_(getHighestRole(['operator']) === 'user', 'operator->user.');
+  assert_(getHighestRole(['auditor']) === 'user', 'auditor->user.');
+  assert_(getHighestRole(['bendahara']) === 'user', 'bendahara->user.');
+  assert_(getHighestRole(['pegawai']) === 'user', 'pegawai->user.');
+  assert_(getHighestRole(['user']) === 'user', 'user->user.');
+  assert_(getHighestRole(['viewer']) === 'viewer', 'viewer->viewer.');
+  assert_(getHighestRole(['tamu']) === 'viewer', 'tamu->viewer.');
   assert_(getHighestRole(['superadmin']) === 'super', 'superadmin->super.');
+  assert_(getHighestRole(['super']) === 'super', 'super->super.');
   assert_(getHighestRole(['kode_tak_dikenal_xyz']) === 'viewer', 'Tak dikenal->viewer.');
-  assert_(getHighestRole(['viewer', 'kabid']) === 'admin', 'Tertinggi menang.');
+  assert_(getHighestRole([]) === 'viewer', 'Kosong->viewer.');
+  assert_(getHighestRole(null) === 'viewer', 'Null->viewer.');
+  assert_(getHighestRole(['viewer', 'kabid']) === 'admin', 'viewer+kabid->admin.');
+  assert_(getHighestRole(['user', 'kasi']) === 'verifikator', 'user+kasi->verifikator.');
+  assert_(getHighestRole(['pegawai', 'superadmin']) === 'super', 'pegawai+superadmin->super.');
 }
+
 function testResolvePegawai(ctx) {
   var rows = [{ pegawai_id: 'PEG-1', nip: '198001012010011001', nama: 'Budi', email: 'Budi@Example.com' }];
   var hit = resolvePegawaiFromRows_(rows, 'budi@example.com');
-  assert_(hit.pegawai_id === 'PEG-1' && hit.nip === '198001012010011001', 'Cocok case-insensitive.');
+  assert_(hit.pegawai_id === 'PEG-1', 'ID pegawai cocok case-insensitive.');
+  assert_(hit.nip === '198001012010011001', 'NIP cocok.');
+  assert_(hit.nama === 'Budi', 'Nama cocok.');
   var miss = resolvePegawaiFromRows_(rows, 'takada@example.com');
   assert_(miss.pegawai_id === '' && miss.nip === '', 'Tak cocok = kosong (tanpa fabrikasi).');
 }
+
 function testAuditStrip(ctx) {
   need_(ctx.ssId && ctx.headersMap && ctx.headersMap.ZZ_TEST_CRUD, 'Butuh ssId + ZZ_TEST_CRUD.');
   var res = apiSave(ctx.ssId, 'ZZ_TEST_CRUD', { id: 'AUDIT-1', nama: 'x', created_by: 'hacker', updated_by: 'hacker', deleted_at: 'x' }, { id: 'UJI', email: 'uji@example.com' }, ctx.headersMap);
@@ -251,6 +340,7 @@ function testAuditStrip(ctx) {
   assert_(res.data.created_by !== 'hacker' && res.data.updated_by !== 'hacker', 'Field audit otoritas server.');
   assert_(!res.data.deleted_at, 'deleted_at tidak bisa diset via save.');
 }
+
 function testDispatcherAuthz(ctx) {
   need_(ctx.ssId && ctx.headersMap, 'Butuh ssId + headersMap.');
   var cfg = { appCode: ctx.appCode || 'TESTAPP', spreadsheetId: ctx.ssId, headersMap: ctx.headersMap, pkFields: { ZZ_TEST_CRUD: 'id' } };
@@ -305,38 +395,30 @@ function testDeclarativeResourceRouter(ctx) {
   var admin = mintTestSession_(cfg, 'admin', 'admin@example.com');
 
   var id1 = 'RES-1-' + new Date().getTime();
-  var id2 = 'RES-2-' + new Date().getTime();
+  var uniqueName = 'UserA-UNIQ-' + new Date().getTime();
 
   try {
-    // 1. Hook validation failure
     var hookFail = dispatchAction({ action: 'save_zz_test_crud', token: userA.token, data: { id: id1, nama: 'UserA', no_hp: 'INVALID' } }, cfg);
-    assert_(!hookFail.success && hookFail.error === 'No HP tidak valid', 'preSave hook memvalidasi dan menolak payload tidak valid.');
+    assert_(!hookFail.success && hookFail.error === 'No HP tidak valid', 'preSave hook memvalidasi.');
 
-    // 2. Auto save & postSave hook
-    var saveOk = dispatchAction({ action: 'save_zz_test_crud', token: userA.token, data: { id: id1, nama: 'UserA', no_hp: '08123' } }, cfg);
-    assert_(saveOk.success && preHookCalled && postHookCalled, 'Auto save declarative resource berhasil + hook dipanggil.');
+    var saveOk = dispatchAction({ action: 'save_zz_test_crud', token: userA.token, data: { id: id1, nama: uniqueName, no_hp: '08123' } }, cfg);
+    assert_(saveOk.success && preHookCalled && postHookCalled, 'Auto save + hook dipanggil.');
 
-    // 3. Auto list & search
-    var listRes = dispatchAction({ action: 'get_zz_test_crud_list', token: userB.token, data: { search: '08123' } }, cfg);
+    var listRes = dispatchAction({ action: 'get_zz_test_crud_list', token: userB.token, data: { search: uniqueName } }, cfg);
     assert_(listRes.success && listRes.data.length >= 1, 'Auto list & search berjalan.');
 
-    // 4. Auto detail by ID
     var detailRes = dispatchAction({ action: 'get_zz_test_crud_detail', token: userB.token, data: { id: id1 } }, cfg);
     assert_(detailRes.success && detailRes.data && detailRes.data.id === id1, 'Auto detail by ID berjalan.');
 
-    // 5. Row-level owner security: UserB tidak boleh update data UserA (karena ownerField='nama')
     var tamper = dispatchAction({ action: 'save_zz_test_crud', token: userB.token, data: { id: id1, nama: 'UserB', no_hp: '08999' } }, cfg);
-    assert_(!tamper.success && tamper.code === 'FORBIDDEN', 'Row-level security menolak edit data milik orang lain.');
+    assert_(!tamper.success && tamper.code === 'FORBIDDEN', 'Row-level security tolak edit orang lain.');
 
-    // 6. Admin boleh update data siapa saja
-    var adminEdit = dispatchAction({ action: 'save_zz_test_crud', token: admin.token, data: { id: id1, nama: 'UserA', no_hp: '08111' } }, cfg);
-    assert_(adminEdit.success, 'Admin diizinkan update data siapa saja.');
+    var adminEdit = dispatchAction({ action: 'save_zz_test_crud', token: admin.token, data: { id: id1, nama: uniqueName, no_hp: '08111' } }, cfg);
+    assert_(adminEdit.success, 'Admin boleh update data siapa saja.');
 
-    // 7. Non-admin dilarang delete jika role.delete = 'admin'
     var userDel = dispatchAction({ action: 'delete_zz_test_crud', token: userA.token, data: { id: id1 } }, cfg);
     assert_(!userDel.success && userDel.code === 'FORBIDDEN', 'Non-admin dilarang delete.');
 
-    // 8. Admin boleh delete
     var adminDel = dispatchAction({ action: 'delete_zz_test_crud', token: admin.token, data: { id: id1 } }, cfg);
     assert_(adminDel.success, 'Admin berhasil menghapus declarative resource.');
   } finally {
@@ -344,11 +426,9 @@ function testDeclarativeResourceRouter(ctx) {
     burnTestSession_(userB.prefix, userB.token);
     burnTestSession_(admin.prefix, admin.token);
     hardDeleteRecordNoLock(ctx.ssId, 'ZZ_TEST_CRUD', id1, systemActor());
-    hardDeleteRecordNoLock(ctx.ssId, 'ZZ_TEST_CRUD', id2, systemActor());
   }
 }
 
-// ---- SSO live (negatif saja; butuh URL platform) ----
 function testSsoFlow(ctx) {
   need_(ctx.platformApiUrl, 'ctx.platformApiUrl kosong (uji live dilewati).');
   var threw = false;
@@ -356,21 +436,468 @@ function testSsoFlow(ctx) {
   assert_(threw, 'Tiket palsu ditolak server.');
 }
 
-// ---- CRUD generik wajar: hitung baris + bersihkan total ----
 function testGenericCrud(ctx) {
   need_(ctx.ssId && ctx.headersMap && ctx.headersMap.ZZ_TEST_CRUD, 'Butuh ssId + ZZ_TEST_CRUD.');
   var actor = systemActor(), id = 'CRUD-' + new Date().getTime();
   var n0 = readRecordsNoLock(ctx.ssId, 'ZZ_TEST_CRUD', ctx.headersMap).length;
-  var ins = apiSave(ctx.ssId, 'ZZ_TEST_CRUD', { id: id, nama: 'awal' }, actor, ctx.headersMap);
-  assert_(ins.success && ins.data, 'INSERT: ' + (ins.error || 'ok'));
-  assert_(readRecordsNoLock(ctx.ssId, 'ZZ_TEST_CRUD', ctx.headersMap).length === n0 + 1, 'INSERT +1 baris.');
-  var upd = apiSave(ctx.ssId, 'ZZ_TEST_CRUD', { id: id, nama: 'ubah' }, actor, ctx.headersMap);
-  assert_(upd.success, 'UPDATE: ' + (upd.error || 'ok'));
-  assert_(readRecordsNoLock(ctx.ssId, 'ZZ_TEST_CRUD', ctx.headersMap).length === n0 + 1, 'UPDATE tidak nambah baris.');
-  var got = apiGet(ctx.ssId, 'ZZ_TEST_CRUD', id, {}, ctx.headersMap);
-  assert_(got.success && got.data && got.data.nama === 'ubah', 'GET memantulkan update.');
-  var del = apiDelete(ctx.ssId, 'ZZ_TEST_CRUD', id, actor, ctx.headersMap);
-  assert_(del.success, 'SOFT DELETE: ' + (del.error || 'ok'));
-  assert_(hardDeleteRecordNoLock(ctx.ssId, 'ZZ_TEST_CRUD', id, actor), 'Hard cleanup.');
-  assert_(readRecordsNoLock(ctx.ssId, 'ZZ_TEST_CRUD', ctx.headersMap).length === n0, 'Bersih total.');
+  try {
+    var ins = apiSave(ctx.ssId, 'ZZ_TEST_CRUD', { id: id, nama: 'awal' }, actor, ctx.headersMap);
+    assert_(ins.success && ins.data, 'INSERT: ' + (ins.error || 'ok'));
+    assert_(readRecordsNoLock(ctx.ssId, 'ZZ_TEST_CRUD', ctx.headersMap).length === n0 + 1, 'INSERT +1 baris.');
+    var upd = apiSave(ctx.ssId, 'ZZ_TEST_CRUD', { id: id, nama: 'ubah' }, actor, ctx.headersMap);
+    assert_(upd.success, 'UPDATE: ' + (upd.error || 'ok'));
+    assert_(readRecordsNoLock(ctx.ssId, 'ZZ_TEST_CRUD', ctx.headersMap).length === n0 + 1, 'UPDATE tidak nambah baris.');
+    var got = apiGet(ctx.ssId, 'ZZ_TEST_CRUD', id, {}, ctx.headersMap);
+    assert_(got.success && got.data && got.data.nama === 'ubah', 'GET memantulkan update.');
+    var del = apiDelete(ctx.ssId, 'ZZ_TEST_CRUD', id, actor, ctx.headersMap);
+    assert_(del.success, 'SOFT DELETE: ' + (del.error || 'ok'));
+  } finally {
+    hardDeleteRecordNoLock(ctx.ssId, 'ZZ_TEST_CRUD', id, actor);
+    assert_(readRecordsNoLock(ctx.ssId, 'ZZ_TEST_CRUD', ctx.headersMap).length === n0, 'Bersih total.');
+  }
+}
+
+// ==================== v2.1 TEST ====================
+
+function testRoleLevelsV21(ctx) {
+  assert_(MASTER_ROLE_LEVELS.viewer === 0, 'viewer=0');
+  assert_(MASTER_ROLE_LEVELS.user === 1, 'user=1');
+  assert_(MASTER_ROLE_LEVELS.verifikator === 2, 'verifikator=2');
+  assert_(MASTER_ROLE_LEVELS.admin === 3, 'admin=3');
+  assert_(MASTER_ROLE_LEVELS.super === 4, 'super=4');
+  assert_(Object.keys(MASTER_ROLE_LEVELS).length === 5, '5 level kanonik.');
+}
+
+function testDateUtilsV21(ctx) {
+  var umur = hitungUmur(new Date(2000, 0, 15), new Date(2026, 8, 12));
+  assert_(umur === 26, 'Umur 2000-01-15 s.d. 2026-09-12 = 26, dapat: ' + umur);
+  var umurBelumUlangTahun = hitungUmur(new Date(2000, 11, 31), new Date(2026, 8, 12));
+  assert_(umurBelumUlangTahun === 25, 'Umur belum ultah = 25, dapat: ' + umurBelumUlangTahun);
+
+  var durasi = hitungDurasiHari('2026-09-01', '2026-09-12');
+  assert_(durasi === 11, 'Durasi 01→12 Sep = 11 hari, dapat: ' + durasi);
+
+  var menit = hitungDurasiMenit('08:30', '10:45');
+  assert_(menit === 135, 'Durasi 08:30→10:45 = 135 menit, dapat: ' + menit);
+  assert_(hitungDurasiMenit('10:00', '08:00') === 0, 'Durasi negatif = 0.');
+
+  assert_(parseTanggalBackend('2026-09-12') !== null, 'ISO date OK.');
+  assert_(parseTanggalBackend('2026-09-12T07:30:00.000Z') !== null, 'ISO datetime OK.');
+  assert_(parseTanggalBackend('12/09/2026') !== null, 'dd/MM/yyyy OK.');
+  assert_(parseTanggalBackend('') === null, 'Empty string = null.');
+  assert_(parseTanggalBackend(null) === null, 'Null = null.');
+  assert_(parseTanggalBackend('bukan-tanggal') === null, 'Invalid = null.');
+}
+
+function testGetLevelJabatanV21(ctx) {
+  assert_(getLevelJabatan({ nama_jabatan: 'Kepala Satuan Pol PP' }) === 'eselon_II', 'Kasat = eselon_II.');
+  assert_(getLevelJabatan({ nama_jabatan: 'Sekretaris Dinas' }) === 'sekretaris', 'Sekretaris.');
+  assert_(getLevelJabatan({ nama_jabatan: 'Kepala Bidang Penegakan' }) === 'kabid', 'Kabid.');
+  assert_(getLevelJabatan({ nama_jabatan: 'Kasubbag Umum' }) === 'kasubbag', 'Kasubbag.');
+  assert_(getLevelJabatan({ nama_jabatan: 'Kepala Seksi Trantibum' }) === 'kasi', 'Kasi.');
+  assert_(getLevelJabatan({ nama_jabatan: 'Analis Ahli Madya' }) === 'jft_madya', 'Ahli Madya.');
+  assert_(getLevelJabatan({ nama_jabatan: 'Analis Ahli Muda' }) === 'jft_muda', 'Ahli Muda.');
+  assert_(getLevelJabatan({ nama_jabatan: 'Pemula' }) === 'jft_terampil', 'Pemula = terampil.');
+  assert_(getLevelJabatan({ jenis_jabatan: 'UMUM' }) === 'staf_umum', 'Jenis UMUM.');
+  assert_(getLevelJabatan({ jenis_jabatan: 'FUNGSIONAL' }) === 'staf_fungsional', 'Jenis FUNGSIONAL.');
+  assert_(getLevelJabatan(null) === 'tidak_diketahui', 'Null.');
+  assert_(getLevelJabatan({}) === 'staf_lainnya', 'Kosong = staf_lainnya.');
+}
+
+function testGetUnitBawahanV21(ctx) {
+  var units = [
+    { unit_id: 'A', parent_unit_id: '' },
+    { unit_id: 'B', parent_unit_id: 'A' },
+    { unit_id: 'C', parent_unit_id: 'A' },
+    { unit_id: 'D', parent_unit_id: 'B' },
+    { unit_id: 'E', parent_unit_id: 'D' }
+  ];
+
+  var withSelf = getUnitBawahanSimple(units, 'A');
+  assert_(withSelf.indexOf('A') !== -1, 'includeSelf=true: A ada.');
+  assert_(withSelf.indexOf('B') !== -1, 'B ada.');
+  assert_(withSelf.indexOf('C') !== -1, 'C ada.');
+  assert_(withSelf.indexOf('D') !== -1, 'D ada.');
+  assert_(withSelf.indexOf('E') !== -1, 'E ada.');
+  assert_(withSelf.length === 5, 'Total 5 unit.');
+
+  var withoutSelf = getUnitBawahanSimple(units, 'A', false);
+  assert_(withoutSelf.indexOf('A') === -1, 'includeSelf=false: A TIDAK ada.');
+  assert_(withoutSelf.length === 4, 'Total 4 bawahan.');
+
+  var fromB = getUnitBawahanSimple(units, 'B');
+  assert_(fromB.length === 3 && fromB.indexOf('B') !== -1, 'Dari B: B,D,E.');
+
+  var leaf = getUnitBawahanSimple(units, 'C');
+  assert_(leaf.length === 1 && leaf[0] === 'C', 'Leaf C hanya dirinya.');
+
+  var ghost = getUnitBawahanSimple(units, 'Z');
+  assert_(ghost.length === 1 && ghost[0] === 'Z', 'Unit tak dikenal = dirinya saja.');
+
+  assert_(getUnitBawahanSimple(null, 'A').length === 0, 'Input null = [].');
+  assert_(getUnitBawahanSimple(units, '').length === 0, 'Unit ID kosong = [].');
+}
+
+function testActionNotFoundV21(ctx) {
+  need_(ctx.ssId && ctx.headersMap, 'Butuh ssId + headersMap.');
+  var cfg = { appCode: 'TEST_V21', spreadsheetId: ctx.ssId, headersMap: ctx.headersMap };
+  var admin = mintTestSession_(cfg, 'admin', 'admin@example.com');
+  try {
+    var res = dispatchAction({ action: 'aksi_aneh_tidak_ada_xyz', token: admin.token, data: {} }, cfg);
+    assert_(!res.success, 'Aksi tak dikenal GAGAL.');
+    assert_(res.code === 'NOT_FOUND', 'code = NOT_FOUND, dapat: ' + res.code);
+    assert_(res.error && res.error.indexOf('tidak dikenali') !== -1, 'Pesan error sesuai.');
+  } finally {
+    burnTestSession_(admin.prefix, admin.token);
+  }
+}
+
+function testSessionExpiredV21(ctx) {
+  need_(ctx.ssId, 'Butuh ssId.');
+  var cfg = { appCode: 'TEST_V21', spreadsheetId: ctx.ssId };
+  var prefix = sessionPrefixFor_(cfg);
+
+  var res1 = checkAuth('TOKEN_NGAWUR_XYZ', 'viewer', prefix);
+  assert_(!res1.success, 'Token ngawur GAGAL.');
+  assert_(res1.code === 'UNAUTHORIZED', 'code UNAUTHORIZED, dapat: ' + res1.code);
+
+  var res2 = checkAuth('', 'viewer', prefix);
+  assert_(!res2.success, 'Token kosong GAGAL.');
+  assert_(res2.code === 'UNAUTHORIZED', 'code UNAUTHORIZED untuk kosong.');
+
+  var s = mintTestSession_(cfg, 'viewer', 'v@example.com');
+  try {
+    var res3 = checkAuth(s.token, 'admin', s.prefix);
+    assert_(!res3.success, 'Viewer tidak boleh admin-level.');
+    assert_(res3.code === 'FORBIDDEN', 'code FORBIDDEN, dapat: ' + res3.code);
+  } finally {
+    burnTestSession_(s.prefix, s.token);
+  }
+}
+
+// ==================== v2.2 TEST BARU ====================
+
+// G1, G2: normId_ / normStr_
+function testNormUtilV22(ctx) {
+  assert_(normId_('  hello  ') === 'hello', 'normId_ trim.');
+  assert_(normId_(null) === '', 'normId_ null -> empty.');
+  assert_(normId_(undefined) === '', 'normId_ undefined -> empty.');
+  assert_(normId_(123) === '123', 'normId_ number -> string.');
+  assert_(normId_(0) === '0', 'normId_ zero -> "0".');
+  assert_(normStr_('  HeLLo  ') === 'hello', 'normStr_ trim + lowercase.');
+  assert_(normStr_(null) === '', 'normStr_ null -> empty.');
+
+  assert_(normId('  x  ') === 'x', 'public normId.');
+  assert_(normStr('  X  ') === 'x', 'public normStr.');
+}
+
+// G3: parseDate_
+function testParseDateV22(ctx) {
+  var d = parseDate_('12/09/2026');
+  assert_(d && d.getFullYear() === 2026 && d.getMonth() === 8 && d.getDate() === 12,
+          'parseDate_ dd/MM/yyyy: dapat ' + (d ? d.toISOString() : 'null'));
+
+  var d2 = parseDate_('2026-09-12');
+  assert_(d2 && d2.getFullYear() === 2026 && d2.getMonth() === 8 && d2.getDate() === 12, 'parseDate_ ISO.');
+
+  var d3 = parseDate_('2026-09-12T07:30:00.000Z');
+  assert_(d3 && d3.getFullYear() === 2026, 'parseDate_ ISO datetime.');
+
+  assert_(parseDate_(null) === null, 'parseDate_ null -> null.');
+  assert_(parseDate_('') === null, 'parseDate_ empty -> null.');
+  assert_(parseDate_('bukan-tanggal') === null, 'parseDate_ invalid -> null.');
+
+  var inp = new Date(2026, 8, 12);
+  assert_(parseDate_(inp) === inp, 'parseDate_ Date object passthrough.');
+
+  assert_(parseDate('12/09/2026') instanceof Date, 'public parseDate.');
+}
+
+// G4: whitelist_
+function testWhitelistV22(ctx) {
+  assert_(whitelist_('terjadwal', ['Terjadwal', 'Selesai'], 'x') === 'Terjadwal', 'whitelist_ lowercase input -> kanonik.');
+  assert_(whitelist_('TERJADWAL', ['Terjadwal', 'Selesai'], 'x') === 'Terjadwal', 'whitelist_ uppercase input -> kanonik.');
+  assert_(whitelist_('Selesai', ['Terjadwal', 'Selesai'], 'x') === 'Selesai', 'whitelist_ exact.');
+  assert_(whitelist_('  Terjadwal  ', ['Terjadwal'], 'x') === 'Terjadwal', 'whitelist_ trim.');
+
+  var threw = false;
+  try { whitelist_('ngawur', ['A', 'B'], 'field_x'); } catch (e) { threw = e.message.indexOf('field_x') !== -1; }
+  assert_(threw, 'whitelist_ tolak nilai invalid + sebut field.');
+
+  var threw2 = false;
+  try { whitelist_('A', null, 'x'); } catch (e) { threw2 = true; }
+  assert_(threw2, 'whitelist_ tolak non-array.');
+
+  assert_(whitelist('a', ['A'], 'x') === 'A', 'public whitelist.');
+}
+
+// G5: validateFields_
+function testValidateFieldsV22(ctx) {
+  validateFields_({ a: 1, b: 'x' }, ['a', 'b']);
+
+  var threw1 = false;
+  try { validateFields_({ a: '  ' }, ['a']); } catch (e) { threw1 = true; }
+  assert_(threw1, 'validateFields_ tolak string kosong.');
+
+  var threw2 = false;
+  try { validateFields_({ a: null }, ['a']); } catch (e) { threw2 = true; }
+  assert_(threw2, 'validateFields_ tolak null.');
+
+  var threw3 = false;
+  try { validateFields_({}, ['a']); } catch (e) { threw3 = true; }
+  assert_(threw3, 'validateFields_ tolak field tidak ada.');
+
+  validateFields_({ a: 1 }, []);
+
+  var threw4 = false;
+  try { validateFields_(null, ['a']); } catch (e) { threw4 = true; }
+  assert_(threw4, 'validateFields_ tolak non-object.');
+
+  var threw5 = false;
+  try { validateFields({}, ['x']); } catch (e) { threw5 = true; }
+  assert_(threw5, 'public validateFields.');
+}
+
+// G6: genUniqueCode_ (P1-T6 v2.2.1: DETERMINISTIK)
+function testGenUniqueCodeV22(ctx) {
+  // 1. Tanpa ssId -> error
+  var threw = false;
+  try { genUniqueCode_('X-', 'ZZ_TEST_CRUD', 'id', 3, '', {}); } catch (e) { threw = true; }
+  assert_(threw, 'genUniqueCode_ butuh ssId.');
+
+  // 2. Tanpa sheetName/field -> error
+  var threw2 = false;
+  try { genUniqueCode_('X-', '', 'id', 3, 'FAKE', {}); } catch (e) { threw2 = true; }
+  assert_(threw2, 'genUniqueCode_ butuh sheetName.');
+
+  // 3. Test fungsional deterministik
+  need_(ctx.ssId && ctx.headersMap && ctx.headersMap.ZZ_TEST_CRUD, 'Butuh ssId + ZZ_TEST_CRUD.');
+
+  // Bersihkan sheet supaya deterministik
+  var sh = ensureSheet(ctx.ssId, 'ZZ_TEST_CRUD', ctx.headersMap, {});
+  wipeSheet_(sh);
+  invalidateSheetCache('ZZ_TEST_CRUD', ctx.ssId);
+
+  var prefix = 'UNIQ' + Date.now() + '-';
+
+  // 3a. Sheet kosong -> 001
+  var code1 = genUniqueCode_(prefix, 'ZZ_TEST_CRUD', 'id', 3, ctx.ssId, ctx.headersMap);
+  assert_(code1 === prefix + '001', 'genUniqueCode_ sheet kosong = 001, dapat: ' + code1);
+
+  // 3b. Tulis 001 -> next 002
+  writeRecordNoLock(ctx.ssId, 'ZZ_TEST_CRUD', { id: code1, nama: 'first' }, false, systemActor(), ctx.headersMap);
+  var code2 = genUniqueCode_(prefix, 'ZZ_TEST_CRUD', 'id', 3, ctx.ssId, ctx.headersMap);
+  assert_(code2 === prefix + '002', 'genUniqueCode_ setelah 001 = 002, dapat: ' + code2);
+
+  // 3c. Tulis 002 + ID tak berhubungan -> next 003 (uji fix bug)
+  writeRecordNoLock(ctx.ssId, 'ZZ_TEST_CRUD', { id: code2, nama: 'second' }, false, systemActor(), ctx.headersMap);
+  writeRecordNoLock(ctx.ssId, 'ZZ_TEST_CRUD', { id: 'DUP-' + Date.now(), nama: 'junk' }, false, systemActor(), ctx.headersMap);
+  var code3 = genUniqueCode_(prefix, 'ZZ_TEST_CRUD', 'id', 3, ctx.ssId, ctx.headersMap);
+  assert_(code3 === prefix + '003', 'genUniqueCode_ tidak terpengaruh ID lain = 003, dapat: ' + code3);
+
+  // 3d. Prefix lain -> 001 (isolasi prefix)
+  var codeOther = genUniqueCode_('OTHER' + Date.now() + '-', 'ZZ_TEST_CRUD', 'id', 3, ctx.ssId, ctx.headersMap);
+  assert_(/\-001$/.test(codeOther), 'genUniqueCode_ prefix lain = 001, dapat: ' + codeOther);
+
+  // Cleanup
+  wipeSheet_(sh);
+  invalidateSheetCache('ZZ_TEST_CRUD', ctx.ssId);
+
+  // 4. Public wrapper
+  var code4 = genUniqueCode('PUB' + Date.now() + '-', 'ZZ_TEST_CRUD', 'id', 3, ctx.ssId, ctx.headersMap);
+  assert_(code4.indexOf('PUB') === 0 && /\d{3}$/.test(code4), 'public genUniqueCode: ' + code4);
+}
+
+// G7: requireRole_
+function testRequireRoleV22(ctx) {
+  assert_(requireRole_({ role: 'admin' }, 'verifikator') === true, 'requireRole_ admin>=verifikator.');
+  assert_(requireRole_({ role: 'super' }, 'super') === true, 'requireRole_ super>=super.');
+  assert_(requireRole_({ role: 'user' }, 'viewer') === true, 'requireRole_ user>=viewer.');
+
+  var threw = false;
+  try { requireRole_({ role: 'viewer' }, 'admin'); } catch (e) { threw = true; }
+  assert_(threw, 'requireRole_ viewer>=admin ditolak.');
+
+  var threw2 = false;
+  try { requireRole_(null, 'user'); } catch (e) { threw2 = true; }
+  assert_(threw2, 'requireRole_ null user diperlakukan viewer.');
+
+  var customMap = { custom_role: 5, admin: 3, viewer: 0, user: 1, verifikator: 2, super: 4 };
+  assert_(requireRole_({ role: 'custom_role' }, 'admin', customMap) === true, 'requireRole_ custom level tinggi.');
+
+  var threw3 = false;
+  try { requireRole({ role: 'viewer' }, 'admin'); } catch (e) { threw3 = true; }
+  assert_(threw3, 'public requireRole tolak viewer>=admin.');
+}
+
+// G8: checkRole_
+function testCheckRoleV22(ctx) {
+  var map = { save_jadwal: 'user', delete_jadwal: 'admin' };
+
+  var r1 = checkRole_({ role: 'user' }, 'save_jadwal', map);
+  assert_(r1.allowed === true && r1.minRole === 'user', 'checkRole user save_jadwal allowed.');
+
+  var r2 = checkRole_({ role: 'user' }, 'delete_jadwal', map);
+  assert_(r2.allowed === false && r2.minRole === 'admin' && r2.error, 'checkRole user delete_jadwal denied.');
+
+  var r3 = checkRole_({ role: 'user' }, 'action_tak_ada_map', map);
+  assert_(r3.allowed === true && r3.minRole === null, 'checkRole action unmapped = bebas.');
+
+  var r4 = checkRole_({ role: 'admin' }, 'delete_jadwal', map);
+  assert_(r4.allowed === true, 'checkRole admin delete_jadwal allowed.');
+
+  var r5 = checkRole_({ role: 'super' }, 'delete_jadwal', map);
+  assert_(r5.allowed === true, 'checkRole super delete_jadwal allowed.');
+
+  var r6 = checkRole_({ role: 'viewer' }, 'whatever', {});
+  assert_(r6.allowed === true, 'checkRole map kosong = bebas.');
+
+  var r7 = checkRole({ role: 'viewer' }, 'save_jadwal', map);
+  assert_(r7.allowed === false, 'public checkRole.');
+}
+
+// G9: getRoleForEmail_
+function testGetRoleForEmailV22(ctx) {
+  var mockStore = {
+    _data: {},
+    getProperty: function(k) { return this._data[k] || null; }
+  };
+
+  assert_(getRoleForEmail_('', mockStore) === 'viewer', 'getRoleForEmail empty -> viewer.');
+  assert_(getRoleForEmail_('x@y.com', mockStore) === 'viewer', 'getRoleForEmail tanpa whitelist -> viewer.');
+
+  mockStore._data.ADMIN_EMAILS = 'admin1@test.com,admin2@test.com';
+  assert_(getRoleForEmail_('admin1@test.com', mockStore) === 'admin', 'getRoleForEmail admin exact.');
+  assert_(getRoleForEmail_('ADMIN1@TEST.COM', mockStore) === 'admin', 'getRoleForEmail admin case-insensitive.');
+  assert_(getRoleForEmail_('other@test.com', mockStore) === 'viewer', 'getRoleForEmail non-whitelist -> viewer.');
+
+  mockStore._data.VERIFIKATOR_EMAILS = 'verif@test.com';
+  assert_(getRoleForEmail_('verif@test.com', mockStore) === 'verifikator', 'getRoleForEmail verifikator.');
+
+  mockStore._data.ADMIN_EMAILS = 'both@test.com';
+  mockStore._data.VERIFIKATOR_EMAILS = 'both@test.com';
+  assert_(getRoleForEmail_('both@test.com', mockStore) === 'admin', 'getRoleForEmail admin prioritas.');
+
+  assert_(getRoleForEmail('x@y.com', mockStore) === 'viewer', 'public getRoleForEmail.');
+}
+
+// G10: isAllowedConfigKey_
+function testIsAllowedConfigKeyV22(ctx) {
+  assert_(isAllowedConfigKey_('app_title') === true, 'isAllowedConfigKey app_title.');
+  assert_(isAllowedConfigKey_('instansi') === true, 'isAllowedConfigKey instansi.');
+  assert_(isAllowedConfigKey_('target_jp_pns') === true, 'isAllowedConfigKey target_jp_pns.');
+  assert_(isAllowedConfigKey_('alert_h_days_lisensi') === true, 'isAllowedConfigKey alert_h_days_lisensi.');
+
+  assert_(isAllowedConfigKey_('SPREADSHEET_ID') === false, 'isAllowedConfigKey SPREADSHEET_ID ditolak.');
+  assert_(isAllowedConfigKey_('PLATFORM_API_URL') === false, 'isAllowedConfigKey PLATFORM_API_URL ditolak.');
+  assert_(isAllowedConfigKey_('ADMIN_EMAILS') === false, 'isAllowedConfigKey ADMIN_EMAILS ditolak (security).');
+  assert_(isAllowedConfigKey_('VERIFIKATOR_EMAILS') === false, 'isAllowedConfigKey VERIFIKATOR_EMAILS ditolak (security).');
+
+  assert_(isAllowedConfigKey_('ADMIN_EMAILS', ['ADMIN_EMAILS']) === true, 'isAllowedConfigKey via extraKeys.');
+  assert_(isAllowedConfigKey_('app_title', ['ADMIN_EMAILS']) === true, 'isAllowedConfigKey app_title + extraKeys.');
+  assert_(isAllowedConfigKey_('HACK_KEY', ['ADMIN_EMAILS']) === false, 'isAllowedConfigKey non-extra ditolak.');
+
+  assert_(isAllowedConfigKey_('app_title', null) === true, 'isAllowedConfigKey null extraKeys.');
+  assert_(isAllowedConfigKey_('app_title', 'string') === true, 'isAllowedConfigKey non-array extraKeys.');
+
+  assert_(isAllowedConfigKey('app_title') === true, 'public isAllowedConfigKey true.');
+  assert_(isAllowedConfigKey('SPREADSHEET_ID') === false, 'public isAllowedConfigKey false.');
+}
+
+// ==================== RUNNER & HELPERS ====================
+
+function testAll() {
+  var props = PropertiesService.getScriptProperties();
+  var ssId = props.getProperty('SPREADSHEET_ID') || '';
+  var masterSsId = props.getProperty('MASTER_SPREADSHEET_ID') || ssId;
+  var platformUrl = props.getProperty('PLATFORM_API_URL') || '';
+  var ssIdB = props.getProperty('TEST_SPREADSHEET_ID_B') || '';
+
+  Logger.log('Test SSID: ' + ssId);
+  Logger.log('Test SSID-B: ' + (ssIdB || '(kosong — testCacheIsolation akan SKIP)'));
+
+  if (!ssId) {
+    Logger.log('❌ SPREADSHEET_ID kosong di Script Properties CoreLib.');
+    return;
+  }
+
+  var headersMap = {
+    ZZ_TEST_CRUD: ['id', 'nama', 'no_hp', 'catatan_baru', 'laporan_id']
+  };
+
+  // PRE-SETUP: pastikan sheet ZZ_TEST_CRUD ada sebelum test
+  try {
+    Logger.log('Pre-setup: memastikan sheet test ada...');
+    ensureSheet(ssId, 'ZZ_TEST_CRUD', headersMap, {});
+    var ss = SpreadsheetApp.openById(ssId);
+    var sh = ss.getSheetByName('ZZ_TEST_CRUD');
+    var headers = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
+    var colNoHp = headers.indexOf('no_hp') + 1;
+    if (colNoHp > 0) {
+      sh.getRange(2, colNoHp, sh.getMaxRows() - 1, 1).setNumberFormat('@');
+    }
+    Logger.log('✅ Pre-setup selesai.');
+  } catch (e) {
+    Logger.log('[WARN] Pre-setup: ' + e.message);
+  }
+
+  var ctx = {
+    ssId: ssId,
+    ssIdB: ssIdB,
+    masterSsId: masterSsId,
+    headersMap: headersMap,
+    platformApiUrl: platformUrl,
+    appCode: 'CORELIB_TEST'
+  };
+
+  var result = runCoreTests(ctx);
+  Logger.log('');
+  Logger.log('=== RINGKASAN ===');
+  Logger.log('PASS: ' + result.passed + ' / FAIL: ' + result.failed + ' / SKIP: ' + result.skipped);
+  result.results.forEach(function(r) {
+    Logger.log('[' + r.status + '] ' + r.test + (r.detail ? ' — ' + r.detail : ''));
+  });
+}
+
+// Quick check bahwa library v2.2.1 aktif.
+function cekUpdateCorelib() {
+  try {
+    var testRole = CoreLib.getHighestRole(['kasat']);
+    Logger.log('✅ CoreLib aktif. getHighestRole(["kasat"]) = ' + testRole);
+  } catch (e) {
+    Logger.log('❌ CoreLib error: ' + e.message);
+  }
+
+  try {
+    Logger.log('✅ normId_ tersedia: ' + (typeof normId_ === 'function'));
+    Logger.log('✅ parseDate_ tersedia: ' + (typeof parseDate_ === 'function'));
+    Logger.log('✅ requireRole_ tersedia: ' + (typeof requireRole_ === 'function'));
+    Logger.log('✅ isAllowedConfigKey_ tersedia: ' + (typeof isAllowedConfigKey_ === 'function'));
+  } catch (e) {
+    Logger.log('❌ Fungsi v2.2 tidak lengkap: ' + e.message);
+  }
+
+  // Cek fix genUniqueCode (v2.2.1)
+  try {
+    var fnStr = genUniqueCode_.toString();
+    var hasBuggy = fnStr.indexOf('reAnyNumber') !== -1;
+    Logger.log(hasBuggy ? '❌ genUniqueCode_ masih versi LAMA (buggy)' : '✅ genUniqueCode_ versi v2.2.1 (fix)');
+  } catch (e) {
+    Logger.log('⚠️ Cek genUniqueCode_: ' + e.message);
+  }
+
+  var props = PropertiesService.getScriptProperties();
+  Logger.log('SPREADSHEET_ID        = ' + props.getProperty('SPREADSHEET_ID'));
+  Logger.log('MASTER_SPREADSHEET_ID = ' + props.getProperty('MASTER_SPREADSHEET_ID'));
+  Logger.log('TEST_SPREADSHEET_ID_B = ' + (props.getProperty('TEST_SPREADSHEET_ID_B') || '(belum di-set)'));
+
+  var ssId = props.getProperty('SPREADSHEET_ID');
+  if (ssId) {
+    try {
+      var ss = SpreadsheetApp.openById(ssId);
+      Logger.log('Spreadsheet: ' + ss.getName());
+    } catch (e) {
+      Logger.log('❌ Gagal buka: ' + e.message);
+    }
+  }
 }
