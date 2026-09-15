@@ -1,5 +1,5 @@
 /* ============================================================
-   app-components.js — Komponen Vue 3 Siap Pakai (Shared CDN v2.6.0)
+   app-components.js — Komponen Vue 3 Siap Pakai (Shared CDN v2.6.4)
    Komponen global:
    1. <app-login>      : Layar Autentikasi Single Sign-On (SSO)
    2. <app-sidebar>    : Navigasi Samping Themed (per-app colors)
@@ -8,6 +8,21 @@
    5. <app-stat-card>  : Kartu Widget Metrik Dashboard
    6. <app-modal>      : Universal Modal Box
    7. <app-crud-table> : Smart Data Table
+
+   Changelog v2.6.4 (2026-09-15):
+   - 🔢 Penyelarasan versi tunggal ekosistem (lihat changelog app-core).
+     Isi komponen TIDAK berubah sejak 2.6.3 (size 3xl/4xl/5xl + subtitle).
+   - ⚠️ CATATAN OPERASIONAL: tag v2.6.3 di GitHub sempat menunjuk isi
+     components lama (2.6.0) karena berkas terunggah setelah tag dibuat.
+     Mulai 2.6.4: unggah SEMUA berkas dahulu, BARU buat tag.
+
+   Changelog v2.6.3 (2026-09-15):
+   - 🆕 ADD: <app-modal> ukuran '3xl', '4xl', '5xl' (form lebar dengan grid
+     3 kolom kini muat tanpa memaksa max-w-2xl).
+   - 🆕 ADD: prop `subtitle` pada <app-modal> — baris keterangan kecil di
+     bawah judul, menggantikan pola subtitle yang dulu ditulis manual di
+     header tiap modal aplikasi.
+   - 🔢 Versi berkas: 2.6.0 → 2.6.3. Tag rilis ekosistem: v2.6.3.
 
    Changelog v2.6.0 (2026-09-15):
    - 🔢 Penyelarasan versi: seluruh berkas CDN kini memakai SATU nomor
@@ -40,7 +55,7 @@
       appSubtitle:  { type: String, default: 'Sistem Informasi Terintegrasi SIMPEG' },
       instansi:     { type: String, default: 'Pemerintah Kabupaten Trenggalek' },
       tagline:      { type: String, default: 'Autentikasi telah terintegrasi terpusat (SSO). Silakan masuk menggunakan akun resmi Anda pada platform utama.' },
-      version:      { type: String, default: 'v2.6.0' },
+      version:      { type: String, default: 'v2.6.4' },
       logoSvg:      { type: String, default: '' },
       isProcessing: { type: Boolean, default: false },
       errorMessage: { type: String, default: '' }
@@ -400,6 +415,7 @@
     props: {
       show:        { type: Boolean, default: false },
       title:       { type: String, default: 'Konfirmasi' },
+      subtitle:    { type: String, default: '' },
       icon:        { type: String, default: '' },
       size:        { type: String, default: 'md' },
       loading:     { type: Boolean, default: false },
@@ -412,7 +428,7 @@
     emits: ['close', 'confirm'],
     computed: {
       maxWidthClass: function () {
-        var map = { sm: 'max-w-sm', md: 'max-w-md', lg: 'max-w-lg', xl: 'max-w-xl', '2xl': 'max-w-2xl' };
+        var map = { sm: 'max-w-sm', md: 'max-w-md', lg: 'max-w-lg', xl: 'max-w-xl', '2xl': 'max-w-2xl', '3xl': 'max-w-3xl', '4xl': 'max-w-4xl', '5xl': 'max-w-5xl' };
         return map[this.size] || 'max-w-md';
       },
       confirmStyle: function () {
@@ -429,6 +445,7 @@
               <i v-if="icon" :class="icon" :style="{ color: \'var(--primary)\' }"></i>\
               <span>{{ title }}</span>\
             </h3>\
+            <p v-if="subtitle" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 pl-6">{{ subtitle }}</p>\
             <button @click="$emit(\'close\')" class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition" title="Tutup">\
               <i class="fa-solid fa-xmark text-sm"></i>\
             </button>\
@@ -533,7 +550,7 @@
     'app-stat-card': AppStatCard,
     'app-modal': AppModal,
     'app-crud-table': AppCrudTable,
-    version: '2.6.0'
+    version: '2.6.4'
   };
 
 })(window);
