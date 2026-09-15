@@ -1,25 +1,13 @@
 {
-  "name": "@trenggalekkab/frontend-cdn",
-  "version": "2.4.0",
-  "description": "Shared Frontend CDN Library (v2.4.0) for Pemkab Trenggalek Applications with High-Performance Lazy Loaders, SIMPEG SWR Cache & Universal Exporters",
-  "main": "app-core.min.js",
-  "author": "Pemerintah Kabupaten Trenggalek",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/miftachurrochim82-sketch/frontend-cdn.git"
+  "name": "@miftachurrochim82/frontend-cdn",
+  "version": "2.6.0",
+  "scripts": {
+    "build:js": "terser frontend/app-core.js -c -m -o frontend/app-core.min.js && terser frontend/app-components.js -c -m -o frontend/app-components.min.js && terser frontend/app-modules.js -c -m -o frontend/app-modules.min.js",
+    "build:css": "cleancss -o frontend/app-common.min.css frontend/app-common.css",
+    "build": "npm run build:js && npm run build:css"
   },
-  "keywords": [
-    "trenggalek",
-    "vue3",
-    "cdn",
-    "sso",
-    "app-core",
-    "high-performance",
-    "stale-while-revalidate",
-    "app-crud-table",
-    "app-stat-card",
-    "app-modal",
-    "app-badge"
-  ]
+  "devDependencies": {
+    "clean-css-cli": "^5.6.3",
+    "terser": "^5.39.0"
+  }
 }
