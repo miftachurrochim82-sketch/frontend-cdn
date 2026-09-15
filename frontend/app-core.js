@@ -1,5 +1,5 @@
 /* ============================================================
-   app-core.js — Factory Inisialisasi Vue App (Shared CDN v2.6.4)
+   app-core.js — Factory Inisialisasi Vue App (Shared CDN v2.6.5)
 
    AppCore.create(AppConfig) mengembalikan instance aplikasi Vue 3
    yang sudah terkonfigurasi lengkap dengan optimasi performa tinggi:
@@ -796,7 +796,7 @@
     loadLib: loadLib,
     libs: LIBS,
     debounce: debounce,
-    version: '2.6.4'
+    version: '2.6.5'
   };
 
 })(window);
