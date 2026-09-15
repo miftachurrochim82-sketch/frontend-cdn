@@ -1,5 +1,5 @@
 /* ============================================================
-   app-components.js — Komponen Vue 3 Siap Pakai (Shared CDN v2.4.0)
+   app-components.js — Komponen Vue 3 Siap Pakai (Shared CDN v2.6.0)
    Komponen global:
    1. <app-login>      : Layar Autentikasi Single Sign-On (SSO)
    2. <app-sidebar>    : Navigasi Samping Themed (per-app colors)
@@ -8,6 +8,12 @@
    5. <app-stat-card>  : Kartu Widget Metrik Dashboard
    6. <app-modal>      : Universal Modal Box
    7. <app-crud-table> : Smart Data Table
+
+   Changelog v2.6.0 (2026-09-15):
+   - 🔢 Penyelarasan versi: seluruh berkas CDN kini memakai SATU nomor
+     versi bersama (2.6.0) agar bisa dirujuk lewat satu tag git @v2.6.0.
+     TIDAK ada perubahan perilaku/komponen pada rilis ini.
+   - Default prop `version` pada <app-login> ikut diselaraskan ke v2.6.0.
 
    Changelog v2.4.0 (2026-09-13):
    - 🎨 THEMING: <app-sidebar> sekarang pakai CSS class .app-sidebar*
@@ -34,7 +40,7 @@
       appSubtitle:  { type: String, default: 'Sistem Informasi Terintegrasi SIMPEG' },
       instansi:     { type: String, default: 'Pemerintah Kabupaten Trenggalek' },
       tagline:      { type: String, default: 'Autentikasi telah terintegrasi terpusat (SSO). Silakan masuk menggunakan akun resmi Anda pada platform utama.' },
-      version:      { type: String, default: 'v2.4.0' },
+      version:      { type: String, default: 'v2.6.0' },
       logoSvg:      { type: String, default: '' },
       isProcessing: { type: Boolean, default: false },
       errorMessage: { type: String, default: '' }
@@ -527,7 +533,7 @@
     'app-stat-card': AppStatCard,
     'app-modal': AppModal,
     'app-crud-table': AppCrudTable,
-    version: '2.4.0'
+    version: '2.6.0'
   };
 
 })(window);
