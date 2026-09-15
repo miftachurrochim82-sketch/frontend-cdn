@@ -1,7 +1,11 @@
 /* ============================================================
-   app-common.css — CSS Global & Custom Utilities (Shared CDN v1.3.0)
+   app-common.css — CSS Global & Custom Utilities (Shared CDN v2.6.0)
    Dipakai bersama oleh semua web app GAS Pemkab Trenggalek.
    ============================================================
+   Changelog v2.6.0 (2026-09-15):
+   - 🔢 Penyelarasan versi bersama seluruh berkas CDN (1.3.0 → 2.6.0).
+     TIDAK ada perubahan aturan CSS pada rilis ini.
+
    Changelog v1.3.0 (2026-09-13):
    - 🎨 THEMING SYSTEM: Extend CSS variables dengan --primary-lighter,
      --primary-text, --primary-accent, --primary-rgb. Setiap web app
