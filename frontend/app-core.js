@@ -1,5 +1,5 @@
 /* ============================================================
-   app-core.js — Factory Inisialisasi Vue App (Shared CDN v2.6.0)
+   app-core.js — Factory Inisialisasi Vue App (Shared CDN v2.6.1)
 
    AppCore.create(AppConfig) mengembalikan instance aplikasi Vue 3
    yang sudah terkonfigurasi lengkap dengan optimasi performa tinggi:
@@ -19,6 +19,19 @@
    - Komponen Shell        : <app-login>, <app-sidebar>, <app-header>,
                              <app-badge>, <app-stat-card>, <app-modal>,
                              <app-crud-table>.
+
+   Changelog v2.6.1 (2026-09-15):
+   - 🔴 FIX KRITIS: SAFE STORAGE. Akses sessionStorage/localStorage kini
+     lewat pembungkus aman dengan fallback memori. Sebelumnya akses
+     mentah melempar DOMException ("Access is denied for this document")
+     bila web app berjalan di iframe lintas-site dengan pemblokiran
+     cookie pihak ketiga (alur SSO si-platform -> aplikasi satelit),
+     sehingga AppCore.create() gagal total dan splash berputar selamanya.
+   - Konsekuensi yang diterima: bila storage ditolak browser, sesi tetap
+     berjalan lewat memori tetapi tidak bertahan setelah reload (alur
+     tiket SSO akan masuk ulang otomatis).
+   - 🔢 Versi berkas: 2.6.0 → 2.6.1. Tag rilis ekosistem: v2.6.1.
+     (Berkas lain tidak berubah pada rilis patch ini.)
 
    Changelog v2.6.0 (2026-09-15):
    - 🆕 ADD: LIBRARY REGISTRY (`AppCore.libs`) + `AppCore.loadLib(name)`.
@@ -167,6 +180,62 @@
     }, Promise.resolve(true));
   }
 
+  /* ============================================================
+     SAFE STORAGE (v2.6.1)
+     ------------------------------------------------------------
+     MASALAH: di beberapa konteks browser melempar DOMException
+     ("Access is denied for this document") saat properti
+     sessionStorage/localStorage DIBACA — bukan saat dipakai.
+     Konteks pemicunya antara lain:
+       - web app GAS berjalan di iframe lintas-site (alur SSO
+         antar aplikasi), sementara Chrome memblokir storage
+         pihak ketiga / Tracking Protection aktif;
+       - mode privat tertentu dan kebijakan situs perusahaan.
+     Efek sebelum perbaikan: AppCore.create() meledak di baris
+     pertama data() -> Vue tidak pernah mount -> splash berputar
+     selamanya.
+
+     SOLUSI: semua akses storage lewat pembungkus ini. Bila storage
+     ditolak, otomatis jatuh ke penyimpanan memori (sesi berjalan
+     normal, hanya tidak bertahan setelah halaman dimuat ulang —
+     alur tiket SSO akan login ulang secara otomatis).
+     ============================================================ */
+  function rawStorage(kind) {
+    // Akses properti window[...] ikut dilempar bila ditolak,
+    // karena itu seluruhnya dibungkus try/catch.
+    try { return window[kind + 'Storage']; } catch (e) { return null; }
+  }
+
+  function makeSafeStorage(kind) {
+    var mem = {};
+    return {
+      getItem: function (key) {
+        var store = rawStorage(kind);
+        if (store) {
+          try { return store.getItem(key); } catch (e) { /* jatuh ke memori */ }
+        }
+        return Object.prototype.hasOwnProperty.call(mem, key) ? mem[key] : null;
+      },
+      setItem: function (key, value) {
+        mem[key] = String(value);
+        var store = rawStorage(kind);
+        if (store) {
+          try { store.setItem(key, value); } catch (e) { /* memori saja */ }
+        }
+      },
+      removeItem: function (key) {
+        delete mem[key];
+        var store = rawStorage(kind);
+        if (store) {
+          try { store.removeItem(key); } catch (e) { /* memori saja */ }
+        }
+      }
+    };
+  }
+
+  var safeSession = makeSafeStorage('session');
+  var safeLocal   = makeSafeStorage('local');
+
   function debounce(fn, delay) {
     var timer = null;
     return function () {
@@ -197,7 +266,7 @@
       data: function () {
         var storedUser = {};
         try {
-          var raw = sessionStorage.getItem(KEY_USER);
+          var raw = safeSession.getItem(KEY_USER);
           var parsed = raw ? JSON.parse(raw) : {};
           storedUser = (parsed && typeof parsed === 'object') ? parsed : {};
         } catch (e) { storedUser = {}; }
@@ -213,7 +282,7 @@
           pageIcons: config.pageIcons || {},
 
           // ===== Auth & session =====
-          token: sessionStorage.getItem(KEY_TOKEN) || '',
+          token: safeSession.getItem(KEY_TOKEN) || '',
           currentUser: storedUser,
 
           // ===== Master Data SIMPEG Shared Cache =====
@@ -226,7 +295,7 @@
           currentPage: config.initialPage || 'dashboard',
           sidebarCollapsed: window.innerWidth < 1024,
           sidebarMobileOpen: false,
-          isDarkMode: localStorage.getItem(KEY_DARK) === 'true',
+          isDarkMode: safeLocal.getItem(KEY_DARK) === 'true',
           toasts: [],
           loading: false,
           errorMessage: '',
@@ -282,7 +351,7 @@
 
         toggleDarkMode: function () {
           this.isDarkMode = !this.isDarkMode;
-          localStorage.setItem(KEY_DARK, this.isDarkMode);
+          safeLocal.setItem(KEY_DARK, this.isDarkMode);
           document.documentElement.classList.toggle('dark', this.isDarkMode);
           if (typeof config.onDarkToggle === 'function') config.onDarkToggle(this);
         },
@@ -342,8 +411,8 @@
           this.currentUser = {};
           this.dataLoaded = false;
           this.loadedPages = {};
-          sessionStorage.removeItem(KEY_TOKEN);
-          sessionStorage.removeItem(KEY_USER);
+          safeSession.removeItem(KEY_TOKEN);
+          safeSession.removeItem(KEY_USER);
           this.currentPage = config.initialPage || 'dashboard';
           this.errorMessage = 'Sesi berakhir, silakan login ulang.';
           this.showToast('Sesi berakhir, silakan login ulang', 'error');
@@ -353,7 +422,7 @@
         loadMasterSIMPEG: async function (forceReload) {
           var self = this;
           var CACHE_MAX_AGE = 15 * 60 * 1000; // 15 menit
-          var cachedRaw = localStorage.getItem(KEY_SIMPEG);
+          var cachedRaw = safeLocal.getItem(KEY_SIMPEG);
           var hasValidCache = false;
 
           if (cachedRaw) {
@@ -402,7 +471,7 @@
               self.masterLoaded = true;
 
               try {
-                localStorage.setItem(KEY_SIMPEG, JSON.stringify({
+                safeLocal.setItem(KEY_SIMPEG, JSON.stringify({
                   time: Date.now(),
                   pegawai: pList,
                   unit: uList,
@@ -542,8 +611,8 @@
               if (res.success && res.data && res.data.token) {
                 self.token = res.data.token;
                 self.currentUser = res.data.user || {};
-                sessionStorage.setItem(KEY_TOKEN, self.token);
-                sessionStorage.setItem(KEY_USER, JSON.stringify(self.currentUser));
+                safeSession.setItem(KEY_TOKEN, self.token);
+                safeSession.setItem(KEY_USER, JSON.stringify(self.currentUser));
                 window.history.replaceState({}, document.title, window.location.pathname);
                 return self.runInitApp();
               }
@@ -575,8 +644,8 @@
             self.currentUser = {};
             self.dataLoaded = false;
             self.loadedPages = {};
-            sessionStorage.removeItem(KEY_TOKEN);
-            sessionStorage.removeItem(KEY_USER);
+            safeSession.removeItem(KEY_TOKEN);
+            safeSession.removeItem(KEY_USER);
             self.currentPage = config.initialPage || 'dashboard';
           });
         },
@@ -643,8 +712,8 @@
             this.loginViaPlatformTicket(ticket);
             return;
           }
-          var storedToken = sessionStorage.getItem(KEY_TOKEN);
-          var storedUser = sessionStorage.getItem(KEY_USER);
+          var storedToken = safeSession.getItem(KEY_TOKEN);
+          var storedUser = safeSession.getItem(KEY_USER);
           if (storedToken && storedUser) {
             this.token = storedToken;
             try { this.currentUser = JSON.parse(storedUser); } catch (e) {}
@@ -703,7 +772,7 @@
     loadLib: loadLib,
     libs: LIBS,
     debounce: debounce,
-    version: '2.6.0'
+    version: '2.6.1'
   };
 
 })(window);
