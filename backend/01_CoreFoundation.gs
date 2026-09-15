@@ -1,32 +1,66 @@
 // ============================================================
-// CORE LIBRARY GLOBAL v2.0 - 01_CoreFoundation.gs
+// CORE LIBRARY GLOBAL v2.2.1 - 01_CoreFoundation.gs
+// Changelog v2.2.1 (2026-09-13):
+// - BUGFIX genUniqueCode_: hapus fallback regex /(\d+)/ yang
+//   menangkap angka dari ID tak berhubungan (mis. timestamp di
+//   'DUP-1789236036660') → hasil lompat/duplikat.
+//   Sekarang HANYA match ID yang benar-benar diawali prefix.
+// Changelog v2.2.0 (2026-09-12):
+// - UTIL PUBLIK BARU (untuk konsumsi app via CoreLib.xxx):
+//     normId_, normStr_             — normalisasi string/ID
+//     parseDate_                    — alias parseTanggalBackend (canonical)
+//     whitelist_                    — validasi nilai, case-insensitive, return kanonik
+//     validateFields_               — validasi field wajib, throw bila kosong
+//     genUniqueCode_                — generate kode unik per sheet (pakai ssId eksplisit)
+// - PUBLIC API WRAPPER (tanpa underscore — bisa dipanggil CoreLib.normId, dst):
+//     normId, normStr, parseDate, whitelist, validateFields, genUniqueCode
+// - P1-B4 FIX: resolveCanonical_ — cari case-insensitive di headersMap
+//              sebelum fallback uppercase (cegah sheet camelCase jadi MAINDATA).
+// - FIX: whitelist_ case-insensitive, return nilai kanonik dari `allowed`.
+// Changelog v2.1 (2026-09-12):
+// - P1-A1 FIX: MASTER_ROLE_LEVELS diperluas (tambah 'user' & 'verifikator').
+// - P1-A2 FIX: acquireLock timeout diturunkan (5s+5s).
+// - P1-A3 FIX: toAlignedRow_ handle Date object -> ISO.
+// - P1-A4 FIX: getSheetDataCached log WARN bila data > 100 KB.
 // Changelog v2:
-// - C1 FIX: update/soft/hard-delete pakai nomor baris FISIK (tak lagi dari array terfilter).
-// - C2 FIX: tulis selaras urutan kolom SHEET by-name + overlay full-width (extra kolom aman).
-// - C3 FIX: cache dinamespace per database ('sheetData_'+dbId+'_'+sheet); TTL di-cap 21600.
+// - C1 FIX: update/soft/hard-delete pakai nomor baris FISIK.
+// - C2 FIX: tulis selaras urutan kolom SHEET by-name + overlay full-width.
+// - C3 FIX: cache dinamespace per database; TTL di-cap 21600.
 // - H1 FIX: getRecordPrimaryId_ dukung pkField + auto-deteksi kolom *_id.
-// - H3 FIX: baca TIDAK BOLEH membuat sheet referensi; ref dibaca dari master (options.masterSsId).
-// - H5 FIX: merge update: undefined=pertahankan, null/''=kosongkan. Update ketat & insert anti-duplikat.
-// - H4 FIX: formatDateForSheet kanonik ISO (selaras Global). Tulis Date/ISO, tampilkan dd/MM.
+// - H3 FIX: baca TIDAK BOLEH membuat sheet referensi.
+// - H5 FIX: merge update: undefined=pertahankan, null/''=kosongkan.
+// - H4 FIX: formatDateForSheet kanonik ISO.
 // - M2 FIX: kolom audit standar dipastikan ada di sheet non-referensi.
-// - BARU: DEFAULT_SYSTEM_HEADERS (AUDIT_LOGS/KONFIGURASI/MAIN_DATA) di-merge otomatis.
-// - getEnvProperty Mendukung store operan (wajib untuk config per-app dari library).
-// Breaking changes: baca 00_MIGRATION_v2.md
+// - BARU: DEFAULT_SYSTEM_HEADERS di-merge otomatis.
 // ============================================================
 
-var MASTER_ROLE_LEVELS = { viewer: 1, admin: 2, super: 3 };
+// ============================================================
+// §1 KONSTANTA GLOBAL
+// ============================================================
+
+// 5 level standar. App bisa override via config.roleLevels.
+// - viewer      : hanya baca
+// - user        : boleh input data sendiri
+// - verifikator : boleh verifikasi/approve data
+// - admin       : boleh kelola master & konfigurasi
+// - super       : boleh setup sistem & cleanup
+var MASTER_ROLE_LEVELS = { viewer: 0, user: 1, verifikator: 2, admin: 3, super: 4 };
+
 var MASTER_REFERENCE_SHEETS = ['PEGAWAI', 'JABATAN', 'UNIT_KERJA'];
+
 var MASTER_SHEET_HEADERS = {
   PEGAWAI: ['pegawai_id','nip','nama','gelar_depan','gelar_belakang','jenis_kelamin','tanggal_lahir','pangkat_golongan','status_kepegawaian','pendidikan_terakhir','email','no_hp','alamat','foto_url','unit_id','jabatan_id','atasan_id','role','status','created_at','updated_at'],
   JABATAN: ['jabatan_id','kode_jabatan','nama_jabatan','unit_id','plt_pegawai_id','jenis_jabatan','kelas_jabatan','status','status_jabatan','tanggal_mulai_jabatan','tanggal_selesai_jabatan','keterangan','created_at','updated_at'],
   UNIT_KERJA: ['unit_id','kode_unit','nama_unit','parent_unit_id','kepala_unit_id','jenis_unit','status','keterangan','created_at','updated_at']
 };
-// Tabel sistem: otomatis tersedia walau app lupa mendefinisikan (H5 File 2 / H3 File 3).
+
+// Tabel sistem: otomatis tersedia walau app lupa mendefinisikan.
 var DEFAULT_SYSTEM_HEADERS = {
   AUDIT_LOGS: ['id','user_id','action','timestamp','details'],
   KONFIGURASI: ['id','key','value','keterangan','created_at','created_by','updated_at','updated_by','deleted_at'],
   MAIN_DATA: ['id','nama','nip','email','unit_nama','jabatan_nama','alamat','no_hp','created_at','created_by','updated_at','updated_by','deleted_at']
 };
+
 var AUDIT_COLUMNS = ['created_at','created_by','updated_at','updated_by','deleted_at'];
 var CACHE_MAX_TTL = 21600; // batas ScriptCache (6 jam)
 
@@ -62,9 +96,33 @@ function getCanonicalSheetName(sheetName, localMap) {
   return null;
 }
 
-// Satu-satunya pintu resolusi nama sheet untuk seluruh engine (M5).
+// v2.2 (P1-B4): case-insensitive lookup di headersMap sebelum fallback uppercase.
 function resolveCanonical_(sheetName, headersMap) {
-  return getCanonicalSheetName(sheetName, headersMap) || String(sheetName || '').toUpperCase().trim();
+  if (!sheetName) return '';
+  var raw = String(sheetName).trim();
+  var upper = raw.toUpperCase();
+
+  // 1. Cek system & reference (case-insensitive)
+  if (MASTER_REFERENCE_SHEETS.indexOf(upper) !== -1) return upper;
+  if (DEFAULT_SYSTEM_HEADERS[upper]) return upper;
+  if (MASTER_SHEET_HEADERS[upper]) return upper;
+
+  // 2. Cek headersMap: exact → uppercase → case-insensitive scan
+  if (headersMap) {
+    if (headersMap[raw] !== undefined) return raw;
+    if (headersMap[upper] !== undefined) return upper;
+    var keys = Object.keys(headersMap);
+    for (var i = 0; i < keys.length; i++) {
+      if (keys[i].toUpperCase() === upper) return keys[i];
+    }
+  }
+
+  // 3. Alias sistem
+  if (upper === 'LOG' || upper === 'AUDIT') return 'AUDIT_LOGS';
+  if (upper === 'CONFIG' || upper === 'SETTING') return 'KONFIGURASI';
+
+  // 4. Fallback uppercase (konvensi lama)
+  return upper;
 }
 
 // Resolve header: map app -> default sistem -> master SIMPEG -> kunci record.
@@ -75,27 +133,176 @@ function resolveHeaders_(canonical, headersMap, record) {
   return { headers: record ? Object.keys(record) : [], known: false };
 }
 
-// ==================== LOGGING ====================
+// ============================================================
+// §2 LOGGING
+// ============================================================
 function logInfo(context, message) { Logger.log('[INFO][' + context + '] ' + message); }
 function logWarn(context, message) { Logger.log('[WARN][' + context + '] ' + message); }
 function logError(context, error) { Logger.log('[ERROR][' + context + '] ' + (error && error.message ? error.message : error)); }
 
-// ==================== UTIL DASAR ====================
+// ============================================================
+// §3 UTIL DASAR
+// ============================================================
 function makeId(prefix) { return (prefix || 'id') + '_' + new Date().getTime() + '_' + Math.random().toString(36).substr(2, 8); }
 function nowIso() { return new Date().toISOString(); }
 function todayIso() { return new Date().toISOString().slice(0, 10); }
+
 function safeUser(user) {
   if (!user) return null;
-  return { id: user.id || user.user_id || user.pegawai_id || '', username: user.username || user.email || '', role: user.role || 'viewer', pegawai_id: user.pegawai_id || '' };
+  return {
+    id: user.id || user.user_id || user.pegawai_id || '',
+    username: user.username || user.email || '',
+    role: user.role || 'viewer',
+    pegawai_id: user.pegawai_id || ''
+  };
 }
+
+// ============================================================
+// §4 UTIL PUBLIK BARU (v2.2)
+// ============================================================
+
+/**
+ * Normalisasi ID/string: trim + safe null.
+ * Return selalu string ('' kalau null/undefined).
+ */
+function normId_(v) {
+  return String(v == null ? '' : v).trim();
+}
+
+/**
+ * Normalisasi string untuk perbandingan: trim + lowercase.
+ */
+function normStr_(v) {
+  return normId_(v).toLowerCase();
+}
+
+/**
+ * Alias canonical dari parseTanggalBackend.
+ * Mendukung: ISO datetime, yyyy-MM-dd, dd/MM/yyyy, Date object.
+ * Return Date atau null.
+ */
+function parseDate_(v) {
+  return parseTanggalBackend(v);
+}
+
+/**
+ * Validasi nilai terhadap daftar yang diizinkan (case-insensitive).
+ * Return nilai KANONIK dari `allowed` (bukan input user).
+ * Throw error kalau tidak match.
+ *
+ * @param {*} val - nilai dari user
+ * @param {Array} allowed - daftar nilai valid (case-insensitive)
+ * @param {string} fieldName - nama field (untuk pesan error)
+ * @returns {*} nilai kanonik dari `allowed`
+ */
+function whitelist_(val, allowed, fieldName) {
+  if (!Array.isArray(allowed)) {
+    throw new Error('Daftar whitelist untuk ' + (fieldName || 'field') + ' tidak valid.');
+  }
+  var v = normId_(val);
+  var vLower = v.toLowerCase();
+  for (var i = 0; i < allowed.length; i++) {
+    if (String(allowed[i]).trim().toLowerCase() === vLower) {
+      return allowed[i];
+    }
+  }
+  throw new Error('Nilai "' + val + '" tidak valid untuk ' + (fieldName || 'field') + '.');
+}
+
+/**
+ * Validasi field wajib isi. Throw error kalau ada yang kosong.
+ * Kosong = undefined, null, atau string kosong/whitespace.
+ *
+ * @param {Object} obj
+ * @param {string[]} fields
+ * @throws {Error}
+ */
+function validateFields_(obj, fields) {
+  if (!obj || typeof obj !== 'object') {
+    throw new Error('Objek tidak valid untuk validasi.');
+  }
+  if (!Array.isArray(fields) || fields.length === 0) return;
+  var missing = [];
+  for (var i = 0; i < fields.length; i++) {
+    var v = obj[fields[i]];
+    if (v === undefined || v === null || String(v).trim() === '') {
+      missing.push(fields[i]);
+    }
+  }
+  if (missing.length > 0) {
+    throw new Error('Field wajib diisi: ' + missing.join(', ') + '.');
+  }
+}
+
+/**
+ * Generate kode unik dengan format {prefix}{number} dengan pad width.
+ *
+ * v2.2.1 (fix): HANYA match ID yang benar-benar diawali prefix.
+ * Sebelumnya ada fallback regex /(\d+)/ yang menangkap angka dari ID
+ * tak berhubungan (mis. timestamp di 'DUP-1789236036660') → hasil ngawur.
+ *
+ * Contoh:
+ *   prefix='DKL-', existing=['DKL-001','DKL-002'] → 'DKL-003'
+ *   prefix='DKL-', existing=['DKL-001-A','DKL-002-B'] → 'DKL-003'
+ *   prefix='UNIQ-<ts>-', existing=[] → 'UNIQ-<ts>-001'
+ *
+ * @param {string} prefix
+ * @param {string} sheetName
+ * @param {string} field - kolom tempat kode disimpan
+ * @param {number} padWidth - default 3
+ * @param {string} ssId - spreadsheet ID (WAJIB)
+ * @param {Object} headersMap - optional
+ * @returns {string}
+ */
+function genUniqueCode_(prefix, sheetName, field, padWidth, ssId, headersMap) {
+  padWidth = padWidth || 3;
+  if (!ssId) {
+    throw new Error('genUniqueCode_ butuh ssId (spreadsheetId) eksplisit.');
+  }
+  if (!sheetName || !field) {
+    throw new Error('genUniqueCode_ butuh sheetName dan field.');
+  }
+
+  var rows = getSheetDataCached(ssId, sheetName, headersMap || {}, 60);
+  var maxNum = 0;
+
+  var prefixStr = String(prefix);
+  // Escape karakter regex di prefix
+  var escaped = prefixStr.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  // HANYA match ID yang diawali prefix (case-insensitive), tangkap angka setelahnya
+  var reAfterPrefix = new RegExp('^' + escaped + '(\\d+)', 'i');
+
+  for (var i = 0; i < rows.length; i++) {
+    var c = String(rows[i][field] || '');
+    if (!c) continue;
+    var m = c.match(reAfterPrefix);
+    if (m) {
+      var num = Number(m[1]);
+      if (num > maxNum) maxNum = num;
+    }
+  }
+
+  var next = maxNum + 1;
+  var numStr = ('000000' + next).slice(-padWidth);
+  return prefixStr + numStr;
+}
+
+// ============================================================
+// §5 LOCKING
+// ============================================================
+
+// v2.1: total wait max ~10.5s (sebelumnya 26s). Aman di web app GAS (30s limit).
 function acquireLock() {
   var lock = LockService.getScriptLock();
-  if (lock.tryLock(15000)) return lock;
-  try { lock.releaseLock(); } catch (e) {}
-  Utilities.sleep(1000);
-  if (lock.tryLock(10000)) return lock;
+  if (lock.tryLock(5000)) return lock;
+  Utilities.sleep(500);
+  if (lock.tryLock(5000)) return lock;
   return null;
 }
+
+// ============================================================
+// §6 PRIMARY KEY
+// ============================================================
 
 // H1: pkField eksplisit -> daftar dikenal -> auto-deteksi kolom *_id pertama.
 function getRecordPrimaryId_(record, pkField) {
@@ -116,7 +323,9 @@ function getRecordPrimaryId_(record, pkField) {
   return '';
 }
 
-// ==================== TANGGAL ====================
+// ============================================================
+// §7 TANGGAL
+// ============================================================
 function parseTanggalBackend(val) {
   try {
     if (!val) return null;
@@ -132,8 +341,19 @@ function parseTanggalBackend(val) {
     return null;
   } catch (e) { logError('parseTanggalBackend', e.message); return null; }
 }
-function safeFormatDateForFrontend(val) { if (!val) return ''; var d = parseTanggalBackend(val); return d ? Utilities.formatDate(d, Session.getScriptTimeZone(), 'dd/MM/yyyy') : String(val); }
-function safeFormatDateTimeForFrontend(val) { if (!val) return ''; var d = parseTanggalBackend(val); return d ? Utilities.formatDate(d, Session.getScriptTimeZone(), 'dd/MM/yyyy HH:mm') : String(val); }
+
+function safeFormatDateForFrontend(val) {
+  if (!val) return '';
+  var d = parseTanggalBackend(val);
+  return d ? Utilities.formatDate(d, Session.getScriptTimeZone(), 'dd/MM/yyyy') : String(val);
+}
+
+function safeFormatDateTimeForFrontend(val) {
+  if (!val) return '';
+  var d = parseTanggalBackend(val);
+  return d ? Utilities.formatDate(d, Session.getScriptTimeZone(), 'dd/MM/yyyy HH:mm') : String(val);
+}
+
 function formatTanggalIndonesia(date) {
   try {
     if (!date) return '-';
@@ -142,7 +362,12 @@ function formatTanggalIndonesia(date) {
     return Utilities.formatDate(date, Session.getScriptTimeZone(), 'dd/MM/yyyy');
   } catch (e) { logError('formatTanggalIndonesia', e.message); return '-'; }
 }
-function isValidDate(val) { var d = parseTanggalBackend(val); return d !== null && !isNaN(d.getTime()); }
+
+function isValidDate(val) {
+  var d = parseTanggalBackend(val);
+  return d !== null && !isNaN(d.getTime());
+}
+
 function hitungUmur(birthDate, todayDate) {
   if (!birthDate) return 0;
   if (!(birthDate instanceof Date)) birthDate = parseTanggalBackend(birthDate);
@@ -153,8 +378,21 @@ function hitungUmur(birthDate, todayDate) {
   if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) umur--;
   return Math.max(0, umur);
 }
-function hitungDurasiHari(a, b) { var m = parseTanggalBackend(a), s = parseTanggalBackend(b); if (!m || !s) return 0; return Math.max(0, Math.ceil((s.getTime() - m.getTime()) / 86400000)); }
-function hitungDurasiBulan(tanggalMulai) { if (!tanggalMulai) return 0; var m = parseTanggalBackend(tanggalMulai); if (!m) return 0; var n = new Date(); return Math.max(0, (n.getFullYear() - m.getFullYear()) * 12 + (n.getMonth() - m.getMonth())); }
+
+function hitungDurasiHari(a, b) {
+  var m = parseTanggalBackend(a), s = parseTanggalBackend(b);
+  if (!m || !s) return 0;
+  return Math.max(0, Math.ceil((s.getTime() - m.getTime()) / 86400000));
+}
+
+function hitungDurasiBulan(tanggalMulai) {
+  if (!tanggalMulai) return 0;
+  var m = parseTanggalBackend(tanggalMulai);
+  if (!m) return 0;
+  var n = new Date();
+  return Math.max(0, (n.getFullYear() - m.getFullYear()) * 12 + (n.getMonth() - m.getMonth()));
+}
+
 function hitungDurasiMenit(a, b) {
   try {
     if (!a || !b) return 0;
@@ -164,16 +402,43 @@ function hitungDurasiMenit(a, b) {
   } catch (e) { return 0; }
 }
 
-// ==================== SIMPEG HELPERS ====================
-function getUnitNama(units, unitId) { if (!Array.isArray(units)) return unitId || '-'; var u = null; for (var i = 0; i < units.length; i++) { if (String(units[i].unit_id) === String(unitId)) { u = units[i]; break; } } return u ? u.nama_unit : (unitId || '-'); }
-function getPegawaiById(pegawai, id) { if (!Array.isArray(pegawai)) return null; for (var i = 0; i < pegawai.length; i++) { if (String(pegawai[i].pegawai_id) === String(id)) return pegawai[i]; } return null; }
-function getJabatanById(jabatan, id) { if (!Array.isArray(jabatan)) return null; for (var i = 0; i < jabatan.length; i++) { if (String(jabatan[i].jabatan_id) === String(id)) return jabatan[i]; } return null; }
-// includeSelf default TRUE (kompatibel). Hasil termasuk unit itu sendiri + semua turunan.
+// H4: kanonik ISO untuk PENYIMPANAN. dd/MM hanya untuk TAMPILAN.
+function formatDateForSheet(val) {
+  try {
+    if (!val) return '';
+    if (val instanceof Date) return isNaN(val.getTime()) ? '' : val.toISOString();
+    var d = parseTanggalBackend(val);
+    return d ? d.toISOString() : String(val);
+  } catch (e) { logError('formatDateForSheet', e.message); return String(val); }
+}
+
+// ============================================================
+// §8 SIMPEG HELPERS
+// ============================================================
+function getUnitNama(units, unitId) {
+  if (!Array.isArray(units)) return unitId || '-';
+  var u = null;
+  for (var i = 0; i < units.length; i++) { if (String(units[i].unit_id) === String(unitId)) { u = units[i]; break; } }
+  return u ? u.nama_unit : (unitId || '-');
+}
+
+function getPegawaiById(pegawai, id) {
+  if (!Array.isArray(pegawai)) return null;
+  for (var i = 0; i < pegawai.length; i++) { if (String(pegawai[i].pegawai_id) === String(id)) return pegawai[i]; }
+  return null;
+}
+
+function getJabatanById(jabatan, id) {
+  if (!Array.isArray(jabatan)) return null;
+  for (var i = 0; i < jabatan.length; i++) { if (String(jabatan[i].jabatan_id) === String(id)) return jabatan[i]; }
+  return null;
+}
+
+// includeSelf default TRUE. Hasil termasuk unit itu sendiri + semua turunan.
 function getUnitBawahanSimple(unitKerja, unitId, includeSelf) {
   if (!unitId || !Array.isArray(unitKerja)) return [];
   var self = (includeSelf === undefined) ? true : !!includeSelf;
   var hasil = {}, queue = [String(unitId)], out = [];
-  if (!self) { /* lewati akar saat koleksi */ }
   var first = true;
   while (queue.length) {
     var cur = queue.shift();
@@ -185,6 +450,7 @@ function getUnitBawahanSimple(unitKerja, unitId, includeSelf) {
   }
   return out;
 }
+
 function getLevelJabatan(j) {
   if (!j) return 'tidak_diketahui';
   var nama = String(j.nama_jabatan || '').toUpperCase();
@@ -200,13 +466,15 @@ function getLevelJabatan(j) {
   if (String(j.jenis_jabatan).toUpperCase() === 'FUNGSIONAL') return 'staf_fungsional';
   return 'staf_lainnya';
 }
+
 function getDistribusiPegawaiPerUnit(pegawai, unitKerja) {
   var counts = {};
   if (Array.isArray(unitKerja)) unitKerja.forEach(function(u) { counts[String(u.unit_id)] = 0; });
   if (Array.isArray(pegawai)) pegawai.forEach(function(p) { if (p.unit_id && counts.hasOwnProperty(String(p.unit_id))) counts[String(p.unit_id)]++; });
   return counts;
 }
-// CATAT: bucket pensiun1/3/5 KUMULATIF tumpang-tindih (sisa<=1 ikut terhitung di <=3, <=5). BUP flat.
+
+// CATAT: bucket pensiun1/3/5 KUMULATIF tumpang-tindih. BUP flat.
 function kalkulasiStatistikDasar(pegawai, jabatan, today, bup, batasMendekati) {
   var tglToday = today || new Date(), batasBup = bup || 58, batasUmur = batasMendekati || 55, tahunIni = tglToday.getFullYear();
   var mendekatiBUP = 0, pensiun1 = 0, pensiun3 = 0, pensiun5 = 0;
@@ -223,10 +491,13 @@ function kalkulasiStatistikDasar(pegawai, jabatan, today, bup, batasMendekati) {
   return { mendekatiBUP: mendekatiBUP, pensiun1: pensiun1, pensiun3: pensiun3, pensiun5: pensiun5 };
 }
 
-// ==================== VALIDATOR ====================
+// ============================================================
+// §9 VALIDATOR
+// ============================================================
 function isValidEmail(email) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || '').trim()); }
 function isValidNIP(nip) { return /^[0-9]{18}$/.test(String(nip || '').trim()); }
 function normalizeEmail(email) { return String(email || '').trim().toLowerCase(); }
+
 function normalizeNoHp(value) {
   var raw = String(value || '').replace(/\D/g, '');
   if (!raw) return '';
@@ -234,18 +505,14 @@ function normalizeNoHp(value) {
   if (raw.indexOf('62') === 0) raw = '0' + raw.substring(2);
   return raw;
 }
-// H4: kanonik ISO untuk PENYIMPANAN (selaras Global). dd/MM hanya untuk TAMPILAN.
-function formatDateForSheet(val) {
-  try {
-    if (!val) return '';
-    if (val instanceof Date) return isNaN(val.getTime()) ? '' : val.toISOString();
-    var d = parseTanggalBackend(val);
-    return d ? d.toISOString() : String(val);
-  } catch (e) { logError('formatDateForSheet', e.message); return String(val); }
-}
-function systemActor() { return { id: 'system', username: 'system', role: 'super', pegawai_id: '' }; }
 
-// ==================== ENGINE DB ====================
+function systemActor() {
+  return { id: 'system', username: 'system', role: 'super', pegawai_id: '' };
+}
+
+// ============================================================
+// §10 ENGINE DB
+// ============================================================
 function getDb(spreadsheetId) {
   if (!spreadsheetId) {
     var active = null;
@@ -256,7 +523,7 @@ function getDb(spreadsheetId) {
   return SpreadsheetApp.openById(spreadsheetId);
 }
 
-// H3: MENOLAK membuat sheet referensi yang hilang (baca dari master, jangan salin lokal).
+// H3: MENOLAK membuat sheet referensi yang hilang.
 function ensureSheet(spreadsheetId, sheetName, sheetHeadersMap, options) {
   options = options || {};
   var canonical = resolveCanonical_(sheetName, sheetHeadersMap);
@@ -297,7 +564,6 @@ function initDatabase(spreadsheetId, sheetHeadersMap, isRefSheetFunc) {
   return { success: true, message: 'Inisialisasi database berhasil.' };
 }
 
-// ==================== BACA ====================
 function recordFromRow_(headers, row) {
   var obj = {};
   headers.forEach(function(h, i) {
@@ -307,6 +573,7 @@ function recordFromRow_(headers, row) {
   });
   return obj;
 }
+
 function rowsToRecords_(sh) {
   var lastRow = sh.getLastRow(), lastCol = sh.getLastColumn();
   if (lastRow < 2 || lastCol < 1) return [];
@@ -315,11 +582,14 @@ function rowsToRecords_(sh) {
   var out = [];
   for (var i = 0; i < values.length; i++) {
     var empty = true;
-    for (var j = 0; j < values[i].length; j++) { if (values[i][j] !== '' && values[i][j] !== null && values[i][j] !== undefined) { empty = false; break; } }
+    for (var j = 0; j < values[i].length; j++) {
+      if (values[i][j] !== '' && values[i][j] !== null && values[i][j] !== undefined) { empty = false; break; }
+    }
     if (!empty) out.push(recordFromRow_(headers, values[i]));
   }
   return out;
 }
+
 // options: { masterSsId, isRefFunc }
 function readRecordsNoLock(spreadsheetId, sheetName, sheetHeadersMap, options) {
   options = options || {};
@@ -332,6 +602,7 @@ function readRecordsNoLock(spreadsheetId, sheetName, sheetHeadersMap, options) {
   }
   return rowsToRecords_(ensureSheet(spreadsheetId, canonical, sheetHeadersMap, options));
 }
+
 // Pemindaian FISIK tanpa filter (untuk update/delete aman) — FIX C1.
 function findRowNumberByPk_(sh, pkValue, pkField) {
   var lastRow = sh.getLastRow(), lastCol = sh.getLastColumn();
@@ -344,11 +615,13 @@ function findRowNumberByPk_(sh, pkValue, pkField) {
   }
   return -1;
 }
+
 function readRowByNumber_(sh, rowNumber) {
   var lastCol = sh.getLastColumn();
   var headers = sh.getRange(1, 1, 1, lastCol).getValues()[0].map(String);
   return recordFromRow_(headers, sh.getRange(rowNumber, 1, 1, lastCol).getValues()[0]);
 }
+
 function sheetHeaders_(sh) {
   var lastCol = sh.getLastColumn();
   return lastCol < 1 ? [] : sh.getRange(1, 1, 1, lastCol).getValues()[0].map(String);
@@ -365,10 +638,21 @@ function getSheetDataCached(spreadsheetId, sheetName, sheetHeadersMap, ttlSecond
   var cached = cache.get(cacheKey);
   if (cached) { try { return JSON.parse(cached); } catch (e) { logError('CoreFoundation', 'Cache korup ' + canonical + ', reload.'); } }
   var data = readRecordsNoLock(spreadsheetId, sheetName, sheetHeadersMap, options);
-  try { var s = JSON.stringify(data); if (s.length < 100000) cache.put(cacheKey, s, capTtl_(ttlSeconds || 180)); } catch (e) {}
+  try {
+    var s = JSON.stringify(data);
+    if (s.length < 100000) {
+      cache.put(cacheKey, s, capTtl_(ttlSeconds || 180));
+    } else {
+      logWarn('CoreFoundation', 'Data "' + canonical + '" terlalu besar untuk cache (' +
+        Math.round(s.length / 1024) + ' KB > 100 KB). Setiap baca akan hit Spreadsheet langsung.');
+    }
+  } catch (e) {
+    logError('CoreFoundation', 'Cache put gagal ' + canonical + ': ' + e.message);
+  }
   return data;
 }
-// dbId WAJIB untuk key baru; tanpa dbId hanya membersihkan key legacy (kompat).
+
+// dbId WAJIB untuk key baru; tanpa dbId hanya membersihkan key legacy.
 function invalidateSheetCache(sheetName, dbId) {
   try {
     var cache = CacheService.getScriptCache();
@@ -377,16 +661,21 @@ function invalidateSheetCache(sheetName, dbId) {
   } catch (e) {}
 }
 
-// ==================== TULIS ====================
 function toSheetRow(sheetName, record, sheetHeadersMap) {
   var r = resolveHeaders_(String(sheetName || '').toUpperCase().trim(), sheetHeadersMap, record);
   if (r.headers.length === 0) return [];
   return r.headers.map(function(h) { var v = record[h]; return (v === undefined || v === null) ? '' : v; });
 }
-// Nilai SELARAS urutan kolom sheet by-name — FIX C2.
+
 function toAlignedRow_(sheetHeaders, record) {
-  return sheetHeaders.map(function(h) { var v = record[h]; return (v === undefined || v === null) ? '' : v; });
+  return sheetHeaders.map(function(h) {
+    var v = record[h];
+    if (v === undefined || v === null) return '';
+    if (v instanceof Date) return formatDateForSheet(v);
+    return v;
+  });
 }
+
 // Inti upsert 1x-scan. mustExist: null=otomatis, true=update-ketat, false=insert-ketat.
 function upsertRow_(sh, record, actor, pkField, mustExist, headersKnown) {
   var now = nowIso();
@@ -395,12 +684,13 @@ function upsertRow_(sh, record, actor, pkField, mustExist, headersKnown) {
   var pk = getRecordPrimaryId_(record, pkField);
   var rowNumber = pk ? findRowNumberByPk_(sh, pk, pkField) : -1;
   var rec, isUpdate = false;
+
   if (rowNumber === -1) {
     if (mustExist === true) throw new Error('Record tidak ditemukan (PK: ' + pk + ').');
     rec = Object.assign({}, record);
     if (!pk) rec.id = makeId('rec');
     rec.created_at = rec.created_at || now;
-    rec.created_by = userId; // otoritas server (anti-forge)
+    rec.created_by = userId;
     rec.updated_at = now;
     rec.updated_by = userId;
     if (rec.deleted_at === undefined) rec.deleted_at = '';
@@ -422,7 +712,7 @@ function upsertRow_(sh, record, actor, pkField, mustExist, headersKnown) {
     var old = readRowByNumber_(sh, rowNumber);
     rec = {};
     headers.forEach(function(h) {
-      if (record[h] !== undefined) rec[h] = (record[h] === null ? '' : record[h]); // H5: null/'' = kosongkan
+      if (record[h] !== undefined) rec[h] = (record[h] === null ? '' : record[h]);
       else rec[h] = (old[h] !== undefined ? old[h] : '');
     });
     rec.created_at = old.created_at || now;
@@ -459,7 +749,8 @@ function softDeleteRecordNoLock(spreadsheetId, sheetName, id, actor, sheetHeader
   if (rowNumber === -1) return false;
   var rec = readRowByNumber_(sh, rowNumber);
   var now = nowIso();
-  rec.deleted_at = now; rec.updated_at = now;
+  rec.deleted_at = now;
+  rec.updated_at = now;
   rec.updated_by = (actor && (actor.id || actor.user_id)) ? (actor.id || actor.user_id) : 'system';
   var headers = sheetHeaders_(sh);
   sh.getRange(rowNumber, 1, 1, headers.length).setValues([toAlignedRow_(headers, rec)]);
@@ -482,4 +773,31 @@ function hardDeleteRecordNoLock(spreadsheetId, sheetName, id, actor, isRefSheetF
   SpreadsheetApp.flush();
   invalidateSheetCache(canonical, spreadsheetId);
   return true;
+}
+
+// ============================================================
+// §11 PUBLIC API (v2.2) — wrapper tanpa underscore
+// ============================================================
+// Fungsi di bawah ini adalah SATU-SATUNYA pintu API untuk app konsumer.
+// Panggil dari app: CoreLib.normId(x), CoreLib.parseDate(x), dst.
+// ============================================================
+
+/** Normalisasi ID/string: trim + safe null. */
+function normId(v) { return normId_(v); }
+
+/** Normalisasi string untuk perbandingan: trim + lowercase. */
+function normStr(v) { return normStr_(v); }
+
+/** Parse tanggal dari berbagai format ke Date atau null. */
+function parseDate(v) { return parseDate_(v); }
+
+/** Validasi nilai terhadap whitelist (case-insensitive). Return nilai kanonik. */
+function whitelist(val, allowed, fieldName) { return whitelist_(val, allowed, fieldName); }
+
+/** Validasi field wajib. Throw error bila ada yang kosong. */
+function validateFields(obj, fields) { return validateFields_(obj, fields); }
+
+/** Generate kode unik per sheet. */
+function genUniqueCode(prefix, sheetName, field, padWidth, ssId, headersMap) {
+  return genUniqueCode_(prefix, sheetName, field, padWidth, ssId, headersMap);
 }
