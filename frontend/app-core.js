@@ -1,5 +1,5 @@
 /* ============================================================
-   app-core.js — Factory Inisialisasi Vue App (Shared CDN v2.5.1)
+   app-core.js — Factory Inisialisasi Vue App (Shared CDN v2.6.0)
 
    AppCore.create(AppConfig) mengembalikan instance aplikasi Vue 3
    yang sudah terkonfigurasi lengkap dengan optimasi performa tinggi:
@@ -14,9 +14,28 @@
    - Bridge Backend        : callServer(action, data) via google.script.run.
    - Master SIMPEG         : Auto-caching & Lookup Helpers.
    - Exporter Kit          : On-demand exportExcel, exportPDF.
+   - Library Registry      : AppCore.libs + loadLib() — semua URL pustaka
+                             pihak ketiga terpusat, dimuat on-demand.
    - Komponen Shell        : <app-login>, <app-sidebar>, <app-header>,
                              <app-badge>, <app-stat-card>, <app-modal>,
                              <app-crud-table>.
+
+   Changelog v2.6.0 (2026-09-15):
+   - 🆕 ADD: LIBRARY REGISTRY (`AppCore.libs`) + `AppCore.loadLib(name)`.
+     URL Chart.js / SheetJS / jsPDF / AutoTable / pdf-lib yang tadinya
+     tersebar sebagai string literal kini terpusat & diberi versi tetap.
+     Chart.js sebelumnya dimuat TANPA versi terkunci (`npm/chart.js`) —
+     sekarang dikunci ke 4.4.1 agar tidak berubah diam-diam.
+   - 🆕 ADD: method `loadLib(name, {silent})` di instance Vue, plus
+     alias grup `'pdf'` = jsPDF + AutoTable, dan dependensi otomatis
+     (`autotable` memuat `jspdf` lebih dulu).
+   - ♻️ REFACTOR: ensureChartLibrary / exportExcel / exportPDF kini
+     memakai registry. Perilaku & tanda tangan fungsi TIDAK berubah
+     (kompatibel ke belakang).
+   - 🔢 Version bump: 2.5.1 → 2.6.0.
+   - 📌 CATATAN: seluruh berkas frontend (app-core, app-components,
+     app-modules, app-common.css) kini memakai SATU nomor versi bersama
+     agar mudah dirujuk lewat tag git `@v2.6.0`.
 
    Changelog v2.5.1 (2026-09-14):
    - 🆕 ADD: cache busting via `_cacheBust` timestamp di payload
@@ -24,8 +43,9 @@
      diproses). Efek: GAS tidak cache response, selalu fresh.
    - In-flight dedup tetap bekerja karena reqKey dihitung dari data
      ORIGINAL (sebelum _cacheBust ditambahkan).
-   - ⚠️ Backend Code.gs perlu tambah: delete data._cacheBust di
-     handleAction(req).
+   - ✅ Backend CoreLib SUDAH menangani ini: `02_CoreGateway.gs`
+     mengecualikan `_cacheBust` dari whitelist kolom (baris ~59),
+     sehingga kolom sampah tidak tercipta di sheet.
 
    Changelog v2.5.0 (2026-09-13):
    - Konsolidasi CDN URL jsPDF & jspdf-autotable ke jsDelivr (konsisten
@@ -56,6 +76,95 @@
       document.head.appendChild(s);
     });
     return loadedScripts[src];
+  }
+
+  /* ============================================================
+     LIBRARY REGISTRY (v2.6.0)
+     ------------------------------------------------------------
+     Semua URL pustaka pihak ketiga dipusatkan di satu tempat.
+     Sebelumnya URL ini tersebar sebagai string literal di dalam
+     ensureChartLibrary / exportExcel / exportPDF, sehingga tiap
+     web app menyalinnya ulang (dan bisa berbeda versi).
+
+     Cara pakai dari aplikasi:
+       await this.loadLib('chart')     // di dalam methods Vue
+       await AppCore.loadLib('xlsx')   // dari luar instance Vue
+
+     Cara menambah pustaka baru: cukup tambahkan satu entri di
+     bawah ini — tidak perlu menulis loader sendiri.
+     ============================================================ */
+  var LIBS = {
+    chart: {
+      url: 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js',
+      test: function () { return typeof Chart !== 'undefined'; },
+      label: 'Chart.js'
+    },
+    xlsx: {
+      url: 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
+      test: function () { return typeof XLSX !== 'undefined'; },
+      label: 'SheetJS (Excel)'
+    },
+    jspdf: {
+      url: 'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js',
+      test: function () { return typeof jspdf !== 'undefined' && !!jspdf.jsPDF; },
+      label: 'jsPDF'
+    },
+    autotable: {
+      url: 'https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js',
+      // Plugin ini menempel ke jsPDF, jadi hanya bisa diuji setelah jsPDF ada.
+      test: function () { return typeof jspdf !== 'undefined' && !!jspdf.jsPDF && !!jspdf.jsPDF.API.autotable; },
+      label: 'jsPDF-AutoTable',
+      after: 'jspdf'
+    },
+    pdflib: {
+      url: 'https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js',
+      test: function () { return typeof PDFLib !== 'undefined'; },
+      label: 'pdf-lib'
+    },
+    // Dipakai bersama untuk ekspor PDF bertabel: jsPDF + plugin AutoTable.
+    pdf: ['jspdf', 'autotable']
+  };
+
+  /**
+   * Muat pustaka on-demand berdasarkan nama di LIBS.
+   * @param {string|string[]} name  Nama pustaka, atau array nama.
+   * @param {object} [opts]         { silent: true } untuk menekan toast.
+   * @returns {Promise<boolean>}    true bila pustaka siap dipakai.
+   */
+  function loadLib(name, opts) {
+    opts = opts || {};
+    var names = Array.isArray(name) ? name : [name];
+
+    return names.reduce(function (chain, key) {
+      return chain.then(function (okSoFar) {
+        if (!okSoFar) return false;
+
+        var entry = LIBS[key];
+        if (!entry) {
+          console.warn('[AppCore] Pustaka tidak dikenal di registry:', key);
+          return false;
+        }
+
+        // Alias grup (mis. 'pdf' -> ['jspdf','autotable'])
+        if (Array.isArray(entry)) return loadLib(entry, opts);
+
+        // Pustaka yang harus dimuat lebih dulu (mis. autotable butuh jspdf)
+        var prepare = entry.after ? loadLib(entry.after, opts) : Promise.resolve(true);
+
+        return prepare.then(function (ready) {
+          if (!ready) return false;
+          if (entry.test()) return true;
+
+          if (!opts.silent) console.info('[AppCore] Memuat ' + entry.label + '...');
+          return loadScript(entry.url)
+            .then(function () { return entry.test(); })
+            .catch(function (err) {
+              console.error('[AppCore] Gagal memuat ' + entry.label + ':', err && err.message);
+              return false;
+            });
+        });
+      });
+    }, Promise.resolve(true));
   }
 
   function debounce(fn, delay) {
@@ -340,16 +449,24 @@
           return j ? (j.nama_jabatan || j.nama || id) : (id || '-');
         },
 
+        // ================= DYNAMIC LIBRARY LOADER (v2.6.0) =================
+        /**
+         * Muat pustaka on-demand via registry AppCore.libs.
+         * Mengganti pola lama: tiap aplikasi menulis URL & cek typeof sendiri.
+         */
+        loadLib: async function (name, opts) {
+          var ok = await loadLib(name, opts);
+          if (!ok && !(opts && opts.silent)) {
+            var label = (LIBS[name] && LIBS[name].label) || name;
+            this.showToast('Gagal memuat pustaka: ' + label, 'error');
+          }
+          return ok;
+        },
+
         // ================= DYNAMIC CHART LOADER =================
         ensureChartLibrary: async function () {
-          if (typeof Chart !== 'undefined') return true;
-          try {
-            await loadScript('https://cdn.jsdelivr.net/npm/chart.js');
-            return true;
-          } catch (e) {
-            this.showToast('Gagal memuat pustaka grafik Chart.js', 'error');
-            return false;
-          }
+          // v2.6.0: URL dipindah ke registry AppCore.libs.chart
+          return this.loadLib('chart');
         },
 
         // ================= HIGH PERFORMANCE EXPORT KIT =================
@@ -360,10 +477,9 @@
 
           if (typeof XLSX === 'undefined') {
             this.showToast('Memuat pustaka Excel...', 'info');
-            try {
-              await loadScript('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js');
-            } catch (e) {
-              this.showToast('Gagal memuat modul SheetJS: ' + e.message, 'error');
+            // v2.6.0: URL dipindah ke registry AppCore.libs.xlsx
+            if (!(await this.loadLib('xlsx', { silent: true }))) {
+              this.showToast('Gagal memuat modul SheetJS (Excel)', 'error');
               return;
             }
           }
@@ -382,12 +498,9 @@
 
           if (typeof jspdf === 'undefined' || !jspdf.jsPDF) {
             this.showToast('Memuat pustaka PDF...', 'info');
-            try {
-              // v2.5.0: konsolidasi ke jsDelivr
-              await loadScript('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js');
-              await loadScript('https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js');
-            } catch (e) {
-              this.showToast('Gagal memuat modul PDF: ' + e.message, 'error');
+            // v2.6.0: 'pdf' = grup jsPDF + AutoTable, URL di AppCore.libs
+            if (!(await this.loadLib('pdf', { silent: true }))) {
+              this.showToast('Gagal memuat modul PDF (jsPDF/AutoTable)', 'error');
               return;
             }
           }
@@ -587,8 +700,10 @@
   global.AppCore = {
     create: create,
     loadScript: loadScript,
+    loadLib: loadLib,
+    libs: LIBS,
     debounce: debounce,
-    version: '2.5.1'
+    version: '2.6.0'
   };
 
 })(window);
