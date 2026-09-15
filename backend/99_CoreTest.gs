@@ -1,5 +1,8 @@
 // ============================================================
-// CORE LIBRARY GLOBAL v2.2.1 - 99_CoreTest.gs
+// CORE LIBRARY GLOBAL v2.2.2 - 99_CoreTest.gs
+// Changelog v2.2.2 (2026-09-15):
+// - TEST BARU: regresi gating role (levelOf_/requireRole_ dengan skala
+//   viewer=0) — pastikan fallback `|| 1` lama tidak kembali.
 // Changelog v2.2.1 (2026-09-13):
 // - P1-T6 FIX: testGenUniqueCodeV22 — rewrite total agar DETERMINISTIK.
 //              Sebelumnya berasumsi sheet ZZ_TEST_CRUD kosong; gagal
@@ -58,7 +61,9 @@ function runCoreTests(ctx) {
     testNormUtilV22, testParseDateV22, testWhitelistV22,
     testValidateFieldsV22, testGenUniqueCodeV22,
     testRequireRoleV22, testCheckRoleV22,
-    testGetRoleForEmailV22, testIsAllowedConfigKeyV22
+    testGetRoleForEmailV22, testIsAllowedConfigKeyV22,
+    // v2.2.2 baru
+    testRoleGateV222
   ];
   var passed = 0, failed = 0, skipped = 0, details = [];
   tests.forEach(function(fn) {
@@ -730,6 +735,33 @@ function testRequireRoleV22(ctx) {
   assert_(threw3, 'public requireRole tolak viewer>=admin.');
 }
 
+// v2.2.2: Regresi gating role — levelOf_ & checkAuth tidak boleh lagi
+// memakai fallback `|| 1` (viewer=0 bersifat falsy sejak v2.2).
+function testRoleGateV222(ctx) {
+  // 1. levelOf_: viewer = 0, bukan 1.
+  assert_(levelOf_('viewer', MASTER_ROLE_LEVELS) === 0, 'levelOf_ viewer = 0.');
+  assert_(levelOf_('user', MASTER_ROLE_LEVELS) === 1, 'levelOf_ user = 1.');
+  assert_(levelOf_('admin', MASTER_ROLE_LEVELS) === 3, 'levelOf_ admin = 3.');
+  assert_(levelOf_('role_ngawur', MASTER_ROLE_LEVELS) === 0, 'levelOf_ role tak dikenal = 0 (fail-closed).');
+
+  // 2. Gating baca: viewer (0) >= viewer (0) harus LOLOS.
+  assert_(levelOf_('viewer', MASTER_ROLE_LEVELS) >= levelOf_('viewer', MASTER_ROLE_LEVELS), 'viewer lolos gate baca viewer.');
+
+  // 3. Gating tulis: viewer (0) < user (1) harus TERTOLAK.
+  assert_(levelOf_('viewer', MASTER_ROLE_LEVELS) < levelOf_('user', MASTER_ROLE_LEVELS), 'viewer ditolak gate tulis user.');
+
+  // 4. requireRole_ tetap konsisten (pola referensi yang benar).
+  assert_(requireRole_({ role: 'viewer' }, 'viewer') === true, 'requireRole_ viewer>=viewer lolos.');
+  var threw = false;
+  try { requireRole_({ role: 'viewer' }, 'user'); } catch (e) { threw = true; }
+  assert_(threw, 'requireRole_ viewer>=user ditolak.');
+
+  // 5. checkAuth & levelOf_ tidak mengandung fallback buggy `|| 1`.
+  assert_(checkAuth.toString().indexOf('roleMap[userRole] || 1') === -1, 'checkAuth bebas fallback || 1.');
+  assert_(levelOf_.toString().indexOf('|| 1') === -1, 'levelOf_ bebas fallback || 1.');
+}
+
+// G8: checkRole_
 // G8: checkRole_
 function testCheckRoleV22(ctx) {
   var map = { save_jadwal: 'user', delete_jadwal: 'admin' };

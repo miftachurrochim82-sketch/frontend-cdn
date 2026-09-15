@@ -5,6 +5,19 @@ Repositori ini memuat pustaka antarmuka bersama (*Shared UI Components*), arsite
 
 ---
 
+## 📌 Versi Aktif
+
+| Paket | Versi | Catatan |
+|---|---|---|
+| **CoreLib** (backend library) | `v2.2.2` | FIX gating role: fallback `\|\| 1` → fail-closed `=== undefined → 0`; strip `_cacheBust` di `dispatchAction` |
+| `frontend/app-core.js` | `v2.5.1` | Cache busting `_cacheBust`, dedup request in-flight |
+| `frontend/app-components.js` | `v2.4.0` | Komponen shell Vue 3 siap pakai |
+| `frontend/app-modules.js` | `v2.1.0` | `<app-profile>`, `<app-settings>` |
+
+> Aplikasi konsumen memuat aset via jsDelivr (`@main` atau tag versi). Berkas `.min.*` dijamin sinkron dengan sumbernya oleh `npm run build`.
+
+---
+
 ## 🏛️ Arsitektur Ekosistem Terpadu
 
 ```text

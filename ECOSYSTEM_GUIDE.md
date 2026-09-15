@@ -1,22 +1,22 @@
 # 🏛️ Panduan Arsitektur & Standar Pengembangan Aplikasi Ekosistem Pemkab Trenggalek
-### Standar Terpadu CoreLib v2.0 • Frontend CDN v2.4.0 • Portal SSO SI-Platform • Starter Template
+### Standar Terpadu CoreLib v2.2.2 • Frontend CDN v2.5.2 • Portal SSO SI-Platform • Starter Template
 
 > **Dokumen Resmi Arsitektur & Standar Rekayasa Perangkat Lunak**  
 > **Pemerintah Kabupaten Trenggalek — Dinas Komunikasi dan Informatika**  
-> *Versi Ekosistem: 2.4.0 | Tahun: 2026*
+> *Versi Ekosistem: 2.5.2 | Tahun: 2026*
 
 ---
 
 ## 📑 Daftar Isi
 1. [Ringkasan Eksekutif & Prinsip Arsitektur](#1-ringkasan-eksekutif--prinsip-arsitektur)
 2. [Peta Ekosistem & Matriks Komponen](#2-peta-ekosistem--matriks-komponen)
-3. [Backend Core Foundation v2.0 (`CoreLib`)](#3-backend-core-foundation-v20-corelib)
+3. [Backend Core Foundation v2.2 (`CoreLib`)](#3-backend-core-foundation-v22-corelib)
    - [3.1 Skema Spreadsheet & Physical Row Indexing](#31-skema-spreadsheet--physical-row-indexing)
    - [3.2 Column-Aligned Schema Serialization](#32-column-aligned-schema-serialization)
    - [3.3 Namespace Database Caching](#33-namespace-database-caching)
    - [3.4 Declarative Resource Router](#34-declarative-resource-router)
    - [3.5 Standardisasi Waktu & ISO-8601 Canonical Format](#35-standardisasi-waktu--iso-8601-canonical-format)
-4. [Frontend CDN v2.4.0 Shared Library](#4-frontend-cdn-v240-shared-library)
+4. [Frontend CDN v2.5.2 Shared Library](#4-frontend-cdn-v252-shared-library)
    - [4.1 Distribusi Aset CDN jsDelivr](#41-distribusi-aset-cdn-jsdelivr)
    - [4.2 On-Demand Library Lazy Loading](#42-on-demand-library-lazy-loading)
    - [4.3 Stale-While-Revalidate (SWR) SIMPEG Cache](#43-stale-while-revalidate-swr-simpeg-cache)
@@ -57,7 +57,7 @@ Ekosistem aplikasi web Pemerintah Kabupaten Trenggalek dirancang di atas infrast
 ┌─────────────────────────────────────────────────────────────────────────────────────────┐
 │                                   SHARED FOUNDATION LAYER                               │
 ├────────────────────────────────────────────┬────────────────────────────────────────────┤
-│ 1. CoreLib Global Backend Library v2.0     │ 2. Frontend CDN v2.4.0 (jsDelivr)          │
+│ 1. CoreLib Global Backend Library v2.2.2     │ 2. Frontend CDN v2.5.2 (jsDelivr)          │
 │    ID: 1GmeYflfMpRa1iTVgFHRD6K1DMoxc9Oo... │    CSS: app-common.min.css                 │
 │    - Physical Row Database Engine          │    JS : app-components.min.js              │
 │    - Declarative Resource Router           │         app-modules.min.js                 │
@@ -82,12 +82,14 @@ Ekosistem aplikasi web Pemerintah Kabupaten Trenggalek dirancang di atas infrast
 | `backend` (`CoreLib`) | Global Apps Script Library | GAS V8 Runtime, Google Sheets API, Drive API |
 | `frontend` (`frontend-cdn`) | Shared CSS/JS Bundle CDN | Vue 3, Tailwind CSS, Font Awesome 6.5.2 |
 | `si-platform` | Portal Pusat SSO & SIMPEG | Vue 3, Tailwind CSS, Font Awesome 6.5.2, `app-common.css` |
-| `si-pelaporan` | Aplikasi Satelit Laporan | `CoreLib v2.0`, `frontend-cdn v2.4.0` |
-| `app-starter-template` | Boilerplate & Scaffolding CLI | `create-app.js`, `CoreLib v2.0`, `frontend-cdn v2.4.0` |
+| `si-pelaporan` | Aplikasi Satelit Laporan | `CoreLib v2.2.2`, `frontend-cdn v2.5.2` |
+| `app-starter-template` | Boilerplate & Scaffolding CLI | `create-app.js`, `CoreLib v2.2.2`, `frontend-cdn v2.5.2` |
 
 ---
 
-## 3. Backend Core Foundation v2.0 (`CoreLib`)
+## 3. Backend Core Foundation v2.2 (`CoreLib`)
+
+> **v2.2.2 (2026-09-15)**: FIX keamanan gating role — fallback `|| 1` di `checkAuth`/`levelOf_` diganti `=== undefined → 0` (viewer=0 fail-closed), dan `dispatchAction` kini membuang `data._cacheBust` sesuai kontrak app-core v2.5.1.
 
 Library backend terdistribusi resmi Pemkab Trenggalek:
 * **Script ID / Library ID**: `1GmeYflfMpRa1iTVgFHRD6K1DMoxc9OoKqpuucPJXgNZ9XBK06O7wgDkO`
@@ -165,7 +167,7 @@ function handleAction(payload) {
 
 ---
 
-## 4. Frontend CDN v2.4.0 Shared Library
+## 4. Frontend CDN v2.5.2 Shared Library
 
 ### 4.1 Distribusi Aset CDN jsDelivr
 Setiap aplikasi web cukup memuat tag berikut di file `Index.html`:
@@ -201,15 +203,15 @@ Setiap aplikasi web cukup memuat tag berikut di file `Index.html`:
   };
 </script>
 
-<!-- 4. Shared Trenggalek Design System & Component Library (v2.4.0) -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.4.0/frontend/app-common.min.css">
-<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.4.0/frontend/app-components.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.4.0/frontend/app-modules.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.4.0/frontend/app-core.min.js"></script>
+<!-- 4. Shared Trenggalek Design System & Component Library (v2.5.2) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.5.2/frontend/app-common.min.css">
+<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.5.2/frontend/app-components.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.5.2/frontend/app-modules.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.5.2/frontend/app-core.min.js"></script>
 ```
 
 ### 4.2 On-Demand Library Lazy Loading
-Frontend CDN v2.4.0 mengeliminasi *render-blocking libraries*. Pustaka eksternal berukuran besar dimuat secara dinamis hanya saat dibutuhkan:
+Frontend CDN v2.5.2 mengeliminasi *render-blocking libraries*. Pustaka eksternal berukuran besar dimuat secara dinamis hanya saat dibutuhkan:
 
 ```javascript
 // Memuat SheetJS (XLSX) hanya saat pengguna mengklik ekspor Excel
@@ -353,7 +355,7 @@ si-cuti/
     ├── 02_AppLogic.gs        # HTTP entrypoint doGet, custom handlers bisnis
     ├── 03_SeedData.gs        # Inisialisasi tabel Google Sheets dan data dummy
     ├── 99_TestSuite.gs       # Test suite otomatis pengujian endpoint & CoreLib
-    ├── Index.html            # Shell aplikasi Vue 3 + Tailwind + CDN v2.4.0
+    ├── Index.html            # Shell aplikasi Vue 3 + Tailwind + CDN v2.5.2
     ├── A4_Dashboard.html     # Modul Ringkasan Dashboard & KPI
     ├── A5_MainModule.html    # Modul CRUD Data Utama (<app-crud-table>)
     └── A8_MasterData.html    # Modul data referensi master SIMPEG
@@ -407,7 +409,7 @@ Setiap repository aplikasi yang dibuat melalui template telah dilengkapi `.githu
 
 | Gejala / Permasalahan | Kemungkinan Penyebab | Solusi yang Direkomendasikan |
 |---|---|---|
-| Data tertimpa saat update | Masih memakai indeks array terfilter lama | Pastikan menggunakan `CoreLib v2.0` yang mengadopsi `_row` physical index. |
+| Data tertimpa saat update | Masih memakai indeks array terfilter lama | Pastikan menggunakan `CoreLib v2.2.2` yang mengadopsi `_row` physical index. |
 | Kolom di Spreadsheet bergeser/salah posisi | Array `setValues` diasumsikan urut | Pastikan proses simpan melewati `toAlignedRow_` yang membaca header baris 1. |
 | Master SIMPEG lambat saat pertama kali dibuka | Cache browser kosong | SWR otomatis mengambil data lokal dan menyinkronkan di latar belakang; pastikan `MASTER_SPREADSHEET_ID` valid. |
 | Tiket SSO menghasilkan error `INVALID_TICKET` | Tiket kedaluwarsa (> 5 menit) atau sudah dipakai | Arahkan pengguna kembali ke SI-PLATFORM untuk membuat tiket baru. |
@@ -418,5 +420,5 @@ Setiap repository aplikasi yang dibuat melalui template telah dilengkapi `.githu
 
 ## 📜 Kontak & Pemeliharaan
 * **Pengelola Ekosistem**: Tim Pengembang TI — Dinas Komunikasi dan Informatika Kabupaten Trenggalek
-* **Dokumentasi & Versi**: v2.4.0 (Tahun 2026)
+* **Dokumentasi & Versi**: v2.5.2 (Tahun 2026)
 * **Lisensi**: MIT License
