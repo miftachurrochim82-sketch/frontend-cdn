@@ -1,6 +1,6 @@
 // ============================================================
 // TEMPLATE APLIKASI WEB GAS - Code.gs
-// Memanfaatkan CORE LIBRARY GLOBAL v2.2.2 (01_CoreFoundation, 02_CoreGateway, 03_CoreServices)
+// Memanfaatkan CORE LIBRARY GLOBAL v2.2.3 (01_CoreFoundation, 02_CoreGateway, 03_CoreServices)
 // ============================================================
 
 /**
