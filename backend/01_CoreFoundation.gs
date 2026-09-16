@@ -1,5 +1,8 @@
 // ============================================================
-// CORE LIBRARY GLOBAL v2.2.2 - 01_CoreFoundation.gs
+// CORE LIBRARY GLOBAL v2.2.3 - 01_CoreFoundation.gs
+// Changelog v2.2.3 (2026-09-16):
+// - Sinkron rilis v2.2.3 (fix levelOf_ ada di 02_CoreGateway). Tanpa
+//   perubahan fungsional di berkas ini.
 // Changelog v2.2.2 (2026-09-15):
 // - Sinkron rilis v2.2.2 (perbaikan gating role ada di 02_CoreGateway).
 //   Tanpa perubahan fungsional di berkas ini.
