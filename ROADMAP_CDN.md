@@ -71,12 +71,14 @@
 ## 5. Urutan Eksekusi & Disiplin Rilis
 
 **Batch 0 — keamanan (prasyarat, minggu ini):**
-- [ ] Simpan versi library CoreLib **13** (kode v2.2.3 sudah di HEAD & terverifikasi `testAll` 38/0/1).
-- [ ] si-pelaporan: pin `"6"` → `"13"` (GAS + workspace + GitHub).
-- [ ] si-platform: CDN CSS `@v2.6.4` → `@v2.6.5`.
+- [x] Simpan versi library CoreLib **13** (2026-09-16, URL `/library/d/1GmeYflf…/13`; kode v2.2.3 terverifikasi `testAll` 38/0/1).
+- [x] si-pelaporan: pin `"6"` → `"13"` di **workspace + GAS + GitHub** (md5 raw GitHub = workspace). **Terverifikasi runtime 17:25–17:27**: suite app PASS 7/0/0 (ReadOnlyMaster & AuthSSO_Negatif lulus); diagnostik sehat; **regresi CoreLib dijalankan DARI si-pelaporan → PASS 38/0/1 incl. `[PASS] testRoleGateV222`** = pin 13 benar menyebarkan v2.2.3. **S7 TERTUTUP.**
+- [ ] si-platform: CDN CSS `@v2.6.4` → `@v2.6.5` (kosmetik, satu-satunya sisa Batch 0).
 
 **Batch 1 — CDN naik (sekali rilis, tag `v2.7.0`):**
-- [ ] Kerjakan A2, B7, B6, B2, B4, B1 di workspace frontend-cdn.
+- [x] A2 (appCode terekspos), B7 (directive `v-can` fail-closed), B6 (`app-empty-state`+`app-skeleton`), B4 (`app-filter-bar`+`AppCore.paginate/pageCount`) — SIAP di workspace, syntax check lulus; versi tetap 2.6.5 s/d rilis.
+- [ ] B2 (chart kit) & B1 (`app-pegawai-picker`) — lanjutan berikutnya.
+- [ ] Setelah lengkap: bump versi 2.7.0 + `npm run build` + unggah SEMUA berkas + tag.
 - [ ] `npm run build` → commit `.min.*` → **unggah SEMUA berkas dulu, lalu tag** (pelajaran v2.6.3).
 - [ ] Perbarui CDN_SNIPPET (A3) + katalog props di `frontend/README.md`.
 
