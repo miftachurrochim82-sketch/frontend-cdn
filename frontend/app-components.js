@@ -60,7 +60,7 @@
       appSubtitle:  { type: String, default: 'Sistem Informasi Terintegrasi SIMPEG' },
       instansi:     { type: String, default: 'Pemerintah Kabupaten Trenggalek' },
       tagline:      { type: String, default: 'Autentikasi telah terintegrasi terpusat (SSO). Silakan masuk menggunakan akun resmi Anda pada platform utama.' },
-      version:      { type: String, default: 'v2.7.1' },
+      version:      { type: String, default: 'v2.7.2' },
       logoSvg:      { type: String, default: '' },
       isProcessing: { type: Boolean, default: false },
       errorMessage: { type: String, default: '' }
@@ -708,9 +708,15 @@
       },
       methods: {
         bootstrap: async function () {
-          var ok = true;
-          try { ok = await this.ensureChartLibrary(); } catch (e) { ok = false; }
-          if (!ok) { this.loadError = true; return; }
+          // v2.7.2 FIX: komponen adalah ANAK — method root/mixin (ensureChartLibrary)
+          // tidak terlihat dari sini. Gunakan AppCore.loadLib statis; fallback aman.
+          var ok = false;
+          try {
+            if (typeof Chart !== 'undefined') ok = true;
+            else if (window.AppCore && window.AppCore.loadLib) ok = await window.AppCore.loadLib('chart');
+            else if (this.ensureChartLibrary) ok = await this.ensureChartLibrary();
+          } catch (e) { ok = false; }
+          if (!ok && typeof Chart === 'undefined') { this.loadError = true; return; }
           this.loadError = false;
           this.render();
         },
@@ -876,7 +882,7 @@
     'app-chart-bar': makeChartComponent_('bar'),
     'app-chart-doughnut': makeChartComponent_('doughnut'),
     'app-pegawai-picker': AppPegawaiPicker,
-    version: '2.7.1'
+    version: '2.7.2'
   };
 
 })(window);
