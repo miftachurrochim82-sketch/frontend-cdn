@@ -1,5 +1,5 @@
 # 🏛️ Panduan Arsitektur & Standar Pengembangan Aplikasi Ekosistem Pemkab Trenggalek
-### Standar Terpadu CoreLib v2.2.2 • Frontend CDN v2.5.2 • Portal SSO SI-Platform • Starter Template
+### Standar Terpadu CoreLib v2.2.3 • Frontend CDN v2.6.5 • Portal SSO SI-Platform • Starter Template
 
 > **Dokumen Resmi Arsitektur & Standar Rekayasa Perangkat Lunak**  
 > **Pemerintah Kabupaten Trenggalek — Dinas Komunikasi dan Informatika**  
@@ -10,13 +10,13 @@
 ## 📑 Daftar Isi
 1. [Ringkasan Eksekutif & Prinsip Arsitektur](#1-ringkasan-eksekutif--prinsip-arsitektur)
 2. [Peta Ekosistem & Matriks Komponen](#2-peta-ekosistem--matriks-komponen)
-3. [Backend Core Foundation v2.2 (`CoreLib`)](#3-backend-core-foundation-v22-corelib)
+3. [Backend Core Foundation v2.2.3 (`CoreLib`)](#3-backend-core-foundation-v223-corelib)
    - [3.1 Skema Spreadsheet & Physical Row Indexing](#31-skema-spreadsheet--physical-row-indexing)
    - [3.2 Column-Aligned Schema Serialization](#32-column-aligned-schema-serialization)
    - [3.3 Namespace Database Caching](#33-namespace-database-caching)
    - [3.4 Declarative Resource Router](#34-declarative-resource-router)
    - [3.5 Standardisasi Waktu & ISO-8601 Canonical Format](#35-standardisasi-waktu--iso-8601-canonical-format)
-4. [Frontend CDN v2.5.2 Shared Library](#4-frontend-cdn-v252-shared-library)
+4. [Frontend CDN v2.6.5 Shared Library](#4-frontend-cdn-v265-shared-library)
    - [4.1 Distribusi Aset CDN jsDelivr](#41-distribusi-aset-cdn-jsdelivr)
    - [4.2 On-Demand Library Lazy Loading](#42-on-demand-library-lazy-loading)
    - [4.3 Stale-While-Revalidate (SWR) SIMPEG Cache](#43-stale-while-revalidate-swr-simpeg-cache)
@@ -26,12 +26,12 @@
    - [5.1 Alur Autentikasi Tiket SSO](#51-alur-autentikasi-tiket-sso)
    - [5.2 Autentikasi Mandiri (Direct Login)](#52-autentikasi-mandiri-direct-login)
    - [5.3 Role Guard & Hak Akses Berbasis Izin](#53-role-guard--hak-akses-berbasis-izin)
-6. [Panduan Pembuatan Aplikasi Baru (`app-starter-template`)](#6-panduan-pembuatan-aplikasi-baru-app-starter-template)
-   - [6.1 CLI Generator (`create-app.js`)](#61-cli-generator-create-appjs)
+6. [Panduan Pembuatan Aplikasi Baru (template `backend/Code.gs`)](#6-panduan-pembuatan-aplikasi-baru-template-backendcodegs)
+   - [6.1 Kerangka Awal](#61-kerangka-awal)
    - [6.2 Struktur Berkas Aplikasi Standar](#62-struktur-berkas-aplikasi-standar)
    - [6.3 Konfigurasi Script Properties](#63-konfigurasi-script-properties)
 7. [Prosedur Deployment, CI/CD & Diagnostik](#7-prosedur-deployment-cicd--diagnostik)
-   - [7.1 Deployment Google Apps Script via Clasp](#71-deployment-google-apps-script-via-clasp)
+   - [7.1 Deployment Google Apps Script](#71-deployment-google-apps-script)
    - [7.2 Pipeline CI/CD GitHub Actions](#72-pipeline-cicd-github-actions)
    - [7.3 Menjalankan Automated Diagnostic Test Suite](#73-menjalankan-automated-diagnostic-test-suite)
 8. [Matriks Troubleshooting & Praktik Terbaik](#8-matriks-troubleshooting--praktik-terbaik)
@@ -57,7 +57,7 @@ Ekosistem aplikasi web Pemerintah Kabupaten Trenggalek dirancang di atas infrast
 ┌─────────────────────────────────────────────────────────────────────────────────────────┐
 │                                   SHARED FOUNDATION LAYER                               │
 ├────────────────────────────────────────────┬────────────────────────────────────────────┤
-│ 1. CoreLib Global Backend Library v2.2.2     │ 2. Frontend CDN v2.5.2 (jsDelivr)          │
+│ 1. CoreLib Global Backend Library v2.2.3     │ 2. Frontend CDN v2.6.5 (jsDelivr)          │
 │    ID: 1GmeYflfMpRa1iTVgFHRD6K1DMoxc9Oo... │    CSS: app-common.min.css                 │
 │    - Physical Row Database Engine          │    JS : app-components.min.js              │
 │    - Declarative Resource Router           │         app-modules.min.js                 │
@@ -71,7 +71,7 @@ Ekosistem aplikasi web Pemerintah Kabupaten Trenggalek dirancang di atas infrast
 │    - Single Sign-On Identity Provider      │  │    Contoh:                              │
 │    - Master Kepegawaian (SIMPEG)           │  │    - SI-PELAPORAN (Laporan Kinerja)     │
 │    - RBAC: Manajemen User, Role, Izin      │  │    - SI-CUTI, SI-PERJADIN, SI-ASET, dll │
-│    - Portal App Launcher ASN               │  │    - Dibuat via `app-starter-template`  │
+│    - Portal App Launcher ASN               │  │    - Dibuat dari template Code.gs       │
 └────────────────────────────────────────────┘  └─────────────────────────────────────────┘
 ```
 
@@ -82,14 +82,19 @@ Ekosistem aplikasi web Pemerintah Kabupaten Trenggalek dirancang di atas infrast
 | `backend` (`CoreLib`) | Global Apps Script Library | GAS V8 Runtime, Google Sheets API, Drive API |
 | `frontend` (`frontend-cdn`) | Shared CSS/JS Bundle CDN | Vue 3, Tailwind CSS, Font Awesome 6.5.2 |
 | `si-platform` | Portal Pusat SSO & SIMPEG | Vue 3, Tailwind CSS, Font Awesome 6.5.2, `app-common.css` |
-| `si-pelaporan` | Aplikasi Satelit Laporan | `CoreLib v2.2.2`, `frontend-cdn v2.5.2` |
-| `app-starter-template` | Boilerplate & Scaffolding CLI | `create-app.js`, `CoreLib v2.2.2`, `frontend-cdn v2.5.2` |
+| `si-kompetensi` | Aplikasi Satelit Kompetensi ASN | `CoreLib` pin 12 + `developmentMode:true`, `frontend-cdn @v2.6.5` |
+| `si-pelaporan` | Aplikasi Satelit Laporan | `CoreLib` pin 6 (pinned — menunggu bump), `frontend-cdn @v2.6.5` |
+| `backend/Code.gs` (di repo ini) | Template kerangka aplikasi baru | `CoreLib v2.2.3`, `frontend-cdn v2.6.5` |
 
 ---
 
-## 3. Backend Core Foundation v2.2 (`CoreLib`)
+## 3. Backend Core Foundation v2.2.3 (`CoreLib`)
 
-> **v2.2.2 (2026-09-15)**: FIX keamanan gating role — fallback `|| 1` di `checkAuth`/`levelOf_` diganti `=== undefined → 0` (viewer=0 fail-closed), dan `dispatchAction` kini membuang `data._cacheBust` sesuai kontrak app-core v2.5.1.
+> **v2.2.3 (2026-09-16)** ⭐: FIX keamanan `levelOf_` — fallback `|| 1` (yang mengangkat viewer/role tak dikenal ke level 1 dan meloloskannya di 9 gerbang akses) diganti fail-closed `lv === undefined ? 0 : lv`. Diverifikasi live: `testAll()` PASS 38 / FAIL 0, `[PASS] testRoleGateV222`.
+>
+> **v2.2.2 (2026-09-15)**: FIX `checkAuth` (`=== undefined → 0`), `dispatchAction` membuang `data._cacheBust`, penguatan `requireRole_`, test regresi `testRoleGateV222`. ⚠️ Fix `levelOf_` belum ikut terkirim di versi ini (test-nya mendahului fix-nya) — dilengkapi di v2.2.3.
+>
+> Changelog lengkap: [`backend/00_MIGRATION_v2.md`](backend/00_MIGRATION_v2.md).
 
 Library backend terdistribusi resmi Pemkab Trenggalek:
 * **Script ID / Library ID**: `1GmeYflfMpRa1iTVgFHRD6K1DMoxc9OoKqpuucPJXgNZ9XBK06O7wgDkO`
@@ -167,69 +172,64 @@ function handleAction(payload) {
 
 ---
 
-## 4. Frontend CDN v2.5.2 Shared Library
+## 4. Frontend CDN v2.6.5 Shared Library
 
 ### 4.1 Distribusi Aset CDN jsDelivr
 Setiap aplikasi web cukup memuat tag berikut di file `Index.html`:
 
 ```html
-<!-- 1. Resource Pre-connect Hints -->
+<!-- ========== <head> : Pustaka pihak ketiga (WAJIB) ========== -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preconnect" href="https://cdn.jsdelivr.net">
-<link rel="preconnect" href="https://cdnjs.cloudflare.com">
-
-<!-- 2. Typography & Unified Font Awesome 6.5.2 -->
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-
-<!-- 3. Tailwind CSS & Vue 3 Runtime -->
-<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config = {
-    darkMode: 'class',
-    theme: {
-      extend: {
-        colors: {
-          brand: {
-            50: '#ecfdf5', 100: '#d1fae5', 500: '#10b981',
-            600: '#059669', 700: '#047857', 900: '#064e3b'
-          }
-        },
-        fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] }
-      }
-    }
-  };
-</script>
+<script>tailwind.config = { darkMode: 'class' };</script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/vue@3.4.21/dist/vue.global.prod.js"></script>
 
-<!-- 4. Shared Trenggalek Design System & Component Library (v2.5.2) -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.5.2/frontend/app-common.min.css">
-<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.5.2/frontend/app-components.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.5.2/frontend/app-modules.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.5.2/frontend/app-core.min.js"></script>
+<!-- Shared CDN Pemkab Trenggalek v2.6.5 — selalu pakai TAG VERSI, jangan @main -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.6.5/frontend/app-common.min.css">
+
+<!-- Tema per aplikasi: override CSS variables di <style> lokal, mis.
+     :root { --primary: #059669; --primary-dark: #047857; ... } -->
+
+<!-- ========== Sebelum </body> : JS Shared CDN ========== -->
+<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.6.5/frontend/app-components.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.6.5/frontend/app-modules.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.6.5/frontend/app-core.min.js"></script>
 ```
 
+> Salinan persis + aturan rilis: [`frontend/CDN_SNIPPET.md`](frontend/CDN_SNIPPET.md).
+
 ### 4.2 On-Demand Library Lazy Loading
-Frontend CDN v2.5.2 mengeliminasi *render-blocking libraries*. Pustaka eksternal berukuran besar dimuat secara dinamis hanya saat dibutuhkan:
+Sejak v2.6.0, Frontend CDN mengeliminasi *render-blocking libraries*. Semua URL pustaka berat terpusat di registry `AppCore.libs` dengan **versi terkunci**, dimuat dinamis hanya saat dibutuhkan:
+
+| Nama | Pustaka | Versi terkunci | Dipakai oleh |
+|---|---|---|---|
+| `chart` | Chart.js | 4.4.1 | `ensureChartLibrary()` |
+| `xlsx` | SheetJS | 0.18.5 | `exportExcel()` |
+| `jspdf` | jsPDF | 2.5.1 | `exportPDF()` |
+| `autotable` | jsPDF-AutoTable | 3.8.2 | grup `pdf` |
+| `pdflib` | pdf-lib | 1.17.1 | manual |
+| `pdf` | grup jspdf+autotable | — | `exportPDF()` |
 
 ```javascript
-// Memuat SheetJS (XLSX) hanya saat pengguna mengklik ekspor Excel
-await AppCore.loadScript('xlsx'); // Otomatis mengunduh https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js
+// Di dalam methods Vue (instance buatan AppCore.create):
+if (await this.loadLib('chart')) new Chart(ctx, {...});
+await this.loadLib(['chart', 'xlsx']);        // beberapa sekaligus
 
-// Memuat jsPDF & AutoTable hanya saat pengguna mengekspor PDF
-await AppCore.loadScript('jspdf');
-await AppCore.loadScript('jspdf-autotable');
-
-// Memuat Chart.js hanya saat dashboard analitik dirender
-await AppCore.loadScript('chartjs');
+// Dari luar instance Vue:
+await AppCore.loadLib('xlsx');
 ```
 
 ### 4.3 Stale-While-Revalidate (SWR) SIMPEG Cache
 Data Master SIMPEG (Pegawai, Jabatan, Unit Kerja) memiliki frekuensi perubahan rendah namun frekuensi baca tinggi. `app-core.min.js` mengimplementasikan strategi SWR:
 1. **Langkah 1**: Render antarmuka secara instan (**0 ms**) menggunakan cache `localStorage`.
 2. **Langkah 2**: Kirim panggilan *background refresh* asinkron ke server untuk memeriksa versi data terbaru.
-3. **Langkah 3**: Jika server mengembalikan versi baru, perbarui data state dan simpan kembali ke `localStorage` tanpa mengganggu input pengguna.
+3. **Langkah 3**: Jika server mengembalikan versi baru, perbarui data state dan simpan kembali ke storage tanpa mengganggu input pengguna.
+
+> ⚠️ **Sejak v2.6.1 (fix bug produksi)**: seluruh akses storage WAJIB lewat helper `safeSession`/`safeLocal` dari `app-core` — akses `localStorage`/`sessionStorage` mentah melempar exception saat app dibuka di iframe SSO cross-site.
 
 ### 4.4 Standarisasi Ikon Font Awesome 6.5.2 & Design Tokens
 Seluruh ikon wajib menggunakan class Font Awesome 6.5.2 (`fa-solid fa-*`):
@@ -259,8 +259,8 @@ Seluruh ikon wajib menggunakan class Font Awesome 6.5.2 (`fa-solid fa-*`):
 * `<app-login>`: Layar autentikasi mandiri dan Single Sign-On launcher.
 * `<app-sidebar>`: Navigasi responsif dengan collapse mode dan indikator role.
 * `<app-header>`: Topbar dengan Dark Mode switch, notifikasi, dan profil user.
-* `<app-stat-card>`: Kartu ringkasan metrik KPI dengan persentase tren.
-* `<app-badge>`: Label status berwarna standar (success, warning, danger, info, neutral).
+* `<app-stat-card>` *(baru v2.6.5)*: Kartu metrik KPI — props `title`, `value` (Number diformat `id-ID` otomatis), `icon` (default `fa-solid fa-chart-simple`), `color` (`emerald`/`sky`/`amber`/`purple`/`rose`), `subtext`.
+* `<app-badge>`: Label status berwarna otomatis — props `status` (menerima sinonim: `disetujui/approved/aktif/menunggu/pending/proses/revisi/ditolak/inactive/definitif/plt/kosong`), `label` (timpa teks), `size` (`sm`/`md`), `icon` *(baru v2.6.5)*.
 * `<app-modal>`: Dialog popup responsif berbasis animasi CSS.
 * `<app-crud-table>`: Tabel data interaktif dengan pencarian cepat, pengurutan kolom, paginasi, tombol ekspor (Excel/PDF), dan aksi CRUD.
 * `<app-profile>`: Modul profil ASN mandiri dengan data terverifikasi SIMPEG.
@@ -308,7 +308,7 @@ Seluruh ikon wajib menggunakan class Font Awesome 6.5.2 (`fa-solid fa-*`):
 Jika aplikasi diakses tanpa tiket SSO (misal pengujian lokal atau akun darurat), sistem mendukung otentikasi mandiri berbasis `USER_CREDENTIALS` lokal dengan hashing password aman.
 
 ### 5.3 Role Guard & Hak Akses Berbasis Izin
-Setiap panggilan API ke backend divalidasi oleh `CoreLib.requireAuth()` dan `CoreLib.requireRole()`:
+Hierarki role (`levelOf_`, fail-closed sejak **v2.2.3**): `admin` (3) > `verifikator` (2) > `user` (1) > `viewer` (0); role tak dikenal = 0. Setiap panggilan API divalidasi `checkAuth` + `requireRole_` di `02_CoreGateway.gs`:
 
 ```javascript
 // Validasi di tingkat Handler Backend
@@ -320,45 +320,37 @@ function handleHapusLaporan(payload, session) {
 
 ---
 
-## 6. Panduan Pembuatan Aplikasi Baru (`app-starter-template`)
+## 6. Panduan Pembuatan Aplikasi Baru (template `backend/Code.gs`)
 
-### 6.1 CLI Generator (`create-app.js`)
-Gunakan generator interaktif atau argumen CLI untuk membuat repository aplikasi baru:
+### 6.1 Kerangka Awal
+Tidak ada CLI generator — aplikasi baru dibuat manual dari dua cetakan di repo ini:
 
-```bash
-# Masuk ke folder template
-cd /home/user/app-starter-template
-
-# Jalankan CLI Generator
-node bin/create-app.js \
-  --code SICUTI \
-  --title "SI-CUTI" \
-  --entity CUTI \
-  --desc "Sistem Informasi Manajemen Pengajuan Cuti Pegawai" \
-  --dest ../si-cuti
-```
-
-Generator otomatis mengonfigurasi nama entity, skema router, navigasi frontend, dan test suite.
+1. **Backend**: salin [`backend/Code.gs`](backend/Code.gs) ke proyek GAS aplikasi baru sebagai `Code.gs`. Isi `getAppConfig_()`: `appCode`, `appTitle`, `headersMap` (skema sheet), `pkFields`, `localHandlers` (endpoint bisnis khusus). Semua CRUD generik, auth SSO, dan setup otomatis sudah ditangani CoreLib (`dispatchAction`, `executeAppSetup`).
+2. **Frontend**: salin blok `<head>`/`</body>` dari [`frontend/CDN_SNIPPET.md`](frontend/CDN_SNIPPET.md) ke `Index.html`, lalu bangun tampilan di `V_Layout.html` memakai komponen `<app-...>`.
+3. **Library**: daftarkan CoreLib di `appsscript.json` (lihat 6.3).
 
 ### 6.2 Struktur Berkas Aplikasi Standar
 
+Struktur nyata (contoh: repo `si-pelaporan`):
+
 ```text
 si-cuti/
-├── .clasp.json               # Konfigurasi target Google Apps Script Script ID
-├── appsscript.json           # Manifest V8 + Library CoreLib
-├── package.json              # Script npm untuk clasp push/pull
+├── .clasp.json               # Konfigurasi target Script ID proyek GAS
+├── .claspignore              # Whitelist berkas yang boleh di-push
+├── package.json              # Script npm (clasp push/pull, set-script-id)
 ├── README.md                 # Dokumentasi operasional aplikasi
 ├── .github/workflows/
-│   └── deploy.yml            # CI/CD otomatis saat push ke branch main
+│   └── deploy-gas.yml        # CI/CD deploy saat push ke branch main
+├── scripts/
+│   └── set-script-id.js      # Helper isi .clasp.json otomatis
 └── src/
-    ├── 01_ConfigAndBridge.gs # Konfigurasi konstanta, bridge, & deklarasi resource
-    ├── 02_AppLogic.gs        # HTTP entrypoint doGet, custom handlers bisnis
-    ├── 03_SeedData.gs        # Inisialisasi tabel Google Sheets dan data dummy
-    ├── 99_TestSuite.gs       # Test suite otomatis pengujian endpoint & CoreLib
-    ├── Index.html            # Shell aplikasi Vue 3 + Tailwind + CDN v2.5.2
-    ├── A4_Dashboard.html     # Modul Ringkasan Dashboard & KPI
-    ├── A5_MainModule.html    # Modul CRUD Data Utama (<app-crud-table>)
-    └── A8_MasterData.html    # Modul data referensi master SIMPEG
+    ├── appsscript.json       # Manifest V8 + dependensi library CoreLib
+    ├── 01_ConfigAndBridge.gs # Konfigurasi konstanta & bridge CoreLib
+    ├── 02_AppLogic.gs        # doGet, handleAction, custom handlers bisnis
+    ├── 03_SeedData.gs        # Inisialisasi sheet & data awal
+    ├── 99_TestSuite.gs       # Test suite aplikasi
+    ├── Index.html            # Shell: CDN v2.6.5 + include V_Layout + mount Vue
+    └── V_Layout.html         # SELURUH tampilan (arsitektur 2-berkas HTML)
 ```
 
 ### 6.3 Konfigurasi Script Properties
@@ -369,13 +361,35 @@ Buka Google Apps Script Editor ➡️ **Project Settings** ➡️ **Script Prope
 | `SPREADSHEET_ID` | `1abc12345xyz...` | ID Spreadsheet Google Sheets database lokal aplikasi |
 | `MASTER_SPREADSHEET_ID` | `1simpeg_master_id...` | ID Spreadsheet Master SIMPEG Pemkab Trenggalek |
 | `PLATFORM_API_URL` | `https://script.google.com/.../exec` | Endpoint URL deployment Web App SI-PLATFORM |
+| `APP_CODE` | `SI-CUTI` | Kode aplikasi (dipakai `Code.gs`) |
 | `APP_TITLE` | `SI-CUTI` | Judul aplikasi web |
+| `ADMIN_EMAILS` | `a@x.go.id,b@x.go.id` | Whitelist role admin — **wajib diisi**, tidak ada default |
+| `VERIFIKATOR_EMAILS` | `c@x.go.id` | Whitelist role verifikator |
+| `ROOT_FOLDER_ID` dll. | *(opsional)* | Folder Drive; dibuat otomatis oleh `runSetup()`/`executeAppSetup` bila kosong |
+
+Dan di `src/appsscript.json`, daftarkan library:
+
+```json
+"dependencies": {
+  "libraries": [{
+    "userSymbol": "CoreLib",
+    "libraryId": "1GmeYflfMpRa1iTVgFHRD6K1DMoxc9OoKqpuucPJXgNZ9XBK06O7wgDkO",
+    "version": "13"
+  }]
+}
+```
+
+> `developmentMode: true` = selalu pakai kode HEAD (untuk pengembangan, dipakai si-kompetensi).
+> Tanpa `developmentMode` = terkunci di `version` (untuk produksi stabil, dipakai si-pelaporan).
 
 ---
 
 ## 7. Prosedur Deployment, CI/CD & Diagnostik
 
-### 7.1 Deployment Google Apps Script via Clasp
+### 7.1 Deployment Google Apps Script
+**Praktik berjalan (manual, aman untuk beginner)**: paste whole-file dari workspace/repo ke editor GAS (jangan find-replace manual), lalu unggah salinan ke GitHub via *Upload files* (jalur ini bebas kontaminasi CF challenge script).
+
+**Alternatif otomatis via Clasp** (`.claspignore` repo `backend/` sudah memutihkan hanya 5 berkas library — `Code.gs` tidak akan pernah ter-push):
 1. Instal Google Clasp di komputer Anda:
    ```bash
    npm install -g @google/clasp
@@ -397,11 +411,12 @@ Setiap repository aplikasi yang dibuat melalui template telah dilengkapi `.githu
   * `SCRIPT_ID`: ID Proyek Google Apps Script tujuan.
 * **Trigger**: Otomatis melakukan verifikasi sintaks dan `clasp push` setiap kali ada commit ke branch `main`.
 
-### 7.3 Menjalankan Automated Diagnostic Test Suite
-1. Buka Apps Script Editor di peramban.
-2. Pada dropdown fungsi di toolbar atas, pilih **`runLibraryTests`** (atau `setupApp` untuk inisialisasi awal).
-3. Klik tombol **Run**.
-4. Buka **Execution Log** untuk memastikan seluruh pengujian berstatus `PASSED (100%)`.
+### 7.3 Menjalankan Automated Diagnostic Test Suite (CoreLib)
+1. Buka editor Apps Script proyek **CoreLib**.
+2. Jalankan **`testAll()`** (39 test; butuh Script Properties `SPREADSHEET_ID` + `MASTER_SPREADSHEET_ID`).
+3. Hasil wajib: **`PASS: 38 / FAIL: 0 / SKIP: 1`** — SKIP = `testCacheIsolation` (normal, hanya jalan bila `TEST_SPREADSHEET_ID_B` di-set), dan `[PASS] testRoleGateV222` (regresi keamanan v2.2.3).
+4. Diagnostik cepat: **`cekUpdateCorelib()`** — baris `❌ CoreLib is not defined` di dalamnya **normal** bila dijalankan di proyek CoreLib sendiri.
+5. Catatan: menjalankan `runCoreTests()` langsung (tanpa `testAll`) menghasilkan `PASS: 21 / SKIP: 18` karena 18 test database butuh `ctx` — bukan pengganti `testAll()`.
 
 ---
 
@@ -409,16 +424,17 @@ Setiap repository aplikasi yang dibuat melalui template telah dilengkapi `.githu
 
 | Gejala / Permasalahan | Kemungkinan Penyebab | Solusi yang Direkomendasikan |
 |---|---|---|
-| Data tertimpa saat update | Masih memakai indeks array terfilter lama | Pastikan menggunakan `CoreLib v2.2.2` yang mengadopsi `_row` physical index. |
+| Data tertimpa saat update | Masih memakai indeks array terfilter lama | Pastikan menggunakan `CoreLib v2.2.3` yang mengadopsi `_row` physical index. |
+| Role `viewer`/tak dikenal bisa akses fitur level user | `levelOf_` versi lama memakai fallback `\|\| 1` | Upgrade CoreLib ke **v2.2.3** (fail-closed) lalu simpan versi library & naikkan pin aplikasi. |
 | Kolom di Spreadsheet bergeser/salah posisi | Array `setValues` diasumsikan urut | Pastikan proses simpan melewati `toAlignedRow_` yang membaca header baris 1. |
 | Master SIMPEG lambat saat pertama kali dibuka | Cache browser kosong | SWR otomatis mengambil data lokal dan menyinkronkan di latar belakang; pastikan `MASTER_SPREADSHEET_ID` valid. |
 | Tiket SSO menghasilkan error `INVALID_TICKET` | Tiket kedaluwarsa (> 5 menit) atau sudah dipakai | Arahkan pengguna kembali ke SI-PLATFORM untuk membuat tiket baru. |
 | Ikon tidak muncul (kotak kosong) | Masih menggunakan class Phosphor (`ph ph-*`) | Ubah class ikon menjadi format Font Awesome 6.5.2 (`fa-solid fa-*`). |
-| Bundle aplikasi berat saat initial load | Mengimpor XLSX / PDF / ChartJS di `<head>` | Hapus script berat dari `<head>`, gunakan `AppCore.loadScript('xlsx')` on-demand. |
+| Bundle aplikasi berat saat initial load | Mengimpor XLSX / PDF / ChartJS di `<head>` | Hapus script berat dari `<head>`, gunakan `AppCore.loadLib('xlsx')` on-demand. |
 
 ---
 
 ## 📜 Kontak & Pemeliharaan
 * **Pengelola Ekosistem**: Tim Pengembang TI — Dinas Komunikasi dan Informatika Kabupaten Trenggalek
-* **Dokumentasi & Versi**: v2.5.2 (Tahun 2026)
+* **Dokumentasi & Versi**: CoreLib v2.2.3 • Frontend CDN v2.6.5 (diperbarui 2026-09-16)
 * **Lisensi**: MIT License
