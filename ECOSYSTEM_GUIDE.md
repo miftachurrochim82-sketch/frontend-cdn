@@ -1,5 +1,5 @@
 # 🏛️ Panduan Arsitektur & Standar Pengembangan Aplikasi Ekosistem Pemkab Trenggalek
-### Standar Terpadu CoreLib v2.2.3 • Frontend CDN v2.6.5 • Portal SSO SI-Platform • Starter Template
+### Standar Terpadu CoreLib v2.2.3 • Frontend CDN v2.7.0 • Portal SSO SI-Platform • Starter Template
 
 > **Dokumen Resmi Arsitektur & Standar Rekayasa Perangkat Lunak**  
 > **Pemerintah Kabupaten Trenggalek — Dinas Komunikasi dan Informatika**  
@@ -16,7 +16,7 @@
    - [3.3 Namespace Database Caching](#33-namespace-database-caching)
    - [3.4 Declarative Resource Router](#34-declarative-resource-router)
    - [3.5 Standardisasi Waktu & ISO-8601 Canonical Format](#35-standardisasi-waktu--iso-8601-canonical-format)
-4. [Frontend CDN v2.6.5 Shared Library](#4-frontend-cdn-v265-shared-library)
+4. [Frontend CDN v2.7.0 Shared Library](#4-frontend-cdn-v270-shared-library)
    - [4.1 Distribusi Aset CDN jsDelivr](#41-distribusi-aset-cdn-jsdelivr)
    - [4.2 On-Demand Library Lazy Loading](#42-on-demand-library-lazy-loading)
    - [4.3 Stale-While-Revalidate (SWR) SIMPEG Cache](#43-stale-while-revalidate-swr-simpeg-cache)
@@ -57,7 +57,7 @@ Ekosistem aplikasi web Pemerintah Kabupaten Trenggalek dirancang di atas infrast
 ┌─────────────────────────────────────────────────────────────────────────────────────────┐
 │                                   SHARED FOUNDATION LAYER                               │
 ├────────────────────────────────────────────┬────────────────────────────────────────────┤
-│ 1. CoreLib Global Backend Library v2.2.3     │ 2. Frontend CDN v2.6.5 (jsDelivr)          │
+│ 1. CoreLib Global Backend Library v2.2.3     │ 2. Frontend CDN v2.7.0 (jsDelivr)          │
 │    ID: 1GmeYflfMpRa1iTVgFHRD6K1DMoxc9Oo... │    CSS: app-common.min.css                 │
 │    - Physical Row Database Engine          │    JS : app-components.min.js              │
 │    - Declarative Resource Router           │         app-modules.min.js                 │
@@ -83,7 +83,7 @@ Ekosistem aplikasi web Pemerintah Kabupaten Trenggalek dirancang di atas infrast
 | `frontend` (`frontend-cdn`) | Shared CSS/JS Bundle CDN | Vue 3, Tailwind CSS, Font Awesome 6.5.2 |
 | `si-platform` | Portal Pusat SSO & SIMPEG | Vue 3, Tailwind CSS, Font Awesome 6.5.2, `app-common.css` |
 | `si-kompetensi` | Aplikasi Satelit Kompetensi ASN | `CoreLib` pin 12 + `developmentMode:true`, `frontend-cdn @v2.6.5` |
-| `si-pelaporan` | Aplikasi Satelit Laporan | `CoreLib` pin 6 (pinned — menunggu bump), `frontend-cdn @v2.6.5` |
+| `si-pelaporan` | Aplikasi Satelit Laporan | `CoreLib` pin 13 (pinned = v2.2.3), `frontend-cdn @v2.6.5` |
 | `backend/Code.gs` (di repo ini) | Template kerangka aplikasi baru | `CoreLib v2.2.3`, `frontend-cdn v2.6.5` |
 
 ---
@@ -172,7 +172,7 @@ function handleAction(payload) {
 
 ---
 
-## 4. Frontend CDN v2.6.5 Shared Library
+## 4. Frontend CDN v2.7.0 Shared Library
 
 ### 4.1 Distribusi Aset CDN jsDelivr
 Setiap aplikasi web cukup memuat tag berikut di file `Index.html`:
@@ -189,15 +189,15 @@ Setiap aplikasi web cukup memuat tag berikut di file `Index.html`:
 <script src="https://cdn.jsdelivr.net/npm/vue@3.4.21/dist/vue.global.prod.js"></script>
 
 <!-- Shared CDN Pemkab Trenggalek v2.6.5 — selalu pakai TAG VERSI, jangan @main -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.6.5/frontend/app-common.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.7.0/frontend/app-common.min.css">
 
 <!-- Tema per aplikasi: override CSS variables di <style> lokal, mis.
      :root { --primary: #059669; --primary-dark: #047857; ... } -->
 
 <!-- ========== Sebelum </body> : JS Shared CDN ========== -->
-<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.6.5/frontend/app-components.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.6.5/frontend/app-modules.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.6.5/frontend/app-core.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.7.0/frontend/app-components.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.7.0/frontend/app-modules.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.7.0/frontend/app-core.min.js"></script>
 ```
 
 > Salinan persis + aturan rilis: [`frontend/CDN_SNIPPET.md`](frontend/CDN_SNIPPET.md).
@@ -263,6 +263,11 @@ Seluruh ikon wajib menggunakan class Font Awesome 6.5.2 (`fa-solid fa-*`):
 * `<app-badge>`: Label status berwarna otomatis — props `status` (menerima sinonim: `disetujui/approved/aktif/menunggu/pending/proses/revisi/ditolak/inactive/definitif/plt/kosong`), `label` (timpa teks), `size` (`sm`/`md`), `icon` *(baru v2.6.5)*.
 * `<app-modal>`: Dialog popup responsif berbasis animasi CSS.
 * `<app-crud-table>`: Tabel data interaktif dengan pencarian cepat, pengurutan kolom, paginasi, tombol ekspor (Excel/PDF), dan aksi CRUD.
+* `<app-filter-bar>` *(v2.7.0)*: Bar filter deklaratif (text/select/date) dengan v-model + emit `change`/`reset`.
+* `<app-empty-state>` & `<app-skeleton>` *(v2.7.0)*: Keadaan kosong & loading pulse seragam (lines/cards/table).
+* `<app-chart-bar>` / `<app-chart-doughnut>` *(v2.7.0)*: Chart kit bertema — Chart.js on-demand, warna & grid ikut dark mode.
+* `<app-pegawai-picker>` *(v2.7.0)*: Picker searchable master SIMPEG berbasis cache SWR.
+* Direktif `v-can` *(v2.7.0)*: Gating elemen UI by role sesi (fail-closed, cermin `levelOf_` CoreLib v2.2.3).
 * `<app-profile>`: Modul profil ASN mandiri dengan data terverifikasi SIMPEG.
 * `<app-settings>`: Modul pengaturan konfigurasi sistem berbasis tabs.
 
@@ -436,5 +441,5 @@ Setiap repository aplikasi yang dibuat melalui template telah dilengkapi `.githu
 
 ## 📜 Kontak & Pemeliharaan
 * **Pengelola Ekosistem**: Tim Pengembang TI — Dinas Komunikasi dan Informatika Kabupaten Trenggalek
-* **Dokumentasi & Versi**: CoreLib v2.2.3 • Frontend CDN v2.6.5 (diperbarui 2026-09-16)
+* **Dokumentasi & Versi**: CoreLib v2.2.3 • Frontend CDN v2.7.0 (diperbarui 2026-09-16)
 * **Lisensi**: MIT License
