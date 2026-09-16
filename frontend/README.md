@@ -60,7 +60,7 @@ AppModules.version     // "2.7.0"
 | `<app-empty-state>` *(v2.7.0)* | Keadaan kosong seragam: `icon`, `title`, `subtitle`, `action-label` + emit `action` |
 | `<app-skeleton>` *(v2.7.0)* | Loading pulse: `type` = `lines`\|`cards`\|`table`, `count` |
 | `<app-chart-bar>` / `<app-chart-doughnut>` *(v2.7.0; v2.7.1: prop `bare`)* | Chart kit bertema: `labels`, `datasets` ([{label,data,colors?}]), `title`, `height`, `legend`, `colors`, `bare` (embed tanpa kartu); Chart.js on-demand & ikut dark mode |
-| `<app-pegawai-picker>` *(v2.7.0)* | Picker searchable master SIMPEG (cache SWR, auto-load saat fokus): v-model = id pegawai; emit `change` = record penuh |
+| `<app-pegawai-picker>` *(v2.7.0; v2.7.3: prop `source` + nama terpilih tampil)* | Picker searchable master SIMPEG (cache SWR, auto-load saat fokus): v-model = id pegawai; emit `change` = record penuh; `source` = daftar custom (mis. `:source="sortedPegawaiList"`); `label`, `placeholder`, `clearable`, `disabled` |
 | `<app-login>` | Layar autentikasi mandiri + launcher SSO SI-PLATFORM |
 | `<app-sidebar>` | Navigasi responsif, collapse mode, indikator role |
 | `<app-header>` | Topbar: dark mode switch, notifikasi, profil user |
