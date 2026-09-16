@@ -1,4 +1,4 @@
-# 📋 Snippet Standar Pemuatan CDN — v2.6.4
+# 📋 Snippet Standar Pemuatan CDN — v2.6.5
 
 > **Salin blok di bawah ini ke `Index.html` setiap web app baru.**
 > Dokumen ini dibuat untuk menghentikan tiga pola pemuatan yang saling
@@ -19,14 +19,14 @@
 
   <!-- ========== Shared CDN Pemkab Trenggalek ==========
        ATURAN:
-       1. Pakai TAG VERSI (@v2.6.0), JANGAN @main.
+       1. Pakai TAG VERSI (mis. @v2.6.5), JANGAN @main.
           -> @main di-cache jsDelivr hingga 12 jam, update Anda tidak
              langsung terlihat dan tiap app bisa dapat versi berbeda.
        2. Pakai berkas .min (sudah di-build & di-commit di repo ini).
        3. JANGAN muat chart.js / xlsx / jspdf / pdf-lib di sini.
           Semua itu dimuat otomatis saat dibutuhkan lewat AppCore.loadLib().
   -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.6.4/frontend/app-common.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.6.5/frontend/app-common.min.css">
 ```
 
 ## 2. Blok standar sebelum `</body>`
@@ -34,9 +34,9 @@
 ```html
   <!-- Shared CDN: JS (urutan bebas — AppCore membaca window.AppComponents
        & window.AppModules saat create() dipanggil) -->
-  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.6.4/frontend/app-components.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.6.4/frontend/app-modules.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.6.4/frontend/app-core.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.6.5/frontend/app-components.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.6.5/frontend/app-modules.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.6.5/frontend/app-core.min.js"></script>
 
   <!-- Local App JS -->
   <?!= include('J_State'); ?>
@@ -46,6 +46,17 @@
   <?!= include('J_Export'); ?>
   <?!= include('J_App'); ?>
 ```
+
+---
+
+## 2b. Komponen baru di v2.6.5
+
+| Komponen | Perubahan | Contoh |
+|---|---|---|
+| `<app-badge>` | Prop baru `icon` (class Font Awesome, opsional) | `<app-badge status="disetujui" icon="fa-solid fa-check" />` |
+| `<app-stat-card>` | **Baru** — kartu metrik KPI: `title`, `value` (Number diformat id-ID otomatis), `icon`, `color` (emerald/sky/amber/purple/rose), `subtext` | `<app-stat-card title="Total Pegawai" :value="1234" color="sky" />` |
+
+Katalog props lengkap: [`README.md`](README.md) folder ini.
 
 ---
 
@@ -117,8 +128,8 @@ setelah masuk ke GitHub**. Urutannya:
 1. Ubah berkas di `frontend-cdn/frontend/`
 2. Jalankan `npm run build` (memperbarui `.min`)
 3. Commit & push / unggah lewat web GitHub
-4. **Buat tag rilis** `v2.6.0` (GitHub → Releases → Draft a new release)
-   — ini yang membuat URL `@v2.6.0` bisa dipakai dan cache-nya permanen
+4. **Buat tag rilis** `vX.Y.Z` (GitHub → Releases → Draft a new release)
+   — ini yang membuat URL `@vX.Y.Z` bisa dipakai dan cache-nya permanen
 5. Baru ubah `Index.html` aplikasi untuk menunjuk tag tersebut
 
 > ⚠️ PELAJARAN v2.6.3: buat tag HANYA setelah SEMUA berkas terunggah.
@@ -126,9 +137,9 @@ setelah masuk ke GitHub**. Urutannya:
 > dulu daripada unggahan. Mulai v2.6.4 seluruh berkas memakai SATU nomor
 > versi ekosistem — satu tag berlaku untuk semua berkas.
 
-> Selama tag belum dibuat, URL `@v2.6.0` akan mengembalikan **404**.
+> Selama tag belum dibuat, URL `@vX.Y.Z` akan mengembalikan **404**.
 > Jika Anda ingin menguji sebelum membuat tag, sementara pakai
-> `@main` + `?v=2.6.0`, lalu ganti ke `@v2.6.0` setelah rilis.
+> `@main` + `?v=X.Y.Z`, lalu ganti ke tag versi setelah rilis.
 
 ---
 
@@ -137,10 +148,10 @@ setelah masuk ke GitHub**. Urutannya:
 Buka aplikasi, jalankan di Console browser:
 
 ```javascript
-AppCore.version        // harus "2.6.4" (atau lebih baru)
+AppCore.version        // harus "2.6.5" (atau lebih baru)
 Object.keys(AppCore.libs)   // ['chart','xlsx','jspdf','autotable','pdflib','pdf']
 AppComponents.version  // harus sama dengan tag yang Anda rujuk
 ```
 
-Kalau `AppCore.version` masih `2.5.1`, berarti jsDelivr belum menyegarkan
-cache — paksa dengan menaikkan query string (`?v=2.6.0`) atau tunggu.
+Kalau `AppCore.version` masih versi lama, berarti jsDelivr belum menyegarkan
+cache — paksa dengan menaikkan query string (`?v=2.6.5`) atau tunggu.
