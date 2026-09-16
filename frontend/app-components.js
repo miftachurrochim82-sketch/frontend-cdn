@@ -60,7 +60,7 @@
       appSubtitle:  { type: String, default: 'Sistem Informasi Terintegrasi SIMPEG' },
       instansi:     { type: String, default: 'Pemerintah Kabupaten Trenggalek' },
       tagline:      { type: String, default: 'Autentikasi telah terintegrasi terpusat (SSO). Silakan masuk menggunakan akun resmi Anda pada platform utama.' },
-      version:      { type: String, default: 'v2.7.3' },
+      version:      { type: String, default: 'v2.7.4' },
       logoSvg:      { type: String, default: '' },
       isProcessing: { type: Boolean, default: false },
       errorMessage: { type: String, default: '' }
@@ -573,7 +573,7 @@
       </div>\
       <h3 class="text-sm font-bold text-slate-700 dark:text-slate-200">{{ title }}</h3>\
       <p v-if="subtitle" class="text-xs text-slate-400 dark:text-slate-500 mt-1 max-w-sm">{{ subtitle }}</p>\
-      <button v-if="actionLabel" @click="$emit(\'action\')" class="mt-4 px-4 py-2 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition">\
+      <button v-if="actionLabel" type="button" @click="$emit(\'action\')" class="mt-4 px-4 py-2 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition">\
         {{ actionLabel }}\
       </button>\
     </div>'
@@ -787,6 +787,9 @@
      Searchable picker atas master SIMPEG (cache SWR root: masterPegawaiList,
      dimuat otomatis via loadMasterSIMPEG saat pertama fokus).
      ---------------------------------------------------------- */
+  // v2.7.4 FIX: tombol hasil memakai type=button + @mousedown.prevent —
+  // (a) blur input tidak lagi menutup dropdown sebelum click terdaftar (race 180ms),
+  // (b) klik di dalam <form> app tidak lagi memicu submit tak sengaja.
   var AppPegawaiPicker = {
     name: 'AppPegawaiPicker',
     props: {
@@ -863,12 +866,12 @@
       <div class="flex items-center gap-2 px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">\
         <i class="fa-solid fa-magnifying-glass text-[11px] text-slate-400"></i>\
         <input :value="query" :placeholder="selectedName ? selectedName : placeholder" :disabled="disabled" @input="query = $event.target.value; open = true" @focus="focus" @blur="onBlur" class="flex-1 bg-transparent text-xs text-slate-700 dark:text-slate-200 outline-none">\
-        <button v-if="modelValue && clearable && !disabled" @click="clear" class="text-slate-400 hover:text-rose-500 text-[11px]" title="Kosongkan"><i class="fa-solid fa-xmark"></i></button>\
+        <button v-if="modelValue && clearable && !disabled" type="button" @mousedown.prevent @click="clear" class="text-slate-400 hover:text-rose-500 text-[11px]" title="Kosongkan"><i class="fa-solid fa-xmark"></i></button>\
       </div>\
       <div v-if="open && !disabled && (query || loading)" class="absolute z-30 mt-1 w-full rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg overflow-hidden">\
         <p v-if="loading" class="px-3 py-2 text-[11px] text-slate-400">Memuat master pegawai…</p>\
         <template v-else>\
-          <button v-for="p in results" :key="idOf(p)" @click="pick(p)" class="w-full text-left px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700/60 border-b border-slate-100 dark:border-slate-700/60 last:border-0">\
+          <button v-for="p in results" :key="idOf(p)" type="button" @mousedown.prevent @click="pick(p)" class="w-full text-left px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700/60 border-b border-slate-100 dark:border-slate-700/60 last:border-0">\
             <span class="block text-xs font-semibold text-slate-700 dark:text-slate-200">{{ labelOf(p) }}</span>\
             <span class="block text-[10px] text-slate-400 dark:text-slate-500">{{ subOf(p) }}</span>\
           </button>\
@@ -892,7 +895,7 @@
     'app-chart-bar': makeChartComponent_('bar'),
     'app-chart-doughnut': makeChartComponent_('doughnut'),
     'app-pegawai-picker': AppPegawaiPicker,
-    version: '2.7.3'
+    version: '2.7.4'
   };
 
 })(window);
