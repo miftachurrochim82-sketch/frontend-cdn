@@ -1,5 +1,9 @@
 // ============================================================
-// CORE LIBRARY GLOBAL v2.2.2 - 99_CoreTest.gs
+// CORE LIBRARY GLOBAL v2.2.3 - 99_CoreTest.gs
+// Changelog v2.2.3 (2026-09-16):
+// - Sinkron rilis v2.2.3: testRoleGateV222 (sudah ada sejak v2.2.2) KINI
+//   LULUS — fix levelOf_ yang diuji ternyata baru benar-benar diterapkan
+//   di 02_CoreGateway v2.2.3. Tanpa perubahan test di berkas ini.
 // Changelog v2.2.2 (2026-09-15):
 // - TEST BARU: regresi gating role (levelOf_/requireRole_ dengan skala
 //   viewer=0) — pastikan fallback `|| 1` lama tidak kembali.
