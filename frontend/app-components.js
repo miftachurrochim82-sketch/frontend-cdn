@@ -60,7 +60,7 @@
       appSubtitle:  { type: String, default: 'Sistem Informasi Terintegrasi SIMPEG' },
       instansi:     { type: String, default: 'Pemerintah Kabupaten Trenggalek' },
       tagline:      { type: String, default: 'Autentikasi telah terintegrasi terpusat (SSO). Silakan masuk menggunakan akun resmi Anda pada platform utama.' },
-      version:      { type: String, default: 'v2.6.5' },
+      version:      { type: String, default: 'v2.7.0' },
       logoSvg:      { type: String, default: '' },
       isProcessing: { type: Boolean, default: false },
       errorMessage: { type: String, default: '' }
@@ -553,6 +553,314 @@
     </div>'
   };
 
+
+  /* ----------------------------------------------------------
+     8. <app-empty-state> (baru v2.7.0 / B6)
+     ---------------------------------------------------------- */
+  var AppEmptyState = {
+    name: 'AppEmptyState',
+    props: {
+      icon:        { type: String, default: 'fa-solid fa-box-open' },
+      title:       { type: String, default: 'Tidak ada data' },
+      subtitle:    { type: String, default: '' },
+      actionLabel: { type: String, default: '' }
+    },
+    emits: ['action'],
+    template: '\
+    <div class="flex flex-col items-center justify-center text-center py-14 px-6 rounded-3xl bg-white dark:bg-slate-800/90 border border-dashed border-slate-300 dark:border-slate-700">\
+      <div class="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-700/60 text-slate-400 dark:text-slate-500 flex items-center justify-center text-2xl mb-4">\
+        <i :class="icon"></i>\
+      </div>\
+      <h3 class="text-sm font-bold text-slate-700 dark:text-slate-200">{{ title }}</h3>\
+      <p v-if="subtitle" class="text-xs text-slate-400 dark:text-slate-500 mt-1 max-w-sm">{{ subtitle }}</p>\
+      <button v-if="actionLabel" @click="$emit(\'action\')" class="mt-4 px-4 py-2 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition">\
+        {{ actionLabel }}\
+      </button>\
+    </div>'
+  };
+
+  /* ----------------------------------------------------------
+     9. <app-skeleton> (baru v2.7.0 / B6)
+     ---------------------------------------------------------- */
+  var AppSkeleton = {
+    name: 'AppSkeleton',
+    props: {
+      type:  { type: String, default: 'lines' },
+      count: { type: Number, default: 3 }
+    },
+    computed: {
+      items: function () { var a = []; for (var i = 0; i < this.count; i++) a.push(i); return a; }
+    },
+    methods: {
+      lineWidth: function (n) { return ['w-full', 'w-5/6', 'w-2/3'][n % 3]; }
+    },
+    template: '\
+    <div aria-busy="true" aria-label="Memuat data">\
+      <div v-if="type === \'cards\'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">\
+        <div v-for="n in items" :key="n" class="p-5 rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/60 animate-pulse">\
+          <div class="h-3 w-1/3 rounded bg-slate-200 dark:bg-slate-700"></div>\
+          <div class="h-7 w-1/2 rounded bg-slate-200 dark:bg-slate-700 mt-3"></div>\
+        </div>\
+      </div>\
+      <div v-else-if="type === \'table\'" class="rounded-2xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/60 p-4 animate-pulse">\
+        <div class="h-4 w-full rounded bg-slate-200 dark:bg-slate-700 mb-4"></div>\
+        <div v-for="n in items" :key="n" class="h-3 w-full rounded bg-slate-100 dark:bg-slate-700/60 mb-3"></div>\
+      </div>\
+      <div v-else class="space-y-3 animate-pulse">\
+        <div v-for="n in items" :key="n" class="h-4 rounded bg-slate-200 dark:bg-slate-700" :class="lineWidth(n)"></div>\
+      </div>\
+    </div>'
+  };
+
+  /* ----------------------------------------------------------
+     10. <app-filter-bar> (baru v2.7.0 / B4)
+     ---------------------------------------------------------- */
+  var AppFilterBar = {
+    name: 'AppFilterBar',
+    props: {
+      filters:    { type: Array, default: function () { return []; } },
+      modelValue: { type: Object, default: function () { return {}; } }
+    },
+    emits: ['update:modelValue', 'change', 'reset'],
+    data: function () {
+      return { local: Object.assign({}, this.modelValue) };
+    },
+    watch: {
+      modelValue: {
+        deep: true,
+        handler: function (v) { this.local = Object.assign({}, v || {}); }
+      }
+    },
+    methods: {
+      optValue: function (o) { return (o && typeof o === 'object') ? o.value : o; },
+      optLabel: function (o) { return (o && typeof o === 'object') ? (o.label || o.value) : o; },
+      emitChange: function () {
+        var out = Object.assign({}, this.local);
+        this.$emit('update:modelValue', out);
+        this.$emit('change', out);
+      },
+      onInput: function (key, val) { this.local[key] = val; this.emitChange(); },
+      reset: function () {
+        this.local = {};
+        this.$emit('update:modelValue', {});
+        this.$emit('change', {});
+        this.$emit('reset');
+      }
+    },
+    template: '\
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">\
+      <div v-for="f in filters" :key="f.key">\
+        <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">{{ f.label }}</label>\
+        <select v-if="f.type === \'select\'" :value="local[f.key] || \'\'" @change="onInput(f.key, $event.target.value)" class="w-full px-3 py-2 rounded-xl text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200">\
+          <option value="">Semua</option>\
+          <option v-for="o in (f.options || [])" :key="optValue(o)" :value="optValue(o)">{{ optLabel(o) }}</option>\
+        </select>\
+        <input v-else :type="f.type === \'date\' ? \'date\' : \'text\'" :value="local[f.key] || \'\'" :placeholder="f.placeholder || \'\'" @input="onInput(f.key, $event.target.value)" class="w-full px-3 py-2 rounded-xl text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200">\
+      </div>\
+      <div class="flex items-end">\
+        <button @click="reset" class="px-3 py-2 rounded-xl text-xs font-semibold text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700/60 transition">\
+          <i class="fa-solid fa-rotate-right mr-1"></i>Reset\
+        </button>\
+      </div>\
+    </div>'
+  };
+
+
+  /* ----------------------------------------------------------
+     11. Chart kit (baru v2.7.0 / B2): <app-chart-bar> & <app-chart-doughnut>
+     Chart.js dimuat on-demand via AppCore.loadLib('chart'); warna & grid
+     mengikuti dark mode (event 'appcore:dark' dari AppCore.toggleDarkMode).
+     ---------------------------------------------------------- */
+  function makeChartComponent_(chartType) {
+    return {
+      name: chartType === 'bar' ? 'AppChartBar' : 'AppChartDoughnut',
+      props: {
+        labels:   { type: Array, default: function () { return []; } },
+        datasets: { type: Array, default: function () { return []; } },
+        title:    { type: String, default: '' },
+        height:   { type: Number, default: 260 },
+        legend:   { type: Boolean, default: true },
+        colors:   { type: Array, default: function () { return []; } }
+      },
+      data: function () {
+        return { chart: null, loadError: false, dark: document.documentElement.classList.contains('dark') };
+      },
+      computed: {
+        palette: function () {
+          return this.colors.length ? this.colors :
+            ['#059669', '#0284c7', '#f59e0b', '#9333ea', '#f43f5e', '#14b8a6', '#6366f1', '#f97316'];
+        }
+      },
+      watch: {
+        labels:   { deep: true, handler: function () { this.render(); } },
+        datasets: { deep: true, handler: function () { this.render(); } }
+      },
+      mounted: function () {
+        var self = this;
+        this.onDark_ = function (e) { self.dark = !!e.detail; self.render(); };
+        window.addEventListener('appcore:dark', this.onDark_);
+        this.bootstrap();
+      },
+      unmounted: function () {
+        window.removeEventListener('appcore:dark', this.onDark_);
+        if (this.chart) { this.chart.destroy(); this.chart = null; }
+      },
+      methods: {
+        bootstrap: async function () {
+          var ok = true;
+          try { ok = await this.ensureChartLibrary(); } catch (e) { ok = false; }
+          if (!ok) { this.loadError = true; return; }
+          this.loadError = false;
+          this.render();
+        },
+        render: function () {
+          if (this.loadError || typeof Chart === 'undefined') return;
+          if (this.chart) { this.chart.destroy(); this.chart = null; }
+          var ctx = this.$refs.canvas;
+          if (!ctx) return;
+          var self = this;
+          var pal = this.palette;
+          var gridColor = this.dark ? 'rgba(148,163,184,0.15)' : 'rgba(100,116,139,0.12)';
+          var tickColor = this.dark ? '#94a3b8' : '#64748b';
+          var ds = (this.datasets && this.datasets.length) ? this.datasets : [{ label: this.title || 'Data', data: [] }];
+          var sets = ds.map(function (d, i) {
+            var base = { label: d.label || '', data: d.data || [] };
+            if (chartType === 'doughnut') {
+              base.backgroundColor = d.colors || pal;
+              base.borderColor = self.dark ? '#1e293b' : '#ffffff';
+              base.borderWidth = 2;
+            } else {
+              base.backgroundColor = d.colors || (ds.length === 1 ? pal : pal[i % pal.length]);
+              base.borderRadius = 6;
+              base.maxBarThickness = 48;
+            }
+            return base;
+          });
+          var opts = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: self.legend && (chartType === 'doughnut' || ds.length > 1),
+                labels: { color: tickColor, boxWidth: 12, font: { size: 11 } }
+              },
+              tooltip: { backgroundColor: self.dark ? '#0f172a' : '#1e293b' }
+            }
+          };
+          if (chartType === 'bar') {
+            opts.scales = {
+              x: { grid: { display: false }, ticks: { color: tickColor, font: { size: 10 } } },
+              y: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 10 }, precision: 0 } }
+            };
+          }
+          this.chart = new Chart(ctx, {
+            type: chartType,
+            data: { labels: this.labels || [], datasets: sets },
+            options: opts
+          });
+        }
+      },
+      template: '\
+      <div class="p-5 rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/60 shadow-sm">\
+        <p v-if="title" class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{{ title }}</p>\
+        <div v-if="loadError" class="flex flex-col items-center justify-center py-10 text-center">\
+          <i class="fa-solid fa-chart-simple text-2xl text-slate-300 dark:text-slate-600 mb-2"></i>\
+          <p class="text-xs text-slate-400 dark:text-slate-500">Grafik gagal dimuat.</p>\
+          <button @click="bootstrap" class="mt-2 px-3 py-1.5 rounded-lg text-[11px] font-bold text-emerald-600 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40">Coba lagi</button>\
+        </div>\
+        <div v-else class="relative" :style="{ height: height + \'px\' }">\
+          <canvas ref="canvas"></canvas>\
+        </div>\
+      </div>'
+    };
+  }
+
+  /* ----------------------------------------------------------
+     12. <app-pegawai-picker> (baru v2.7.0 / B1)
+     Searchable picker atas master SIMPEG (cache SWR root: masterPegawaiList,
+     dimuat otomatis via loadMasterSIMPEG saat pertama fokus).
+     ---------------------------------------------------------- */
+  var AppPegawaiPicker = {
+    name: 'AppPegawaiPicker',
+    props: {
+      modelValue:  { type: String, default: '' },
+      label:       { type: String, default: 'Pegawai' },
+      placeholder: { type: String, default: 'Cari nama / NIP…' },
+      clearable:   { type: Boolean, default: true },
+      disabled:    { type: Boolean, default: false }
+    },
+    emits: ['update:modelValue', 'change'],
+    data: function () { return { query: '', open: false, loading: false }; },
+    computed: {
+      list: function () { return (this.$root && this.$root.masterPegawaiList) || []; },
+      selectedName: function () {
+        if (!this.modelValue) return '';
+        return (typeof this.namaPegawai === 'function') ? this.namaPegawai(this.modelValue) : '';
+      },
+      results: function () {
+        var q = (this.query || '').toLowerCase();
+        if (!q) return [];
+        var out = [];
+        for (var i = 0; i < this.list.length && out.length < 8; i++) {
+          var p = this.list[i] || {};
+          var nama = String(p.nama || p.nama_lengkap || '').toLowerCase();
+          var nip = String(p.nip || '').toLowerCase();
+          if (nama.indexOf(q) >= 0 || nip.indexOf(q) >= 0) out.push(p);
+        }
+        return out;
+      }
+    },
+    methods: {
+      idOf:  function (p) { return String(p.id || p.pegawai_id || p.nip || ''); },
+      labelOf: function (p) { return String(p.nama || p.nama_lengkap || '(tanpa nama)'); },
+      subOf: function (p) {
+        var parts = [];
+        if (p.nip) parts.push('NIP ' + p.nip);
+        if (p.unit_nama || p.unit) parts.push(String(p.unit_nama || p.unit));
+        return parts.join(' • ');
+      },
+      focus: async function () {
+        if (this.disabled) return;
+        this.open = true;
+        if (!this.list.length && this.$root && this.$root.loadMasterSIMPEG) {
+          this.loading = true;
+          try { await this.$root.loadMasterSIMPEG(); } catch (e) {}
+          this.loading = false;
+        }
+      },
+      pick: function (p) {
+        this.query = '';
+        this.open = false;
+        this.$emit('update:modelValue', this.idOf(p));
+        this.$emit('change', p);
+      },
+      clear: function () {
+        this.$emit('update:modelValue', '');
+        this.$emit('change', null);
+      },
+      onBlur: function () { var self = this; setTimeout(function () { self.open = false; }, 180); }
+    },
+    template: '\
+    <div class="relative">\
+      <label v-if="label" class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">{{ label }}</label>\
+      <div class="flex items-center gap-2 px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">\
+        <i class="fa-solid fa-magnifying-glass text-[11px] text-slate-400"></i>\
+        <input :value="query" :placeholder="selectedName ? selectedName : placeholder" :disabled="disabled" @input="query = $event.target.value; open = true" @focus="focus" @blur="onBlur" class="flex-1 bg-transparent text-xs text-slate-700 dark:text-slate-200 outline-none">\
+        <button v-if="modelValue && clearable && !disabled" @click="clear" class="text-slate-400 hover:text-rose-500 text-[11px]" title="Kosongkan"><i class="fa-solid fa-xmark"></i></button>\
+      </div>\
+      <div v-if="open && !disabled && (query || loading)" class="absolute z-30 mt-1 w-full rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg overflow-hidden">\
+        <p v-if="loading" class="px-3 py-2 text-[11px] text-slate-400">Memuat master pegawai…</p>\
+        <template v-else>\
+          <button v-for="p in results" :key="idOf(p)" @click="pick(p)" class="w-full text-left px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700/60 border-b border-slate-100 dark:border-slate-700/60 last:border-0">\
+            <span class="block text-xs font-semibold text-slate-700 dark:text-slate-200">{{ labelOf(p) }}</span>\
+            <span class="block text-[10px] text-slate-400 dark:text-slate-500">{{ subOf(p) }}</span>\
+          </button>\
+          <p v-if="!results.length" class="px-3 py-2 text-[11px] text-slate-400">Tidak ditemukan.</p>\
+        </template>\
+      </div>\
+    </div>'
+  };
+
   global.AppComponents = {
     'app-login': AppLogin,
     'app-sidebar': AppSidebar,
@@ -561,7 +869,13 @@
     'app-stat-card': AppStatCard,
     'app-modal': AppModal,
     'app-crud-table': AppCrudTable,
-    version: '2.6.5'
+    'app-empty-state': AppEmptyState,
+    'app-skeleton': AppSkeleton,
+    'app-filter-bar': AppFilterBar,
+    'app-chart-bar': makeChartComponent_('bar'),
+    'app-chart-doughnut': makeChartComponent_('doughnut'),
+    'app-pegawai-picker': AppPegawaiPicker,
+    version: '2.7.0'
   };
 
 })(window);
