@@ -1,5 +1,11 @@
 // ============================================================
-// CORE LIBRARY GLOBAL v2.2.2 - 02_CoreGateway.gs
+// CORE LIBRARY GLOBAL v2.2.3 - 02_CoreGateway.gs
+// Changelog v2.2.3 (2026-09-16):
+// - FIX KEAMANAN (P1-C1 TUNTAS): levelOf_ — fallback `|| 1` ternyata BELUM
+//   diganti saat v2.2.2 (changelog mengklaim sudah). viewer (level 0, falsy)
+//   & role tak dikenal tetap naik ke 1 → bisa lolos gerbang save/delete
+//   'user' di Declarative Resource Router & entityPermissions write='user'.
+//   Sekarang: undefined → 0 (fail-closed), selaras checkAuth & requireRole_.
 // Changelog v2.2.2 (2026-09-15):
 // - FIX KEAMANAN (P1-C1): checkAuth & levelOf_ — fallback `|| 1` diganti pola
 //   `=== undefined → 0` (selaras requireRole_). Sejak MASTER_ROLE_LEVELS v2.2
@@ -668,7 +674,14 @@ function executeResourceList_(ssId, canonical, query, headersMap, pkField, custo
 // §8 DISPATCHER
 // ============================================================
 
-function levelOf_(role, map) { return (map && map[String(role).toLowerCase()]) || 1; }
+// v2.2.3 FIX (P1-C1 tuntas): fail-closed — undefined → 0 (selaras checkAuth &
+// requireRole_). Fallback lama `|| 1` menaikkan viewer (0, falsy) & role tak
+// dikenal menjadi level 1 sehingga.viewer LOLOS gerbang save/delete 'user'
+// di Declarative Resource Router & entityPermissions.
+function levelOf_(role, map) {
+  var lv = map && map[String(role).toLowerCase()];
+  return lv === undefined ? 0 : lv;
+}
 
 function entityGate_(entity, headersMap) {
   if (!entity || entity === 'UNDEFINED') return 'Entitas tidak valid.';
