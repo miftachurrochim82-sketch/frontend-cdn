@@ -77,8 +77,10 @@
 
 **Batch 1 — CDN naik (sekali rilis, tag `v2.7.0`):**
 - [x] A2 (appCode terekspos), B7 (directive `v-can` fail-closed), B6 (`app-empty-state`+`app-skeleton`), B4 (`app-filter-bar`+`AppCore.paginate/pageCount`) — SIAP di workspace, syntax check lulus; versi tetap 2.6.5 s/d rilis.
-- [ ] B2 (chart kit) & B1 (`app-pegawai-picker`) — lanjutan berikutnya.
-- [ ] Setelah lengkap: bump versi 2.7.0 + `npm run build` + unggah SEMUA berkas + tag.
+- [x] B2 (`app-chart-bar`/`app-chart-doughnut`, Chart.js on-demand + ikut dark mode via event `appcore:dark`) & B1 (`app-pegawai-picker` berbasis cache SWR) — SIAP di workspace; registrasi 13 komponen; node --check lulus.
+- [x] Bump versi **2.7.0** (4 berkas internal + package.json) + `npm run build` → `.min` memuat komponen baru.
+- [x] Dokumentasi diselaraskan ke v2.7.0 (frontend/README, CDN_SNIPPET + seksi 2b baru, ECOSYSTEM_GUIDE, README root + riwayat).
+- [ ] **RILIS (user)**: unggah SEMUA berkas rilis ke GitHub → BARU buat tag `v2.7.0` (lihat DAFTAR_SALIN Bagian 13).
 - [ ] `npm run build` → commit `.min.*` → **unggah SEMUA berkas dulu, lalu tag** (pelajaran v2.6.3).
 - [ ] Perbarui CDN_SNIPPET (A3) + katalog props di `frontend/README.md`.
 
