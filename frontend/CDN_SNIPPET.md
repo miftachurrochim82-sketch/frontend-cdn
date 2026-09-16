@@ -1,4 +1,4 @@
-# 📋 Snippet Standar Pemuatan CDN — v2.6.5
+# 📋 Snippet Standar Pemuatan CDN — v2.7.0
 
 > **Salin blok di bawah ini ke `Index.html` setiap web app baru.**
 > Dokumen ini dibuat untuk menghentikan tiga pola pemuatan yang saling
@@ -26,7 +26,7 @@
        3. JANGAN muat chart.js / xlsx / jspdf / pdf-lib di sini.
           Semua itu dimuat otomatis saat dibutuhkan lewat AppCore.loadLib().
   -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.6.5/frontend/app-common.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.7.0/frontend/app-common.min.css">
 ```
 
 ## 2. Blok standar sebelum `</body>`
@@ -34,9 +34,9 @@
 ```html
   <!-- Shared CDN: JS (urutan bebas — AppCore membaca window.AppComponents
        & window.AppModules saat create() dipanggil) -->
-  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.6.5/frontend/app-components.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.6.5/frontend/app-modules.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.6.5/frontend/app-core.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.7.0/frontend/app-components.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.7.0/frontend/app-modules.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.7.0/frontend/app-core.min.js"></script>
 
   <!-- Local App JS -->
   <?!= include('J_State'); ?>
@@ -49,7 +49,18 @@
 
 ---
 
-## 2b. Komponen baru di v2.6.5
+## 2b. Komponen baru di v2.7.0
+
+| Fitur | Bentuk | Contoh |
+|---|---|---|
+| `v-can` | direktif gating role (fail-closed) | `<button v-can="'verifikator'">Verifikasi</button>` |
+| `<app-filter-bar>` | filter deklaratif + v-model | `<app-filter-bar :filters="fs" v-model="filterState" />` |
+| `<app-empty-state>` / `<app-skeleton>` | keadaan kosong & loading | `<app-skeleton type="cards" :count="6" />` |
+| `<app-chart-bar>` / `<app-chart-doughnut>` | chart kit bertema dark mode | `<app-chart-bar :labels="bln" :datasets="ds" title="Laporan per Bulan" />` |
+| `<app-pegawai-picker>` | picker master SIMPEG | `<app-pegawai-picker v-model="form.pegawai_id" />` |
+| `AppCore.paginate/pageCount` | helper paginasi | `AppCore.paginate(list, page, 10)` |
+
+### Komponen baru di v2.6.5
 
 | Komponen | Perubahan | Contoh |
 |---|---|---|
@@ -148,10 +159,10 @@ setelah masuk ke GitHub**. Urutannya:
 Buka aplikasi, jalankan di Console browser:
 
 ```javascript
-AppCore.version        // harus "2.6.5" (atau lebih baru)
+AppCore.version        // harus "2.7.0" (atau lebih baru)
 Object.keys(AppCore.libs)   // ['chart','xlsx','jspdf','autotable','pdflib','pdf']
 AppComponents.version  // harus sama dengan tag yang Anda rujuk
 ```
 
 Kalau `AppCore.version` masih versi lama, berarti jsDelivr belum menyegarkan
-cache — paksa dengan menaikkan query string (`?v=2.6.5`) atau tunggu.
+cache — paksa dengan menaikkan query string (`?v=2.7.0`) atau tunggu.
