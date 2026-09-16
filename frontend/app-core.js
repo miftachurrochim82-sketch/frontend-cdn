@@ -298,6 +298,7 @@
         return {
           // ===== Pass-through AppConfig =====
           appTitle: config.appTitle || 'Aplikasi',
+          appCode: config.appCode || '',   // v2.7.0 (A2): identitas app tersedia sbg this.appCode
           brand: Object.assign(
             { title: '', subtitle: '', logoChar: 'A', logoIcon: 'fa-solid fa-cube', logoSvg: '' },
             config.brand || {}
@@ -377,6 +378,8 @@
           this.isDarkMode = !this.isDarkMode;
           safeLocal.setItem(KEY_DARK, this.isDarkMode);
           document.documentElement.classList.toggle('dark', this.isDarkMode);
+          // v2.7.0 (B2): komponen bertema (chart kit) mendengarkan event ini utk re-render
+          try { window.dispatchEvent(new CustomEvent('appcore:dark', { detail: this.isDarkMode })); } catch (e) {}
           if (typeof config.onDarkToggle === 'function') config.onDarkToggle(this);
         },
 
@@ -785,18 +788,48 @@
       });
     }
 
+    // v2.7.0 (B7): directive v-can — gating elemen UI berdasar role sesi.
+    // Cermin fail-closed levelOf_ CoreLib v2.2.3: role tak dikenal = level 0;
+    // nilai syarat tak dikenal = selalu sembunyikan (need = 99).
+    // Pakai: <button v-can="'verifikator'">…</button>
+    var ROLE_LEVELS_CAN = { admin: 3, super: 3, verifikator: 2, user: 1, viewer: 0 };
+    function canCheck_(el, binding) {
+      var inst = binding.instance || {};
+      var role = String((inst.currentUser && inst.currentUser.role) || '').toLowerCase();
+      var have = ROLE_LEVELS_CAN[role]; if (have === undefined) have = 0;
+      var need = ROLE_LEVELS_CAN[String(binding.value || '').toLowerCase()]; if (need === undefined) need = 99;
+      if (have < need && el.parentNode) el.parentNode.removeChild(el);
+    }
+    app.directive('can', { mounted: canCheck_, updated: canCheck_ });
+
     (config.mixins || []).forEach(function (m) { app.mixin(m); });
 
     return app;
   }
 
+  // v2.7.0 (B4): helper paginasi sisi klien — pasangan <app-filter-bar>/<app-crud-table>
+  function paginate(list, page, perPage) {
+    list = list || [];
+    page = Math.max(1, parseInt(page, 10) || 1);
+    perPage = Math.max(1, parseInt(perPage, 10) || 10);
+    var start = (page - 1) * perPage;
+    return list.slice(start, start + perPage);
+  }
+  function pageCount(list, perPage) {
+    list = list || [];
+    perPage = Math.max(1, parseInt(perPage, 10) || 10);
+    return Math.max(1, Math.ceil(list.length / perPage));
+  }
+
   global.AppCore = {
     create: create,
+    paginate: paginate,
+    pageCount: pageCount,
     loadScript: loadScript,
     loadLib: loadLib,
     libs: LIBS,
     debounce: debounce,
-    version: '2.6.5'
+    version: '2.7.0'
   };
 
 })(window);
