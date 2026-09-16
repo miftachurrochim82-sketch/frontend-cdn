@@ -60,7 +60,7 @@
       appSubtitle:  { type: String, default: 'Sistem Informasi Terintegrasi SIMPEG' },
       instansi:     { type: String, default: 'Pemerintah Kabupaten Trenggalek' },
       tagline:      { type: String, default: 'Autentikasi telah terintegrasi terpusat (SSO). Silakan masuk menggunakan akun resmi Anda pada platform utama.' },
-      version:      { type: String, default: 'v2.7.0' },
+      version:      { type: String, default: 'v2.7.1' },
       logoSvg:      { type: String, default: '' },
       isProcessing: { type: Boolean, default: false },
       errorMessage: { type: String, default: '' }
@@ -680,7 +680,8 @@
         title:    { type: String, default: '' },
         height:   { type: Number, default: 260 },
         legend:   { type: Boolean, default: true },
-        colors:   { type: Array, default: function () { return []; } }
+        colors:   { type: Array, default: function () { return []; } },
+        bare:     { type: Boolean, default: false }   // v2.7.1: embed tanpa kartu (untuk card kustom app)
       },
       data: function () {
         return { chart: null, loadError: false, dark: document.documentElement.classList.contains('dark') };
@@ -761,8 +762,8 @@
         }
       },
       template: '\
-      <div class="p-5 rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/60 shadow-sm">\
-        <p v-if="title" class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{{ title }}</p>\
+      <div :class="bare ? \'\' : \'p-5 rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/60 shadow-sm\'">\
+        <p v-if="title && !bare" class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{{ title }}</p>\
         <div v-if="loadError" class="flex flex-col items-center justify-center py-10 text-center">\
           <i class="fa-solid fa-chart-simple text-2xl text-slate-300 dark:text-slate-600 mb-2"></i>\
           <p class="text-xs text-slate-400 dark:text-slate-500">Grafik gagal dimuat.</p>\
@@ -875,7 +876,7 @@
     'app-chart-bar': makeChartComponent_('bar'),
     'app-chart-doughnut': makeChartComponent_('doughnut'),
     'app-pegawai-picker': AppPegawaiPicker,
-    version: '2.7.0'
+    version: '2.7.1'
   };
 
 })(window);
