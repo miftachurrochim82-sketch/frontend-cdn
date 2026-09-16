@@ -1,7 +1,7 @@
 # Ekosistem Aplikasi Pemerintah Kabupaten Trenggalek
 ### Platform Single Sign-On (SSO), Master Data & Aplikasi Terpadu
 
-Repositori ini memuat pustaka antarmuka bersama (*Shared UI Components*), arsitektur desain sistem, dan pedoman integrasi untuk seluruh ekosistem digital Pemerintah Kabupaten Trenggalek berbasis **Google Apps Script (GAS)**, **Vue 3**, dan **Tailwind CSS**.
+Repositori ini adalah **master bersama** ekosistem: memuat pustaka frontend CDN (`frontend/`), **salinan sumber resmi library backend `CoreLib`** (`backend/`), dan seluruh dokumentasi arsitektur. Berbasis **Google Apps Script (GAS)**, **Vue 3**, dan **Tailwind CSS**.
 
 ---
 
@@ -9,12 +9,55 @@ Repositori ini memuat pustaka antarmuka bersama (*Shared UI Components*), arsite
 
 | Paket | Versi | Catatan |
 |---|---|---|
-| **CoreLib** (backend library) | `v2.2.2` | FIX gating role: fallback `\|\| 1` → fail-closed `=== undefined → 0`; strip `_cacheBust` di `dispatchAction` |
-| `frontend/app-core.js` | `v2.5.1` | Cache busting `_cacheBust`, dedup request in-flight |
-| `frontend/app-components.js` | `v2.4.0` | Komponen shell Vue 3 siap pakai |
-| `frontend/app-modules.js` | `v2.1.0` | `<app-profile>`, `<app-settings>` |
+| **CoreLib** (backend GAS library, `backend/`) | `v2.2.3` | ⭐ FIX keamanan `levelOf_` fail-closed (viewer/role tak dikenal = level 0, bukan 1). Terverifikasi live 2026-09-16: `testAll()` PASS 38 / FAIL 0. |
+| **Frontend CDN** (`frontend/`, satu versi untuk semua berkas) | `v2.6.5` | `<app-badge>` prop `icon` + `<app-stat-card>` (kartu metrik KPI). Tag `@v2.6.5` live di jsDelivr. |
 
-> Aplikasi konsumen memuat aset via jsDelivr (`@main` atau tag versi). Berkas `.min.*` dijamin sinkron dengan sumbernya oleh `npm run build`.
+<details>
+<summary>Riwayat versi sebelumnya</summary>
+
+| Versi | Tanggal | Perubahan |
+|---|---|---|
+| CoreLib v2.2.2 | 2026-09-15 | FIX `checkAuth` fail-closed (`=== undefined → 0`), `dispatchAction` buang `_cacheBust`, penguatan `requireRole_`, test regresi `testRoleGateV222`. ⚠️ Fix `levelOf_` belum ikut terkirim → dilengkapi di v2.2.3. |
+| CoreLib v2.2.1 | 2026-09-15 | FIX `genUniqueCode_` (regex `reAnyNumber` buggy). |
+| CDN v2.6.4 | 2026-09 | Satu nomor versi ekosistem untuk semua berkas; pelajaran tag-setelah-unggah. |
+| CDN v2.6.0 | 2026-09 | Registry pustaka `AppCore.libs` + `loadLib()` on-demand (chart/xlsx/jspdf/autotable/pdflib). |
+
+</details>
+
+> Aplikasi konsumen memuat aset via jsDelivr dengan **tag versi** (`@v2.6.5`), bukan `@main`.
+> Berkas `.min.*` dijamin sinkron dengan sumbernya oleh `npm run build`.
+
+---
+
+## 🗂️ Struktur Repositori
+
+```text
+frontend-cdn/
+├── frontend/               # Pustaka CDN (CSS + Vue 3 components)
+│   ├── app-common.css      # Design tokens & kelas util bersama
+│   ├── app-components.js   # <app-login> <app-sidebar> <app-header> <app-badge>
+│   │                       # <app-stat-card> <app-modal> <app-crud-table>
+│   ├── app-modules.js      # <app-profile> <app-settings>
+│   ├── app-core.js         # AppCore: create(), safeSession/safeLocal, loadLib, SWR cache
+│   ├── *.min.*             # Hasil build — yang dimuat aplikasi via jsDelivr
+│   ├── README.md           # Katalog komponen & props lengkap
+│   └── CDN_SNIPPET.md      # Snippet <head>/</body> standar untuk app baru
+├── backend/                # ★ SALINAN SUMBER RESMI library GAS "CoreLib" v2.2.3
+│   ├── 01_CoreFoundation.gs   # Engine DB Sheets, cache, tanggal, helper SIMPEG
+│   ├── 02_CoreGateway.gs      # SSO auth, role guard, dispatchAction/router
+│   ├── 03_CoreServices.gs     # CRUD generik, config service, app setup
+│   ├── 99_CoreTest.gs         # Test suite (testAll = 39 test)
+│   ├── appsscript.json        # Manifest library
+│   ├── Code.gs                # TEMPLATE aplikasi baru — BUKAN bagian library
+│   ├── 00_MIGRATION_v2.md     # ★ Dokumen master CoreLib (changelog, rilis, kontrak)
+│   └── .claspignore           # Hanya 5 file library yang boleh ter-push
+├── tests/                  # Simulasi integrasi SSO (Node.js)
+├── ECOSYSTEM_GUIDE.md      # Panduan arsitektur lengkap ekosistem
+└── package.json            # Skrip build (npm run build)
+```
+
+> **Penting**: yang ada di proyek GAS `CoreLib` HANYA `appsscript.json` + `01`/`02`/`03`/`99`.
+> `Code.gs` dan `00_MIGRATION_v2.md` sengaja hanya hidup di GitHub.
 
 ---
 
@@ -31,30 +74,42 @@ Repositori ini memuat pustaka antarmuka bersama (*Shared UI Components*), arsite
        ┌───────────────────────┼───────────────────────┐
        ▼                       ▼                       ▼
 ┌──────────────┐        ┌──────────────┐        ┌──────────────┐
-│SI-KOMPETENSI │        │ SI-PELAPORAN │        │  SI-DIKLAT   │
-│ (Kompetensi) │        │ (Pelaporan)  │        │ (Diklat ASN) │
+│SI-KOMPETENSI │        │ SI-PELAPORAN │        │   (app baru  │
+│ (Kompetensi) │        │ (Pelaporan)  │        │  via Code.gs)│
 └──────────────┘        └──────────────┘        └──────────────┘
+        Semua aplikasi satelit memakai CoreLib (backend)
+        + frontend-cdn (UI) yang sama dari repo ini.
 ```
 
 ---
 
 ## 📦 Daftar Proyek & Repositori Resmi
 
-| Proyek | Deskripsi | Struktur Frontend | Tautan Repositori |
+| Proyek | Deskripsi | Dependensi dari repo ini | Tautan |
 |---|---|---|---|
-| **`si-platform`** | Portal SSO, User Management, Role RBAC, Storage & Audit Log | 2 File HTML (`Index.html` + `V_Layout.html`) | [GitHub Repo](https://github.com/miftachurrochim82-sketch/si-platform) |
-| **`si-kompetensi`** | Aplikasi Riwayat & Analisis Pengembangan Kompetensi ASN | 2 File HTML (`Index.html` + `V_Layout.html`) | [GitHub Repo](https://github.com/miftachurrochim82-sketch/si-kompetensi) |
-| **`si-pelaporan`** | Aplikasi Manajemen & Verifikasi Pelaporan Kinerja ASN | 2 File HTML (`Index.html` + `V_Layout.html`) | [GitHub Repo](https://github.com/miftachurrochim82-sketch/si-pelaporan) |
-| **`frontend-cdn`** | Pustaka CDN Bersama (`app-components`, `app-core`, `app-common.css`) | Shared CDN Repository | [GitHub Repo](https://github.com/miftachurrochim82-sketch/frontend-cdn) |
+| **`si-platform`** | Portal SSO, User Management, Role RBAC, Storage & Audit Log | `app-common.css` `@v2.6.4` (CSS only) | [GitHub](https://github.com/miftachurrochim82-sketch/si-platform) |
+| **`si-kompetensi`** | Riwayat & Analisis Pengembangan Kompetensi ASN | CDN `@v2.6.5` + CoreLib v12 (`developmentMode: true`) | [GitHub](https://github.com/miftachurrochim82-sketch/si-kompetensi) |
+| **`si-pelaporan`** | Manajemen & Verifikasi Pelaporan Kinerja ASN | CDN `@v2.6.5` + CoreLib v6 (pinned — menunggu bump) | [GitHub](https://github.com/miftachurrochim82-sketch/si-pelaporan) |
+| **`frontend-cdn`** | Master bersama: CDN frontend + sumber CoreLib | — | repo ini |
 
 ---
 
 ## 🚀 Keunggulan Arsitektur 2-Berkas HTML (Single Include)
 
 1. **Ringan & Bebas Bug di Apps Script**:
-   - Google Apps Script hanya perlu memproses **satu kali include** (`<?!= include('V_Layout'); ?>`) di dalam `Index.html`.
-   - Menghilangkan resiko *nested include* atau *recursion error* yang sering terjadi jika template dipecah ke belasan file terpisah.
-2. **Sangat Nyaman Dikelola di Browser Tablet**:
-   - Struktur berkas di editor Google Apps Script tetap ramping (hanya 4-5 berkas `.gs` dan 2 berkas `.html`).
-3. **Pustaka Terpusat via CDN jsDelivr**:
-   - Seluruh aplikasi dinas berbagi komponen `<app-sidebar>`, `<app-header>`, `<app-badge>`, `<app-login>`, `<app-crud-table>`, `<app-profile>`, dan `<app-settings>` dari repository `frontend-cdn`.
+   - GAS hanya memproses **satu kali include** (`<?!= include('V_Layout'); ?>`) di dalam `Index.html`.
+   - Menghilangkan risiko *nested include* / *recursion error*.
+2. **Nyaman dikelola di browser tablet**: struktur berkas editor GAS tetap ramping.
+3. **Pustaka terpusat via CDN jsDelivr**: semua aplikasi berbagi `<app-sidebar>`, `<app-header>`, `<app-badge>`, `<app-stat-card>`, `<app-login>`, `<app-modal>`, `<app-crud-table>`, `<app-profile>`, `<app-settings>`.
+4. **Backend terpusat via CoreLib**: satu library GAS untuk auth SSO, role guard, CRUD generik, dan test suite — aplikasi satelit tinggal konfigurasi.
+
+---
+
+## 📚 Dokumentasi
+
+| Dokumen | Isi |
+|---|---|
+| [`ECOSYSTEM_GUIDE.md`](ECOSYSTEM_GUIDE.md) | Panduan arsitektur lengkap (backend, frontend, SSO, deployment, troubleshooting) |
+| [`backend/00_MIGRATION_v2.md`](backend/00_MIGRATION_v2.md) | **Master CoreLib**: changelog v2.0→v2.2.3, prosedur rilis, kontrak keamanan |
+| [`frontend/README.md`](frontend/README.md) | Katalog komponen & props |
+| [`frontend/CDN_SNIPPET.md`](frontend/CDN_SNIPPET.md) | Snippet pemuatan CDN standar untuk aplikasi baru |
