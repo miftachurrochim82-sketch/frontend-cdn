@@ -59,7 +59,7 @@ AppModules.version     // "2.7.0"
 | `<app-filter-bar>` *(v2.7.0)* | Bar filter deklaratif: `filters` = [{key,label,type:'text'\|'select'\|'date',options,placeholder}]; v-model objek nilai; emit `change`/`reset` |
 | `<app-empty-state>` *(v2.7.0)* | Keadaan kosong seragam: `icon`, `title`, `subtitle`, `action-label` + emit `action` |
 | `<app-skeleton>` *(v2.7.0)* | Loading pulse: `type` = `lines`\|`cards`\|`table`, `count` |
-| `<app-chart-bar>` / `<app-chart-doughnut>` *(v2.7.0)* | Chart kit bertema: `labels`, `datasets` ([{label,data,colors?}]), `title`, `height`, `legend`, `colors`; Chart.js dimuat on-demand & ikut dark mode |
+| `<app-chart-bar>` / `<app-chart-doughnut>` *(v2.7.0; v2.7.1: prop `bare`)* | Chart kit bertema: `labels`, `datasets` ([{label,data,colors?}]), `title`, `height`, `legend`, `colors`, `bare` (embed tanpa kartu); Chart.js on-demand & ikut dark mode |
 | `<app-pegawai-picker>` *(v2.7.0)* | Picker searchable master SIMPEG (cache SWR, auto-load saat fokus): v-model = id pegawai; emit `change` = record penuh |
 | `<app-login>` | Layar autentikasi mandiri + launcher SSO SI-PLATFORM |
 | `<app-sidebar>` | Navigasi responsif, collapse mode, indikator role |
