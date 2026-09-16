@@ -1,4 +1,4 @@
-# Frontend CDN — Pustaka UI Bersama v2.6.5
+# Frontend CDN — Pustaka UI Bersama v2.7.0
 ### Vue 3 + Tailwind CSS • Pemkab Trenggalek
 
 Seluruh aplikasi ekosistem (si-kompetensi, si-pelaporan, si-platform, dan aplikasi baru) memuat UI dari folder ini via jsDelivr. **Satu nomor versi berlaku untuk semua berkas** — satu tag rilis (`v2.6.5`) mengunci CSS + 3 bundle JS sekaligus.
@@ -18,9 +18,9 @@ Seluruh aplikasi ekosistem (si-kompetensi, si-pelaporan, si-platform, dan aplika
 
 Cek versi runtime di Console browser:
 ```javascript
-AppCore.version        // "2.6.5"
-AppComponents.version  // "2.6.5"
-AppModules.version     // "2.6.5"
+AppCore.version        // "2.7.0"
+AppComponents.version  // "2.7.0"
+AppModules.version     // "2.7.0"
 ```
 
 ---
@@ -56,6 +56,11 @@ AppModules.version     // "2.6.5"
 ### Komponen lain
 | Komponen | Fungsi |
 |---|---|
+| `<app-filter-bar>` *(v2.7.0)* | Bar filter deklaratif: `filters` = [{key,label,type:'text'\|'select'\|'date',options,placeholder}]; v-model objek nilai; emit `change`/`reset` |
+| `<app-empty-state>` *(v2.7.0)* | Keadaan kosong seragam: `icon`, `title`, `subtitle`, `action-label` + emit `action` |
+| `<app-skeleton>` *(v2.7.0)* | Loading pulse: `type` = `lines`\|`cards`\|`table`, `count` |
+| `<app-chart-bar>` / `<app-chart-doughnut>` *(v2.7.0)* | Chart kit bertema: `labels`, `datasets` ([{label,data,colors?}]), `title`, `height`, `legend`, `colors`; Chart.js dimuat on-demand & ikut dark mode |
+| `<app-pegawai-picker>` *(v2.7.0)* | Picker searchable master SIMPEG (cache SWR, auto-load saat fokus): v-model = id pegawai; emit `change` = record penuh |
 | `<app-login>` | Layar autentikasi mandiri + launcher SSO SI-PLATFORM |
 | `<app-sidebar>` | Navigasi responsif, collapse mode, indikator role |
 | `<app-header>` | Topbar: dark mode switch, notifikasi, profil user |
@@ -65,6 +70,12 @@ AppModules.version     // "2.6.5"
 | `<app-settings>` *(app-modules)* | Pengaturan konfigurasi sistem berbasis tab |
 
 ---
+
+## 🛡️ Direktif & Helper baru (v2.7.0)
+
+- **`v-can`** — gating elemen by role sesi, fail-closed (cermin `levelOf_` CoreLib v2.2.3): `<button v-can="'verifikator'">…</button>`; role tak dikenal = level 0, syarat tak dikenal = elemen disembunyikan.
+- **`AppCore.paginate(list, page, perPage)`** & **`AppCore.pageCount(list, perPage)`** — paginasi sisi klien pasangan `<app-filter-bar>`/`<app-crud-table>`.
+- **`this.appCode`** — identitas app dari config `AppCore.create({ appCode })`.
 
 ## ⚙️ AppCore (app-core.js)
 
