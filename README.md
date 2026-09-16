@@ -10,13 +10,14 @@ Repositori ini adalah **master bersama** ekosistem: memuat pustaka frontend CDN 
 | Paket | Versi | Catatan |
 |---|---|---|
 | **CoreLib** (backend GAS library, `backend/`) | `v2.2.3` | ⭐ FIX keamanan `levelOf_` fail-closed (viewer/role tak dikenal = level 0, bukan 1). Terverifikasi live 2026-09-16: `testAll()` PASS 38 / FAIL 0. |
-| **Frontend CDN** (`frontend/`, satu versi untuk semua berkas) | `v2.6.5` | `<app-badge>` prop `icon` + `<app-stat-card>` (kartu metrik KPI). Tag `@v2.6.5` live di jsDelivr. |
+| **Frontend CDN** (`frontend/`, satu versi untuk semua berkas) | `v2.7.0` | 13 komponen: +`app-filter-bar`, `app-empty-state`, `app-skeleton`, chart kit (`app-chart-bar/doughnut`), `app-pegawai-picker`; direktif `v-can`; `AppCore.paginate/pageCount`; `this.appCode`. |
 
 <details>
 <summary>Riwayat versi sebelumnya</summary>
 
 | Versi | Tanggal | Perubahan |
 |---|---|---|
+| CDN v2.7.0 | 2026-09-16 | Gelombang 1 Batch 1: 6 komponen/fitur horizontal baru (filter-bar, empty-state, skeleton, chart kit, pegawai-picker, v-can, paginate helper, appCode). |
 | CoreLib v2.2.2 | 2026-09-15 | FIX `checkAuth` fail-closed (`=== undefined → 0`), `dispatchAction` buang `_cacheBust`, penguatan `requireRole_`, test regresi `testRoleGateV222`. ⚠️ Fix `levelOf_` belum ikut terkirim → dilengkapi di v2.2.3. |
 | CoreLib v2.2.1 | 2026-09-15 | FIX `genUniqueCode_` (regex `reAnyNumber` buggy). |
 | CDN v2.6.4 | 2026-09 | Satu nomor versi ekosistem untuk semua berkas; pelajaran tag-setelah-unggah. |
@@ -89,7 +90,7 @@ frontend-cdn/
 |---|---|---|---|
 | **`si-platform`** | Portal SSO, User Management, Role RBAC, Storage & Audit Log | `app-common.css` `@v2.6.4` (CSS only) | [GitHub](https://github.com/miftachurrochim82-sketch/si-platform) |
 | **`si-kompetensi`** | Riwayat & Analisis Pengembangan Kompetensi ASN | CDN `@v2.6.5` + CoreLib v12 (`developmentMode: true`) | [GitHub](https://github.com/miftachurrochim82-sketch/si-kompetensi) |
-| **`si-pelaporan`** | Manajemen & Verifikasi Pelaporan Kinerja ASN | CDN `@v2.6.5` + CoreLib v6 (pinned — menunggu bump) | [GitHub](https://github.com/miftachurrochim82-sketch/si-pelaporan) |
+| **`si-pelaporan`** | Manajemen & Verifikasi Pelaporan Kinerja ASN | CDN `@v2.6.5` + CoreLib v13 (pinned = v2.2.3) | [GitHub](https://github.com/miftachurrochim82-sketch/si-pelaporan) |
 | **`frontend-cdn`** | Master bersama: CDN frontend + sumber CoreLib | — | repo ini |
 
 ---
