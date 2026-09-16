@@ -60,7 +60,7 @@
       appSubtitle:  { type: String, default: 'Sistem Informasi Terintegrasi SIMPEG' },
       instansi:     { type: String, default: 'Pemerintah Kabupaten Trenggalek' },
       tagline:      { type: String, default: 'Autentikasi telah terintegrasi terpusat (SSO). Silakan masuk menggunakan akun resmi Anda pada platform utama.' },
-      version:      { type: String, default: 'v2.7.2' },
+      version:      { type: String, default: 'v2.7.3' },
       logoSvg:      { type: String, default: '' },
       isProcessing: { type: Boolean, default: false },
       errorMessage: { type: String, default: '' }
@@ -791,6 +791,7 @@
     name: 'AppPegawaiPicker',
     props: {
       modelValue:  { type: String, default: '' },
+      source:      { type: Array, default: null },   // v2.7.3: daftar custom (mis. :source="sortedPegawaiList"); default = $root.masterPegawaiList
       label:       { type: String, default: 'Pegawai' },
       placeholder: { type: String, default: 'Cari nama / NIP…' },
       clearable:   { type: Boolean, default: true },
@@ -799,10 +800,19 @@
     emits: ['update:modelValue', 'change'],
     data: function () { return { query: '', open: false, loading: false }; },
     computed: {
-      list: function () { return (this.$root && this.$root.masterPegawaiList) || []; },
+      list: function () {
+        if (this.source && this.source.length) return this.source;
+        return (this.$root && this.$root.masterPegawaiList) || [];
+      },
       selectedName: function () {
         if (!this.modelValue) return '';
-        return (typeof this.namaPegawai === 'function') ? this.namaPegawai(this.modelValue) : '';
+        var key = String(this.modelValue);
+        for (var i = 0; i < this.list.length; i++) {
+          if (this.idOf(this.list[i] || {}) === key) return this.labelOf(this.list[i]);
+        }
+        // fallback: helper app di root (opsional)
+        var rootFn = this.$root && this.$root.namaPegawai;
+        return (typeof rootFn === 'function') ? String(rootFn(this.modelValue) || '') : '';
       },
       results: function () {
         var q = (this.query || '').toLowerCase();
@@ -829,7 +839,7 @@
       focus: async function () {
         if (this.disabled) return;
         this.open = true;
-        if (!this.list.length && this.$root && this.$root.loadMasterSIMPEG) {
+        if (!this.list.length && !this.source && this.$root && this.$root.loadMasterSIMPEG) {
           this.loading = true;
           try { await this.$root.loadMasterSIMPEG(); } catch (e) {}
           this.loading = false;
@@ -882,7 +892,7 @@
     'app-chart-bar': makeChartComponent_('bar'),
     'app-chart-doughnut': makeChartComponent_('doughnut'),
     'app-pegawai-picker': AppPegawaiPicker,
-    version: '2.7.2'
+    version: '2.7.3'
   };
 
 })(window);
