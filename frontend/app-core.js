@@ -829,7 +829,7 @@
     loadLib: loadLib,
     libs: LIBS,
     debounce: debounce,
-    version: '2.7.0'
+    version: '2.7.1'
   };
 
 })(window);
