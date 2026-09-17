@@ -1,5 +1,8 @@
 // ============================================================
-// CORE LIBRARY GLOBAL v2.2.3 - 01_CoreFoundation.gs
+// CORE LIBRARY GLOBAL v2.2.4 - 01_CoreFoundation.gs
+// Changelog v2.2.4 (2026-09-16):
+// - ADD (C1): ensureSheet menerima options.decorate {bg, font, bold, frozen} —
+//   kosmetik header aditif; perilaku default TIDAK berubah (si-pelaporan pin v13 aman).
 // Changelog v2.2.3 (2026-09-16):
 // - Sinkron rilis v2.2.3 (fix levelOf_ ada di 02_CoreGateway). Tanpa
 //   perubahan fungsional di berkas ini.
@@ -544,9 +547,11 @@ function ensureSheet(spreadsheetId, sheetName, sheetHeadersMap, options) {
   var r = resolveHeaders_(canonical, sheetHeadersMap, null);
   if (r.headers.length === 0) return sh;
   var lastCol = sh.getLastColumn();
+  var addedStart = 0, addedCount = 0;
   if (lastCol === 0) {
     sh.getRange(1, 1, 1, r.headers.length).setValues([r.headers]);
     sh.setFrozenRows(1);
+    addedStart = 1; addedCount = r.headers.length;
   } else {
     var existing = sh.getRange(1, 1, 1, lastCol).getValues()[0].map(String);
     var missing = r.headers.filter(function(h) { return existing.indexOf(h) === -1; });
@@ -554,6 +559,22 @@ function ensureSheet(spreadsheetId, sheetName, sheetHeadersMap, options) {
     if (missing.length > 0) {
       sh.getRange(1, lastCol + 1, 1, missing.length).setValues([missing]);
       logInfo('CoreFoundation', 'Kolom ditambahkan ke ' + canonical + ': ' + missing.join(', '));
+      addedStart = lastCol + 1; addedCount = missing.length;
+    }
+  }
+  // v2.2.4 (C1): opsi kosmetik header {bg, font, bold, frozen} — hanya diterapkan
+  // pada kolom yang BARU ditulis; kegagalan tidak fatal. App tak perlu lagi
+  // menulis mekanisme format header sendiri.
+  if (options.decorate && addedCount > 0) {
+    try {
+      var d = options.decorate;
+      var rng = sh.getRange(1, addedStart, 1, addedCount);
+      if (d.bg) rng.setBackground(d.bg);
+      if (d.font) rng.setFontColor(d.font);
+      if (d.bold) rng.setFontWeight('bold');
+      if (d.frozen) sh.setFrozenRows(d.frozen);
+    } catch (eDec) {
+      logInfo('CoreFoundation', 'Hias header ' + canonical + ' gagal: ' + eDec.message);
     }
   }
   return sh;
