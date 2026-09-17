@@ -93,7 +93,7 @@
 **Batch 0 — keamanan (prasyarat, minggu ini):**
 - [x] Simpan versi library CoreLib **13** (2026-09-16, URL `/library/d/1GmeYflf…/13`; kode v2.2.3 terverifikasi `testAll` 38/0/1).
 - [x] si-pelaporan: pin `"6"` → `"13"` di **workspace + GAS + GitHub** (md5 raw GitHub = workspace). **Terverifikasi runtime 17:25–17:27**: suite app PASS 7/0/0 (ReadOnlyMaster & AuthSSO_Negatif lulus); diagnostik sehat; **regresi CoreLib dijalankan DARI si-pelaporan → PASS 38/0/1 incl. `[PASS] testRoleGateV222`** = pin 13 benar menyebarkan v2.2.3. **S7 TERTUTUP.**
-- [ ] si-platform: CDN CSS `@v2.6.4` → `@v2.6.5` (kosmetik, satu-satunya sisa Batch 0).
+- [x] ~~si-platform: CDN CSS `@v2.6.4` → `@v2.6.5`~~ **TERLEWATI/DIGANTIKAN (2026-09-17)**: si-platform kini memakai `@v2.7.5` (CSS + JS kit) lewat Track B & kit Tahap 1–4; Track A–E si-platform selesai (Tailwind compiled, split 04a–d, runAllTests 21/21 PASS).
 
 **Batch 1 — CDN naik (sekali rilis, tag `v2.7.0`):**
 - [x] A2 (appCode terekspos), B7 (directive `v-can` fail-closed), B6 (`app-empty-state`+`app-skeleton`), B4 (`app-filter-bar`+`AppCore.paginate/pageCount`) — SIAP di workspace, syntax check lulus; versi tetap 2.6.5 s/d rilis.
@@ -111,7 +111,10 @@
 - [x] si-pelaporan (2026-09-16): 4 kartu KPI → <app-stat-card>, 4 badge/chip → <app-badge> (−48; 3.413→3.365). B3 tidak terpicu. LIVE & terverifikasi.
 
 **Batch 3 — backend:**
-- [ ] C1, C2, C3, C5 di si-kompetensi + CoreLib (opsi ensureSheet).
+- [x] C3 — dokumen keputusan Script Properties (`backend/00_MIGRATION_v2.md` §8).
+- [x] C2 — wrapper DB → `CoreLib.getDb`/`masterDbFor_` (2026-09-16; −12 baris app; fallback lama utuh).
+- [x] C1 — initDatabase → delegasi per-sheet `CoreLib.ensureSheet` + opsi `decorate` (CoreLib v2.2.4 aditif; 2026-09-16; −10 baris app). DEVIASI terdokumentasi: `CoreLib.initDatabase` TIDAK dipakai utuh — selalu memaksa buat AUDIT_LOGS/KONFIGURASI/MAIN_DATA yang tidak dipakai si-kompetensi.
+- [x] C5 — aturan "CoreLib first" + contract-check (2026-09-17): `tools/contract_check.py` (7 kelas pemeriksaan, 3 app; baseline HIJAU exit 0 dengan 2 warn Play-CDN yang jujur; negative-test 5/5 pelanggaran tertangkap) + seksi aturan di ECOSYSTEM_GUIDE.md. **BATCH 3 TUTUP — SELURUH ROADMAP GELOMBANG 1 SELESAI.**
 - [x] ~~C4~~ — TIDAK DIPICU (amandemen 2026-09-16).
 
 **Disiplin rilis (selalu):** perubahan aditif (prop baru boleh, arti prop lama jangan); satu tag untuk semua berkas; `.min` di-commit bersama sumber; unggah via *Upload files* (anti kontaminasi CF); dokumen master + tabel baseline §2 diperbarui di rilis yang sama; `testAll()` CoreLib FAIL:0 sebelum save versi.
@@ -127,7 +130,7 @@ Selesai bila:
 
 *(Catatan historis: DoD lama menargetkan band 2,9–3,3:1 via C4 — diturunkan atas keputusan user: "intinya optimasi ideal untuk modal awal CDN yang stabil; terlalu mendalam justru menyulitkan".)*
 
-**Status PENUTUPAN FRONTEND (2026-09-16):** kriteria 1–3 TERCAPAI dengan pengecualian terdokumentasi: (a) 2 ekspor multi-sheet `_exportXlsx` tetap lokal (menunggu opsi ekstensi multi-sheet CDN, tidak dijadwalkan); (b) 6 baris filter menyatu tombol Refresh/Tambah di MasterSatelit & DiklatPortofolio dipertahankan (app-filter-bar tanpa slot aksi; opsi aditif `actions` v2.8.x bila kelak perlu); (c) B7 v-can tidak diadopsi. S4: 0 paginasi manual, 0 formatDate lokal, 0 chart manual, 0 empty-state custom. Sisa: Batch 3 backend (C1/C2/C3/C5).
+**Status PENUTUPAN FRONTEND (2026-09-16):** kriteria 1–3 TERCAPAI dengan pengecualian terdokumentasi: (a) 2 ekspor multi-sheet `_exportXlsx` tetap lokal (menunggu opsi ekstensi multi-sheet CDN, tidak dijadwalkan); (b) 6 baris filter menyatu tombol Refresh/Tambah di MasterSatelit & DiklatPortofolio dipertahankan (app-filter-bar tanpa slot aksi; opsi aditif `actions` v2.8.x bila kelak perlu); (c) B7 v-can tidak diadopsi. S4: 0 paginasi manual, 0 formatDate lokal, 0 chart manual, 0 empty-state custom. Batch 3 backend: C3/C2/C1 SELESAI — **CoreLib v2.2.4 LIVE di GAS (testAll 38/0/1, versi 14 tersimpan 2026-09-17)**; 2 file app si-kompetensi DIPASTE + runAllTestsSikompetensi 55/0/0 PASS (2026-09-17). **Sisa C5 saja.**
 
 **Alarm over/under-engineering**: bila app <9.500 (berarti logika bisnis ikut terbuang — STOP, review) atau CDN >3.800 tanpa adopsi nyata di ≥2 app (berarti komponen spekulatif — STOP, turunkan ke Gelombang 2).
 
@@ -138,6 +141,7 @@ Selesai bila:
 | G2-1 | Modul deklaratif `<app-crud-page>` (tabel+form+filter+paginasi dari schema JSON) | app kaya → 8,2–8,6 rb; rasio 2,2–2,5:1 | ≥2 app dengan sheet CRUD seragam (app ke-3/ke-4) |
 | G2-2 | Kompresi boilerplate handler .gs per sheet menjadi modul aturan murni | −800…−1.200/app | menyertai G2-1 |
 | G2-3 | Halaman deklaratif penuh (low-code lite) untuk app CRUD-murni | app tipis → ≈1–2 rb config | hanya app CRUD-murni baru (mis. SI-ASET) |
+| G2-4 | **Template starter-kit web app bisnis** (kerangka siap pakai: head CDN, CoreLib, SSO ticket, tolerant-reader SIMPEG, DB 5–10 sheet) — acuan semua app baru | app baru lahir selaras, onboarding cepat | **SELESAI 2026-09-17** — `/home/user/starter-kit/` (si-kompetensi finish: 55/0/0 + CoreLib v14) |
 | **Lantai keras** | mesin SKJ, aturan JP 20/24, H-90, dokumen Paspor, analitik | ≈7–8 rb baris tak terkompresi | — (makna bisnis, bukan mekanisme) |
 
 **Ditolak permanen**: platform low-code monolitik untuk app kaya-bisnis (ledakan config, debug opaque, blast-radius lintas app).
