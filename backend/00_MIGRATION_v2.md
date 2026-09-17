@@ -47,7 +47,7 @@
 | File | Alasan |
 |---|---|
 | `00_MIGRATION_v2.md` | Dokumentasi — GAS tidak bisa menyimpan `.md` |
-| `Code.gs` | **Template kerangka aplikasi baru** (doGet, handleAction, runSetup, getAppConfig_) — untuk aplikasi KONSUMEN, bukan bagian library. CoreLib tidak punya `Index.html`, jadi `doGet` di sana akan error. Pakai file ini saat membuat aplikasi ke-4 dan seterusnya. |
+| ~~`Code.gs`~~ | **DIHAPUS 2026-09-17** — digantikan starter-kit. Dulu: template kerangka aplikasi baru (doGet, handleAction, runSetup, getAppConfig_) — untuk aplikasi KONSUMEN, bukan bagian library. CoreLib tidak punya `Index.html`, jadi `doGet` di sana akan error. Pakai file ini saat membuat aplikasi ke-4 dan seterusnya. |
 | `.clasp.json` / `.claspignore` | Konfigurasi tooling clasp. `.claspignore` hanya memutihkan 5 file library — `Code.gs` sengaja di-exclude agar tidak pernah ter-push ke library. |
 
 ---
