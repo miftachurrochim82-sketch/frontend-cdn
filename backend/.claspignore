@@ -5,7 +5,6 @@
 !02_CoreGateway.gs
 !03_CoreServices.gs
 !99_CoreTest.gs
-!Code.gs
 .git/**
 node_modules/**
 package.json
