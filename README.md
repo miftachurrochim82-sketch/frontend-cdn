@@ -49,7 +49,7 @@ frontend-cdn/
 │   ├── 03_CoreServices.gs     # CRUD generik, config service, app setup
 │   ├── 99_CoreTest.gs         # Test suite (testAll = 39 test)
 │   ├── appsscript.json        # Manifest library
-│   ├── Code.gs                # TEMPLATE aplikasi baru — BUKAN bagian library
+│   ├── (Code.gs DIHAPUS 2026-09-17 — template app baru pindah ke starter-kit/)
 │   ├── 00_MIGRATION_v2.md     # ★ Dokumen master CoreLib (changelog, rilis, kontrak)
 │   └── .claspignore           # Hanya 5 file library yang boleh ter-push
 ├── tests/                  # Simulasi integrasi SSO (Node.js)
@@ -58,7 +58,7 @@ frontend-cdn/
 ```
 
 > **Penting**: yang ada di proyek GAS `CoreLib` HANYA `appsscript.json` + `01`/`02`/`03`/`99`.
-> `Code.gs` dan `00_MIGRATION_v2.md` sengaja hanya hidup di GitHub.
+> `00_MIGRATION_v2.md` sengaja hanya hidup di GitHub. Template app baru = **starter-kit** (menggantikan `Code.gs`, 2026-09-17).
 
 ---
 
@@ -76,7 +76,7 @@ frontend-cdn/
        ▼                       ▼                       ▼
 ┌──────────────┐        ┌──────────────┐        ┌──────────────┐
 │SI-KOMPETENSI │        │ SI-PELAPORAN │        │   (app baru  │
-│ (Kompetensi) │        │ (Pelaporan)  │        │  via Code.gs)│
+│ (Kompetensi) │        │ (Pelaporan)  │        │ via starter)│
 └──────────────┘        └──────────────┘        └──────────────┘
         Semua aplikasi satelit memakai CoreLib (backend)
         + frontend-cdn (UI) yang sama dari repo ini.
