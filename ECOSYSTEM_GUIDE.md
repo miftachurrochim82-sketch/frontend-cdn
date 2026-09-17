@@ -84,7 +84,7 @@ Ekosistem aplikasi web Pemerintah Kabupaten Trenggalek dirancang di atas infrast
 | `si-platform` | Portal Pusat SSO & SIMPEG | Vue 3, Tailwind CSS, Font Awesome 6.5.2, `app-common.css` |
 | `si-kompetensi` | Aplikasi Satelit Kompetensi ASN | `CoreLib` pin 12 + `developmentMode:true`, `frontend-cdn @v2.6.5` |
 | `si-pelaporan` | Aplikasi Satelit Laporan | `CoreLib` pin 13 (pinned = v2.2.3), `frontend-cdn @v2.6.5` |
-| `backend/Code.gs` (di repo ini) | Template kerangka aplikasi baru | `CoreLib v2.2.3`, `frontend-cdn v2.6.5` |
+| ~~`backend/Code.gs`~~ (dihapus 2026-09-17 → starter-kit) | ~~Template kerangka aplikasi baru~~ | `CoreLib v2.2.3`, `frontend-cdn v2.6.5` |
 
 ---
 
@@ -326,6 +326,8 @@ function handleHapusLaporan(payload, session) {
 ---
 
 ## 6. Panduan Pembuatan Aplikasi Baru (template `backend/Code.gs`)
+
+> ⚠️ **UPDATE 2026-09-17:** template `backend/Code.gs` **DIHAPUS** — digantikan **starter-kit** (folder `/home/user/starter-kit/`, dicetak dari pola si-kompetensi/si-platform yang teruji; lihat README-nya untuk checklist app baru). Panduan di bawah dipertahankan sebagai referensi historis pola config-driven (`CoreLib.dispatchAction`).
 
 ### 6.1 Kerangka Awal
 Tidak ada CLI generator — aplikasi baru dibuat manual dari dua cetakan di repo ini:
