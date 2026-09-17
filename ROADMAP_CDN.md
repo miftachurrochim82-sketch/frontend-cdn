@@ -1,6 +1,7 @@
-# 🗺️ ROADMAP CDN & CoreLib — Rencana Gelombang s/d Rasio 3:1
+# 🗺️ ROADMAP CDN & CoreLib — Rencana Gelombang: CDN Stabil & Nol Duplikasi Mekanik
 
-> **Status**: DISAHKAN 2026-09-16 • **Sasaran kepala**: rasio app : CDN frontend berada di **kisaran 3:1 (band 2,9–3,3)** untuk app kaya-bisnis (rujukan: si-kompetensi).
+> **Status**: DISAHKAN 2026-09-16 • **DIAMANDEMEN 2026-09-16 (malam) atas keputusan user**.
+> **Sasaran kepala (baru)**: **CDN yang stabil** (versi jelas, aditif, terverifikasi) sebagai modal awal + **nol duplikasi mekanik** di app + **risiko perubahan rendah**. Rasio baris DITURUNKAN menjadi indikator pemantauan — bukan syarat lulus. Pekerjaan mendalam (C4) tidak dipicu tanpa alasan fungsional.
 > **Dokumen ini adalah master perencanaan ekosistem.** Setiap rilis CDN/CoreLib wajib memperbarui tabel baseline (§2) dan checklist (§5).
 > Lingkup: **Gelombang 1 = komitmen eksekusi. Gelombang 2 = daftar opsi saja** (tidak dijadwalkan).
 
@@ -10,9 +11,9 @@
 
 | # | Sasaran | Ukuran | Target |
 |---|---|---|---|
-| S1 | Rasio kepala (app total : CDN frontend), app kaya-bisnis | baris | **2,9–3,3 : 1** (dari 4,9 : 1) |
-| S2 | Rasio stack-bersama (app : CDN+CoreLib) | baris | **≤ 1,7 : 1** (dari 2,24 : 1) |
-| S3 | App tipis (si-pelaporan) : stack-bersama | baris | **≤ 1 : 1** (dari 1,39 : 1) |
+| S1 | Rasio kepala (app total : CDN frontend) | baris | *indikator pemantauan* (amandemen: bukan syarat lulus; 4,9 → 4,25 dan dibiarkan mendarat di mana pun) |
+| S2 | Rasio stack-bersama (app : CDN+CoreLib) | baris | *indikator pemantauan* (2,24 → 2,08) |
+| S3 | App tipis (si-pelaporan) : stack-bersama | baris | *indikator pemantauan* (1,39 : 1) |
 | S4 | Pangsa kode horizontal di dalam app | keberadaan | **0** — tidak ada mekanisme generik (paginasi, filter, ekspor, format, picker, gating) ditulis di app |
 | S5 | Duplikasi antar-app & app-vs-library | keberadaan | **0** — ditegakkan contract-check |
 | S6 | Penyebaran fix library/CDN | sentuhan | **zero-touch** (devMode/pin naik, app tak diedit) |
@@ -36,6 +37,25 @@
 | Rasio stack-bersama hari ini | **2,24 : 1** | 12.004 : 5.364 |
 
 > Ukur ulang dengan `wc -l` per lapisan setelah tiap batch; perbarui tabel ini di commit yang sama.
+
+**Ukur ulang 2026-09-16 malam (pasca Batch 1 + sub-1/sub-2, CDN v2.7.2):**
+
+| Lapisan | Baris | Δ vs baseline |
+|---|---|---|
+| CDN frontend v2.7.2 | **2.801** | +354 (app-core 835 • app-components 888 • app-modules 507 • css 571) |
+| CoreLib v2.2.3 | **2.917** | 0 |
+| si-kompetensi | **11.899** | −105 |
+| Rasio kepala (indikator) | **4,25 : 1** | dari 4,9 |
+| Rasio stack-bersama (indikator) | **2,08 : 1** | dari 2,24 |
+
+**Ukur ulang PENUTUPAN FRONTEND (2026-09-16 malam, pasca Bagian 21–25):**
+
+| Lapisan | Baris | Rasio (indikator) |
+|---|---|---|
+| CDN frontend (live tag v2.7.5) | **2.814** | — |
+| CoreLib v2.2.3 | **2.917** | — |
+| si-kompetensi | **11.835** | kepala **4,21 : 1** • stack-bersama **2,07 : 1** |
+| si-pelaporan | **3.365** | tipis **0,59 : 1** — sasaran S3 lama (≤1) TERCAPAI |
 
 ---
 
@@ -63,7 +83,7 @@
 | **C2** | Wrapper pembuka DB (`getLocalSpreadsheet_`/`getMasterSpreadsheet_`) → delegasi `CoreLib.getDb`/`masterDbFor_` | −20…−30 | 0 | cache tetap tunggal |
 | **C3** | Dokumentasikan keputusan: config app di **Script Properties** (bukan sheet KONFIGURASI) — satu paragraf di `backend/00_MIGRATION_v2.md` | 0 | 0 (dok) | tidak ada lagi kebingungan nama `saveConfigItem_` |
 | **C5** | Aturan **"CoreLib first"** + contract-check sisi backend (util umur/durasi/tanggal wajib cek CoreLib sebelum ditulis lokal) | 0 | 0 | check hijau di CI-lokal |
-| **C4*** | *(opsional-terpicu: saat 02_AppLogic sudah disentuh fitur)* migrasi CRUD sheet standar si-kompetensi ke `dispatchAction` deklaratif (pola si-pelaporan) | −400…−800 | 0 | aksi standar lolos router; J_Actions menyusut |
+| **C4*** | ~~migrasi CRUD sheet standar si-kompetensi ke `dispatchAction` deklaratif~~ — **TIDAK DIPICU (keputusan user 2026-09-16: risiko tinggi pada logika bisnis produksi, manfaat hanya angka)** | — | — | — |
 | | **Subtotal backend** | −80…−110 (inti) / −480…−910 (dengan C4) | +15 | |
 
 **Dipertahankan apa adanya** (hasil audit: sehat): pola single-point bridge `01_ConfigAndBridge` + `Utils.gs`; `sendAuditLog_` terpusat ke SI-PLATFORM (melengkapi `appendAuditLog` lokal, bukan duplikat); normalisasi SIMPEG vertikal.
@@ -80,27 +100,34 @@
 - [x] B2 (`app-chart-bar`/`app-chart-doughnut`, Chart.js on-demand + ikut dark mode via event `appcore:dark`) & B1 (`app-pegawai-picker` berbasis cache SWR) — SIAP di workspace; registrasi 13 komponen; node --check lulus.
 - [x] Bump versi **2.7.0** (4 berkas internal + package.json) + `npm run build` → `.min` memuat komponen baru.
 - [x] Dokumentasi diselaraskan ke v2.7.0 (frontend/README, CDN_SNIPPET + seksi 2b baru, ECOSYSTEM_GUIDE, README root + riwayat).
-- [ ] **RILIS (user)**: unggah SEMUA berkas rilis ke GitHub → BARU buat tag `v2.7.0` (lihat DAFTAR_SALIN Bagian 13).
-- [ ] `npm run build` → commit `.min.*` → **unggah SEMUA berkas dulu, lalu tag** (pelajaran v2.6.3).
-- [ ] Perbarui CDN_SNIPPET (A3) + katalog props di `frontend/README.md`.
+- [x] **RILIS (user)**: unggah + tag `v2.7.0` SELESAI (2026-09-16). Terverifikasi: tag ada di GitHub; jsDelivr `@v2.7.0` HTTP 200 untuk 3 bundle; isi byte-identik dengan build workspace (selisih hanya trailing-newline standar unggahan GitHub).
+- [x] `npm run build` → `.min` di-commit → unggah semua berkas dulu, lalu tag (dilakukan di rilis v2.7.0).
+- [x] Perbarui CDN_SNIPPET (A3) + katalog props di `frontend/README.md` (selesai di v2.7.0; prop `bare` menyusul di v2.7.1).
 
 **Batch 2 — adopsi app:**
-- [ ] si-kompetensi: A1, A3, adopsi B1/B2/B4/B6/B7 di view terkait; compile-check + `runAllTestsSikompetensi`.
-- [ ] si-pelaporan: adopsi badge/stat-card (daftar lama) + B3 bila verifikasi disentuh.
+- [x] si-kompetensi sub-1 (2026-09-16): tag @v2.7.0, A3 dark-boot, A1-parsial (5 ekspor single-sheet → `exportExcel`; 2 multi-sheet tetap lokal s/d opsi ekstensi), unifikasi `formatDateDisplay`. LIVE & terverifikasi.
+- [x] si-kompetensi sub-2 (2026-09-16): B2 chart kit di V_Dashboard via CDN v2.7.1 (`bare`) + v2.7.2 (fix bootstrap `AppCore.loadLib`). LIVE di /exec & terverifikasi; 3 hotfix selesai (self-closing, prefiks `_`, method-root) + 2 scanner baru di compile-check.
+- [x] si-kompetensi sub-3/4/5 (2026-09-16): B6 empty-state (2 blok custom terakhir → <app-empty-state>); B1 picker di 3/3 form pegawai (+guard validasi eksplisit; kit fix v2.7.3 source/nama, v2.7.4→v2.7.5 blur-race+type=button); B4 filter-bar di V_UsulanDiklat + V_AnalisaGap + konsolidasi 6 paginasi list → AppCore.paginate/pageCount. TIDAK DIADOPSI (terdokumentasi): B7 v-can (gating role existing memadai) & 6 baris filter-ber-tombol MasterSatelit/DiklatPortofolio (kit tanpa slot aksi); A1 sisa 2 ekspor multi-sheet tetap lokal. LIVE: user konfirmasi + md5 GitHub identik.
+- [x] si-pelaporan (2026-09-16): 4 kartu KPI → <app-stat-card>, 4 badge/chip → <app-badge> (−48; 3.413→3.365). B3 tidak terpicu. LIVE & terverifikasi.
 
 **Batch 3 — backend:**
 - [ ] C1, C2, C3, C5 di si-kompetensi + CoreLib (opsi ensureSheet).
-- [ ] C4 hanya bila pemicunya terjadi.
+- [x] ~~C4~~ — TIDAK DIPICU (amandemen 2026-09-16).
 
 **Disiplin rilis (selalu):** perubahan aditif (prop baru boleh, arti prop lama jangan); satu tag untuk semua berkas; `.min` di-commit bersama sumber; unggah via *Upload files* (anti kontaminasi CF); dokumen master + tabel baseline §2 diperbarui di rilis yang sama; `testAll()` CoreLib FAIL:0 sebelum save versi.
 
-## 6. Definition of Done — "Kisaran 3:1"
+## 6. Definition of Done — "CDN Stabil & Nol Duplikasi Mekanik" (amandemen 2026-09-16)
 
-Setelah Batch 0–3 (inti, tanpa C4/B3/B5):
-- app si-kompetensi ≈ **10.500** • CDN ≈ **3.100–3.150** → rasio kepala ≈ **3,3–3,4** …
-- …dan dengan satu komponen syarat-terpicu atau C4 masuk: app ≈ **9.900–10.300** • CDN ≈ **3.250–3.500** → rasio ≈ **2,9–3,2** ✅ **di dalam band 2,9–3,3**.
-- Rasio stack-bersama ≈ **1,6–1,7 : 1** ✅ S2; si-pelaporan ≤1:1 ✅ S3.
-- S4–S7 hijau; contract-check frontend+backend lulus.
+Selesai bila:
+1. **S4–S7 hijau** (nol kode horizontal di app, nol duplikasi, zero-touch fix, keamanan tertutup — S7 sudah ✅).
+2. Sisa duplikasi di app **hanya yang bersifat bisnis/spesifik-app** (mesin SKJ, JP 20/24, Paspor, dsb. — memang milik app).
+3. Setiap perubahan **berisiko rendah & reversibel**: tes di Test deployment sebelum New version; gagal = produksi tak tersentuh.
+4. Rasio dicatat tiap batch sebagai **indikator** (bukan target). Posisi amandemen: kepala **4,25 : 1** (11.899 : 2.801), stack-bersama **2,08 : 1** — proyeksi akhir ≈3,4–3,6 tanpa C4, dan itu **diterima**.
+5. C4/B3/B5 tetap tidak dipicu tanpa alasan fungsional.
+
+*(Catatan historis: DoD lama menargetkan band 2,9–3,3:1 via C4 — diturunkan atas keputusan user: "intinya optimasi ideal untuk modal awal CDN yang stabil; terlalu mendalam justru menyulitkan".)*
+
+**Status PENUTUPAN FRONTEND (2026-09-16):** kriteria 1–3 TERCAPAI dengan pengecualian terdokumentasi: (a) 2 ekspor multi-sheet `_exportXlsx` tetap lokal (menunggu opsi ekstensi multi-sheet CDN, tidak dijadwalkan); (b) 6 baris filter menyatu tombol Refresh/Tambah di MasterSatelit & DiklatPortofolio dipertahankan (app-filter-bar tanpa slot aksi; opsi aditif `actions` v2.8.x bila kelak perlu); (c) B7 v-can tidak diadopsi. S4: 0 paginasi manual, 0 formatDate lokal, 0 chart manual, 0 empty-state custom. Sisa: Batch 3 backend (C1/C2/C3/C5).
 
 **Alarm over/under-engineering**: bila app <9.500 (berarti logika bisnis ikut terbuang — STOP, review) atau CDN >3.800 tanpa adopsi nyata di ≥2 app (berarti komponen spekulatif — STOP, turunkan ke Gelombang 2).
 
