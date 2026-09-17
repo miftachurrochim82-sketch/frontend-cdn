@@ -18,14 +18,14 @@
 | Identifier di app | `CoreLib` |
 | Runtime | Apps Script V8, timezone `Asia/Jakarta` |
 | Versi kode saat ini | **v2.2.3** (2026-09-16) |
-| Versi library tersimpan | 12 = v2.2.2 (HEAD di editor = v2.2.3 setelah paste; **versi 13 belum di-save**) |
+| Versi library tersimpan | **13 = v2.2.3** (disimpan 2026-09-16; URL `/library/d/1GmeYflf…/13`) |
 
 ### Aplikasi konsumen
 
 | Aplikasi | Pin di `appsscript.json` | `developmentMode` | Efek |
 |---|---|---|---|
 | `si-kompetensi` | `"version": "12"` | `true` | Selalu pakai kode HEAD terbaru → otomatis dapat v2.2.3 |
-| `si-pelaporan` | `"version": "6"` | *(tidak ada)* | Terkunci di versi 6 → **wajib dinaikkan** ke versi baru setelah v2.2.3 di-save |
+| `si-pelaporan` | `"version": "13"` | *(tidak ada)* | Terkunci di v13 = v2.2.3 ✅ (pin dinaikkan 2026-09-16 setelah versi 13 disimpan) |
 | `si-platform` | — | — | Tidak memakai CoreLib (portal SSO mandiri) |
 
 ---
@@ -153,3 +153,10 @@ Setiap rilis wajib: `testAll()` → **FAIL: 0** dan `[PASS] testRoleGateV222`.
 - **Sheet referensi master tidak boleh dibuat/ditulis** oleh fungsi baca.
 - **Tanggal disimpan ISO-8601**; tampilan `dd/MM/yyyy` urusan frontend.
 - **`_cacheBust` dibuang** `dispatchAction` sebelum routing.
+
+
+---
+
+## 8. Keputusan: Config App di Script Properties (C3, 2026-09-16)
+
+Konfigurasi tingkat aplikasi (SPREADSHEET_ID, MASTER_SPREADSHEET_ID, platform URL, dsb.) disimpan di **Script Properties** (Project Settings → Script properties), **bukan** di sheet `KONFIGURASI`. Alasan: (1) config dibaca sebelum DB terbuka — menyimpannya di sheet menciptakan masalah ayam-telur; (2) Script Properties tidak terbawa ekspor/salinan sheet sehingga tidak bisa diubah tanpa sengaja oleh pengguna non-teknis; (3) satu sumber kebenaran per deployment (dev/prod bisa beda properti tanpa beda kode). Konsekuensi: tidak ada fungsi `saveConfigItem_` untuk menulis config dari UI — perubahan config adalah tindakan deployment yang disengaja. Data yang bersifat *operasional* (daftar nilai, katalog, referensi) tetap di sheet.
