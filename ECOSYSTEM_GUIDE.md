@@ -439,7 +439,30 @@ Setiap repository aplikasi yang dibuat melalui template telah dilengkapi `.githu
 
 ---
 
+## 🧭 Aturan "CoreLib First" + Contract-Check (C5, 2026-09-17)
+
+**Aturan emas sebelum menulis kode baru di aplikasi mana pun:**
+
+1. **Cari dulu di milik bersama.** Butuh fungsi util (normalisasi ID, parse tanggal, kode unik,
+   cek role)? → CoreLib sudah punya. Butuh UI (tabel, modal, filter, chart, badge, sidebar)?
+   → katalog komponen kit (`app-components.min.js` / `app-modules.min.js`) sudah punya.
+   Duplikasi hanya sah untuk **logika bisnis** (mesin SKJ, JP 20/24, dsb.).
+2. **Delegasi, jangan salin.** Wrapper lokal boleh, isinya wajib `return CoreLib.x(...)` —
+   jangan pernah menyalin ulang badan fungsi milik CoreLib ke app.
+3. **Kontrak = katalog.** Props komponen dan versi pin CDN adalah kontrak; perubahan harus
+   aditif dan terdokumentasi di `frontend/README.md` + `CDN_SNIPPET.md`.
+4. **Jalankan contract-check SEBELUM menyalin apa pun ke GAS:**
+   ```bash
+   python3 frontend-cdn/tools/contract_check.py
+   ```
+   Memeriksa: pin CDN per app · self-closing custom tag (=0) · tag kit tak dikenal ·
+   Play CDN Tailwind (terlarang di app yang sudah Track D) · fungsi CoreLib-first tanpa
+   delegasi · marker adopsi (ensureSheet/getDb/AppComponents) · kontaminasi Cloudflare.
+   **Exit 0 = aman disalin; exit 1 = JANGAN deploy.**
+
+---
+
 ## 📜 Kontak & Pemeliharaan
 * **Pengelola Ekosistem**: Tim Pengembang TI — Dinas Komunikasi dan Informatika Kabupaten Trenggalek
-* **Dokumentasi & Versi**: CoreLib v2.2.3 • Frontend CDN v2.7.0 (diperbarui 2026-09-16)
+* **Dokumentasi & Versi**: CoreLib v2.2.4 (GAS versi 14) • Frontend CDN v2.7.5 (diperbarui 2026-09-17)
 * **Lisensi**: MIT License
