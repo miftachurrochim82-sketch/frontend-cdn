@@ -1,7 +1,14 @@
 /* ============================================================
-   app-common.css — CSS Global & Custom Utilities (Shared CDN v2.6.5)
+   app-common.css — CSS Global & Custom Utilities (Shared CDN v2.8.0)
    Dipakai bersama oleh semua web app GAS Pemkab Trenggalek.
    ============================================================
+   Changelog v2.8.0 (2026-09-18):
+   - 🎨 F2: .btn-icon / .btn-icon-danger / .btn-lg DIPROMOSIKAN dari
+     A0_Style si-lahar (G18c-2) ke kit — tombol aksi tabel 32px & CTA
+     besar kini bawaan ekosistem (light+dark identik sumbernya).
+   - 🔢 F1 (pasangan di app-components.js): <app-filter-bar> dukung
+     `span` per filter (2..4) untuk baris filter lebar tak seragam.
+
    Changelog v2.6.5 (2026-09-15):
   - Tidak ada perubahan perilaku CSS; versi diselaraskan dengan
     ekosistem (AppBadge icon/info/emerald/purple di app-components).
@@ -359,6 +366,27 @@ body {
 .btn-warning:hover:not(:disabled) { background-color: var(--warning-dark); color: #ffffff; }
 .btn-info { background-color: var(--info); color: #ffffff; }
 .btn-info:hover:not(:disabled) { background-color: var(--info-dark); }
+
+/* Tombol aksi ikon 32px (v2.8.0 / F2 — promosi A0_Style si-lahar).
+   Pakai: <button class="btn-icon"><i class="fa-solid fa-pen-to-square"></i></button>
+   Varian hapus: tambah kelas .btn-icon-danger. */
+.btn-icon {
+  width: 2rem; height: 2rem;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 0.5rem; border: 1px solid var(--slate-200);
+  background: #ffffff; color: var(--slate-500); font-size: 0.75rem;
+  cursor: pointer; transition: var(--transition);
+}
+.btn-icon:hover { background: #f1f5f9; color: var(--slate-700); }
+.dark .btn-icon { background: var(--slate-900); border-color: var(--slate-700); color: #94a3b8; }
+.dark .btn-icon:hover { background: var(--slate-800); color: var(--slate-300); }
+.btn-icon-danger { border-color: #fecdd3; color: #f43f5e; }
+.btn-icon-danger:hover { background: #fff1f2; color: #e11d48; }
+.dark .btn-icon-danger { border-color: #881337; }
+.dark .btn-icon-danger:hover { background: #4c0519; color: #fb7185; }
+
+/* CTA besar (v2.8.0 / F2): tombol aksi utama halaman, enak di-tap di HP. */
+.btn-lg { padding: 0.625rem 1.25rem; font-weight: 700; }
 
 /* ============================================================
    TABS
