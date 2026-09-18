@@ -60,7 +60,7 @@
       appSubtitle:  { type: String, default: 'Sistem Informasi Terintegrasi SIMPEG' },
       instansi:     { type: String, default: 'Pemerintah Kabupaten Trenggalek' },
       tagline:      { type: String, default: 'Autentikasi telah terintegrasi terpusat (SSO). Silakan masuk menggunakan akun resmi Anda pada platform utama.' },
-      version:      { type: String, default: 'v2.7.4' },
+      version:      { type: String, default: 'v2.8.0' },
       logoSvg:      { type: String, default: '' },
       isProcessing: { type: Boolean, default: false },
       errorMessage: { type: String, default: '' }
@@ -613,7 +613,7 @@
   };
 
   /* ----------------------------------------------------------
-     10. <app-filter-bar> (baru v2.7.0 / B4)
+     10. <app-filter-bar> (baru v2.7.0 / B4; v2.8.0 / F1: span per filter)
      ---------------------------------------------------------- */
   var AppFilterBar = {
     name: 'AppFilterBar',
@@ -632,6 +632,12 @@
       }
     },
     methods: {
+      // v2.8.0 / F1: filter boleh bawa `span` (2..4) → kolom grid lebih lebar
+      // (lg:grid-cols-4, sm:grid-cols-2). Tanpa span = 1 (perilaku lama).
+      spanCls: function (f) {
+        var SPAN = { 2: 'sm:col-span-2 lg:col-span-2', 3: 'sm:col-span-2 lg:col-span-3', 4: 'sm:col-span-2 lg:col-span-4' };
+        return SPAN[parseInt(f && f.span, 10)] || '';
+      },
       optValue: function (o) { return (o && typeof o === 'object') ? o.value : o; },
       optLabel: function (o) { return (o && typeof o === 'object') ? (o.label || o.value) : o; },
       emitChange: function () {
@@ -649,7 +655,7 @@
     },
     template: '\
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">\
-      <div v-for="f in filters" :key="f.key">\
+      <div v-for="f in filters" :key="f.key" :class="spanCls(f)">\
         <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">{{ f.label }}</label>\
         <select v-if="f.type === \'select\'" :value="local[f.key] || \'\'" @change="onInput(f.key, $event.target.value)" class="w-full px-3 py-2 rounded-xl text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200">\
           <option value="">Semua</option>\
@@ -895,7 +901,7 @@
     'app-chart-bar': makeChartComponent_('bar'),
     'app-chart-doughnut': makeChartComponent_('doughnut'),
     'app-pegawai-picker': AppPegawaiPicker,
-    version: '2.7.4'
+    version: '2.8.0'
   };
 
 })(window);
