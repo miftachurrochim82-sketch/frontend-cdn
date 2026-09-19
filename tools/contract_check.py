@@ -68,6 +68,16 @@ APPS = [
         "waiver": True,
         "markers": [],
     },
+    {
+        "name": "si-lahar",
+        "src": os.path.join(HOME, "si-lahar", "src"),
+        "pin": "2.7.5",   # BELUM pakai kit frontend-cdn (Tailwind Play + CSS own A0) -> WARN pin wajar
+        "waiver": False,
+        "markers": [
+            ("02_AppLogic.gs", "CoreLib.dispatchAction"),
+            ("01_ConfigAndBridge.gs", "CoreLib.exchangePlatformTicket"),
+        ],
+    },
 ]
 
 fails, warns = [], []
