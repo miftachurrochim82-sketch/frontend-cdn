@@ -78,8 +78,8 @@ frontend-cdn/
        ┌───────────────────────┼───────────────────────┐
        ▼                       ▼                       ▼
 ┌──────────────┐        ┌──────────────┐        ┌──────────────┐
-│SI-KOMPETENSI │        │ SI-PELAPORAN │        │   (app baru  │
-│ (Kompetensi) │        │ (Pelaporan)  │        │ via starter)│
+│SI-KOMPETENSI │        │ SI-PELAPORAN │        │   SI-LAHAR   │
+│ (Kompetensi) │        │ (Pelaporan)  │        │ (e-Kinerja)  │
 └──────────────┘        └──────────────┘        └──────────────┘
         Semua aplikasi satelit memakai CoreLib (backend)
         + frontend-cdn (UI) yang sama dari repo ini.
