@@ -1,33 +1,38 @@
-/* ============================================================
-   app-modules.js — Modul halaman mandiri (Shared CDN v2.6.5)
-   Port dari A7_Profil & A9_Pengaturan: state + logika dibungkus
-   di dalam komponen (self-contained), sehingga aplikasi GAS
-   tidak perlu lagi include file lokal / mixin untuk keduanya.
-
-   Komponen: <app-profile>, <app-settings>
-   Komunikasi dengan inti via this.$root: callServer, showToast,
-   currentUser. Kontrak backend:
-   - Profil : get_my_profile, save_my_profile
-   - Sistem : get_config, save_config_item,
-              delete { entity:'KONFIGURASI', id:<key> }
-
-   Diregistrasi otomatis oleh AppCore.create() bila file ini
-   dimuat SEBELUM app-core.js ... ATAU sesudahnya — AppCore
-   membaca window.AppModules saat create() dipanggil.
-   ============================================================
-   Changelog v2.6.4 (2026-09-15):
-   - 🔢 Penyelarasan versi tunggal ekosistem. Isi TIDAK berubah.
-
-   Changelog v2.6.0 (2026-09-15):
-   - 🔢 Penyelarasan versi bersama seluruh berkas CDN (2.1.0 → 2.6.0).
-     TIDAK ada perubahan perilaku pada <app-profile> / <app-settings>.
-
-   Changelog v2.1.0 (2026-09-13):
-   - FIX AppSettings.confirmDelete: kirim `id: config.key` (bukan
-     `config.id || config.key`). Backend SI deleteConfigItem_ butuh
-     `key` untuk props.deleteProperty(key). Row id sheet berbeda
-     dengan key, sehingga delete sebelumnya gagal senyap.
-   ============================================================ */
+// ============================================================
+// app-modules.js — Modul halaman mandiri (Shared CDN v2.8.1)
+// Changelog v2.8.1 (2026-09-19):
+// - FIX (T49): internal `version` diselaraskan ke '2.8.0' (dari '2.7.4')
+//   agar konsisten dengan tag rilis @v2.8.0 dan app-components.js.
+//   Tidak ada perubahan perilaku fungsional.
+//
+// Port dari A7_Profil & A9_Pengaturan: state + logika dibungkus
+// di dalam komponen (self-contained), sehingga aplikasi GAS
+// tidak perlu lagi include file lokal / mixin untuk keduanya.
+//
+// Komponen: <app-profile>, <app-settings>
+// Komunikasi dengan inti via this.$root: callServer, showToast,
+// currentUser. Kontrak backend:
+// - Profil : get_my_profile, save_my_profile
+// - Sistem : get_config, save_config_item,
+//            delete { entity:'KONFIGURASI', id:<key> }
+//
+// Diregistrasi otomatis oleh AppCore.create() bila file ini
+// dimuat SEBELUM app-core.js ... ATAU sesudahnya — AppCore
+// membaca window.AppModules saat create() dipanggil.
+//
+// Changelog v2.6.4 (2026-09-15):
+// - 🔢 Penyelarasan versi tunggal ekosistem. Isi TIDAK berubah.
+//
+// Changelog v2.6.0 (2026-09-15):
+// - 🔢 Penyelarasan versi bersama seluruh berkas CDN (2.1.0 → 2.6.0).
+//   TIDAK ada perubahan perilaku pada <app-profile> / <app-settings>.
+//
+// Changelog v2.1.0 (2026-09-13):
+// - FIX AppSettings.confirmDelete: kirim `id: config.key` (bukan
+//   `config.id || config.key`). Backend SI deleteConfigItem_ butuh
+//   `key` untuk props.deleteProperty(key). Row id sheet berbeda
+//   dengan key, sehingga delete sebelumnya gagal senyap.
+// ============================================================
 (function (global) {
   'use strict';
 
@@ -501,7 +506,7 @@
   global.AppModules = {
     'app-profile': AppProfile,
     'app-settings': AppSettings,
-    version: '2.7.4'
+    version: '2.8.0'
   };
 
 })(window);
