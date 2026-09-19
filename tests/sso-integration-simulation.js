@@ -202,7 +202,11 @@ const platformFiles = [
   '01_Config.gs',
   '02_SetupAndSeed.gs',
   '03_DataAndAuth.gs',
-  '04_HandlerAndRouter.gs'
+  // 2026-09-18: platform di-split → 4 berkas handler/router (drift fix harness)
+  '04a_HandlerAkses.gs',
+  '04b_HandlerLayanan.gs',
+  '04c_HandlerSistem.gs',
+  '04d_Router.gs'
 ];
 
 for (const file of platformFiles) {
@@ -257,7 +261,7 @@ const coreFiles = [
 ];
 
 for (const file of coreFiles) {
-  const code = fs.readFileSync(path.join('/home/user/backend', file), 'utf8');
+  const code = fs.readFileSync(path.join('/home/user/frontend-cdn/backend', file), 'utf8');
   vm.runInContext(code, consumerContext, { filename: file });
 }
 
