@@ -1,7 +1,7 @@
-# Frontend CDN — Pustaka UI Bersama v2.7.0
+# Frontend CDN — Pustaka UI Bersama v2.8.0
 ### Vue 3 + Tailwind CSS • Pemkab Trenggalek
 
-Seluruh aplikasi ekosistem (si-kompetensi, si-pelaporan, si-platform, dan aplikasi baru) memuat UI dari folder ini via jsDelivr. **Satu nomor versi berlaku untuk semua berkas** — satu tag rilis (`v2.6.5`) mengunci CSS + 3 bundle JS sekaligus.
+Seluruh aplikasi ekosistem (si-kompetensi, si-pelaporan, si-platform, dan aplikasi baru) memuat UI dari folder ini via jsDelivr. **Satu nomor versi berlaku untuk semua berkas** — satu tag rilis (`v2.8.0`) mengunci CSS + 3 bundle JS sekaligus.
 
 > Snippet siap salin untuk `Index.html` aplikasi baru: **[CDN_SNIPPET.md](CDN_SNIPPET.md)**.
 
@@ -11,16 +11,16 @@ Seluruh aplikasi ekosistem (si-kompetensi, si-pelaporan, si-platform, dan aplika
 
 | Berkas | Isi | Dimuat via |
 |---|---|---|
-| `app-common.css` → `app-common.min.css` | Design tokens, CSS variables (tema per app bisa di-override), kelas util, animasi | `<link>` di `<head>` |
+| `app-common.css` → `app-common.min.css` | Design tokens, CSS variables (tema per app bisa di-override), kelas util (termasuk `.btn-icon`/`.btn-icon-danger`/`.btn-lg` sejak v2.8.0), animasi | `<link>` di `<head>` |
 | `app-components.js` → `.min.js` | 7 komponen inti (katalog di bawah) | `<script>` sebelum `</body>` |
 | `app-modules.js` → `.min.js` | 2 modul besar: `<app-profile>`, `<app-settings>` | `<script>` sebelum `</body>` |
 | `app-core.js` → `.min.js` | `AppCore`: `create()`, sesi aman (safeSession/safeLocal), `loadLib()` on-demand, cache SWR, `callServer` + `_cacheBust` | `<script>` sebelum `</body>` |
 
 Cek versi runtime di Console browser:
 ```javascript
-AppCore.version        // "2.7.0"
-AppComponents.version  // "2.7.0"
-AppModules.version     // "2.7.0"
+AppCore.version        // "2.8.0"
+AppComponents.version  // "2.8.0"
+AppModules.version     // "2.8.0"
 ```
 
 ---
@@ -76,6 +76,7 @@ AppModules.version     // "2.7.0"
 - **`v-can`** — gating elemen by role sesi, fail-closed (cermin `levelOf_` CoreLib v2.2.3): `<button v-can="'verifikator'">…</button>`; role tak dikenal = level 0, syarat tak dikenal = elemen disembunyikan.
 - **`AppCore.paginate(list, page, perPage)`** & **`AppCore.pageCount(list, perPage)`** — paginasi sisi klien pasangan `<app-filter-bar>`/`<app-crud-table>`.
 - **`this.appCode`** — identitas app dari config `AppCore.create({ appCode })`.
+- **Kelas tombol kit (v2.8.0 / F2)** — `.btn-icon` (tombol aksi ikon 32px), `.btn-icon-danger` (varian hapus), `.btn-lg` (CTA besar); light & dark bawaan, tak perlu lagi ditulis di `<style>` app.
 
 ## ⚙️ AppCore (app-core.js)
 
