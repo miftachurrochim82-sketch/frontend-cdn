@@ -1,5 +1,9 @@
 // ============================================================
-// CORE LIBRARY GLOBAL v2.2.3 - 99_CoreTest.gs
+// CORE LIBRARY GLOBAL v2.3.0 - 99_CoreTest.gs
+// Changelog v2.3.0 (2026-09-19):
+// - TEST BARU (4): testTodayIsoLocalV230, testDateKey10V230,
+//   testPaginateV230, testMatchSearchV230 — regresi util publik
+//   baru C1/C2/C3. Target testAll: PASS 42 / FAIL 0 / SKIP 1.
 // Changelog v2.2.3 (2026-09-16):
 // - Sinkron rilis v2.2.3: testRoleGateV222 (sudah ada sejak v2.2.2) KINI
 //   LULUS — fix levelOf_ yang diuji ternyata baru benar-benar diterapkan
@@ -67,7 +71,10 @@ function runCoreTests(ctx) {
     testRequireRoleV22, testCheckRoleV22,
     testGetRoleForEmailV22, testIsAllowedConfigKeyV22,
     // v2.2.2 baru
-    testRoleGateV222
+    testRoleGateV222,
+    // v2.3.0 baru (C1/C2/C3)
+    testTodayIsoLocalV230, testDateKey10V230,
+    testPaginateV230, testMatchSearchV230
   ];
   var passed = 0, failed = 0, skipped = 0, details = [];
   tests.forEach(function(fn) {
@@ -586,7 +593,6 @@ function testSessionExpiredV21(ctx) {
 
 // ==================== v2.2 TEST BARU ====================
 
-// G1, G2: normId_ / normStr_
 function testNormUtilV22(ctx) {
   assert_(normId_('  hello  ') === 'hello', 'normId_ trim.');
   assert_(normId_(null) === '', 'normId_ null -> empty.');
@@ -600,7 +606,6 @@ function testNormUtilV22(ctx) {
   assert_(normStr('  X  ') === 'x', 'public normStr.');
 }
 
-// G3: parseDate_
 function testParseDateV22(ctx) {
   var d = parseDate_('12/09/2026');
   assert_(d && d.getFullYear() === 2026 && d.getMonth() === 8 && d.getDate() === 12,
@@ -622,7 +627,6 @@ function testParseDateV22(ctx) {
   assert_(parseDate('12/09/2026') instanceof Date, 'public parseDate.');
 }
 
-// G4: whitelist_
 function testWhitelistV22(ctx) {
   assert_(whitelist_('terjadwal', ['Terjadwal', 'Selesai'], 'x') === 'Terjadwal', 'whitelist_ lowercase input -> kanonik.');
   assert_(whitelist_('TERJADWAL', ['Terjadwal', 'Selesai'], 'x') === 'Terjadwal', 'whitelist_ uppercase input -> kanonik.');
@@ -640,7 +644,6 @@ function testWhitelistV22(ctx) {
   assert_(whitelist('a', ['A'], 'x') === 'A', 'public whitelist.');
 }
 
-// G5: validateFields_
 function testValidateFieldsV22(ctx) {
   validateFields_({ a: 1, b: 'x' }, ['a', 'b']);
 
@@ -667,7 +670,6 @@ function testValidateFieldsV22(ctx) {
   assert_(threw5, 'public validateFields.');
 }
 
-// G6: genUniqueCode_ (P1-T6 v2.2.1: DETERMINISTIK)
 function testGenUniqueCodeV22(ctx) {
   // 1. Tanpa ssId -> error
   var threw = false;
@@ -682,42 +684,34 @@ function testGenUniqueCodeV22(ctx) {
   // 3. Test fungsional deterministik
   need_(ctx.ssId && ctx.headersMap && ctx.headersMap.ZZ_TEST_CRUD, 'Butuh ssId + ZZ_TEST_CRUD.');
 
-  // Bersihkan sheet supaya deterministik
   var sh = ensureSheet(ctx.ssId, 'ZZ_TEST_CRUD', ctx.headersMap, {});
   wipeSheet_(sh);
   invalidateSheetCache('ZZ_TEST_CRUD', ctx.ssId);
 
   var prefix = 'UNIQ' + Date.now() + '-';
 
-  // 3a. Sheet kosong -> 001
   var code1 = genUniqueCode_(prefix, 'ZZ_TEST_CRUD', 'id', 3, ctx.ssId, ctx.headersMap);
   assert_(code1 === prefix + '001', 'genUniqueCode_ sheet kosong = 001, dapat: ' + code1);
 
-  // 3b. Tulis 001 -> next 002
   writeRecordNoLock(ctx.ssId, 'ZZ_TEST_CRUD', { id: code1, nama: 'first' }, false, systemActor(), ctx.headersMap);
   var code2 = genUniqueCode_(prefix, 'ZZ_TEST_CRUD', 'id', 3, ctx.ssId, ctx.headersMap);
   assert_(code2 === prefix + '002', 'genUniqueCode_ setelah 001 = 002, dapat: ' + code2);
 
-  // 3c. Tulis 002 + ID tak berhubungan -> next 003 (uji fix bug)
   writeRecordNoLock(ctx.ssId, 'ZZ_TEST_CRUD', { id: code2, nama: 'second' }, false, systemActor(), ctx.headersMap);
   writeRecordNoLock(ctx.ssId, 'ZZ_TEST_CRUD', { id: 'DUP-' + Date.now(), nama: 'junk' }, false, systemActor(), ctx.headersMap);
   var code3 = genUniqueCode_(prefix, 'ZZ_TEST_CRUD', 'id', 3, ctx.ssId, ctx.headersMap);
   assert_(code3 === prefix + '003', 'genUniqueCode_ tidak terpengaruh ID lain = 003, dapat: ' + code3);
 
-  // 3d. Prefix lain -> 001 (isolasi prefix)
   var codeOther = genUniqueCode_('OTHER' + Date.now() + '-', 'ZZ_TEST_CRUD', 'id', 3, ctx.ssId, ctx.headersMap);
   assert_(/\-001$/.test(codeOther), 'genUniqueCode_ prefix lain = 001, dapat: ' + codeOther);
 
-  // Cleanup
   wipeSheet_(sh);
   invalidateSheetCache('ZZ_TEST_CRUD', ctx.ssId);
 
-  // 4. Public wrapper
   var code4 = genUniqueCode('PUB' + Date.now() + '-', 'ZZ_TEST_CRUD', 'id', 3, ctx.ssId, ctx.headersMap);
   assert_(code4.indexOf('PUB') === 0 && /\d{3}$/.test(code4), 'public genUniqueCode: ' + code4);
 }
 
-// G7: requireRole_
 function testRequireRoleV22(ctx) {
   assert_(requireRole_({ role: 'admin' }, 'verifikator') === true, 'requireRole_ admin>=verifikator.');
   assert_(requireRole_({ role: 'super' }, 'super') === true, 'requireRole_ super>=super.');
@@ -739,8 +733,6 @@ function testRequireRoleV22(ctx) {
   assert_(threw3, 'public requireRole tolak viewer>=admin.');
 }
 
-// v2.2.2: Regresi gating role — levelOf_ & checkAuth tidak boleh lagi
-// memakai fallback `|| 1` (viewer=0 bersifat falsy sejak v2.2).
 function testRoleGateV222(ctx) {
   // 1. levelOf_: viewer = 0, bukan 1.
   assert_(levelOf_('viewer', MASTER_ROLE_LEVELS) === 0, 'levelOf_ viewer = 0.');
@@ -765,8 +757,6 @@ function testRoleGateV222(ctx) {
   assert_(levelOf_.toString().indexOf('|| 1') === -1, 'levelOf_ bebas fallback || 1.');
 }
 
-// G8: checkRole_
-// G8: checkRole_
 function testCheckRoleV22(ctx) {
   var map = { save_jadwal: 'user', delete_jadwal: 'admin' };
 
@@ -792,7 +782,6 @@ function testCheckRoleV22(ctx) {
   assert_(r7.allowed === false, 'public checkRole.');
 }
 
-// G9: getRoleForEmail_
 function testGetRoleForEmailV22(ctx) {
   var mockStore = {
     _data: {},
@@ -817,7 +806,6 @@ function testGetRoleForEmailV22(ctx) {
   assert_(getRoleForEmail('x@y.com', mockStore) === 'viewer', 'public getRoleForEmail.');
 }
 
-// G10: isAllowedConfigKey_
 function testIsAllowedConfigKeyV22(ctx) {
   assert_(isAllowedConfigKey_('app_title') === true, 'isAllowedConfigKey app_title.');
   assert_(isAllowedConfigKey_('instansi') === true, 'isAllowedConfigKey instansi.');
@@ -838,6 +826,126 @@ function testIsAllowedConfigKeyV22(ctx) {
 
   assert_(isAllowedConfigKey('app_title') === true, 'public isAllowedConfigKey true.');
   assert_(isAllowedConfigKey('SPREADSHEET_ID') === false, 'public isAllowedConfigKey false.');
+}
+
+// ==================== v2.3.0 TEST BARU (C1/C2/C3) ====================
+
+// C3: todayIsoLocal_() & dateKey10_() — sadar zona waktu Script.
+function testTodayIsoLocalV230(ctx) {
+  var tz = Session.getScriptTimeZone();
+  var expected = Utilities.formatDate(new Date(), tz, 'yyyy-MM-dd');
+  var got = todayIsoLocal_();
+  assert_(got === expected, 'todayIsoLocal_ = formatDate(Local) : got=' + got + ' exp=' + expected);
+  assert_(/^\d{4}-\d{2}-\d{2}$/.test(got), 'todayIsoLocal_ format yyyy-MM-dd.');
+
+  // Wrapper publik
+  assert_(todayIsoLocal() === got, 'public todayIsoLocal konsisten.');
+
+  // todayIso() LAMA masih ada & tidak berubah (backward-compat)
+  var old = todayIso();
+  assert_(/^\d{4}-\d{2}-\d{2}$/.test(old), 'todayIso() lama tetap ada.');
+}
+
+// C3: dateKey10_() — konversi multi-format → 'yyyy-MM-dd' lokal.
+function testDateKey10V230(ctx) {
+  var tz = Session.getScriptTimeZone();
+
+  // 1. Date object → format lokal
+  var d1 = new Date(2026, 8, 19, 14, 30); // 19 Sep 2026 14:30 LOKAL
+  assert_(dateKey10_(d1) === '2026-09-19', 'dateKey10_ Date → 2026-09-19, got=' + dateKey10_(d1));
+
+  // 2. String 'yyyy-MM-dd' murni → potong 10 char
+  assert_(dateKey10_('2026-09-19') === '2026-09-19', 'dateKey10_ yyyy-MM-dd passthrough.');
+
+  // 3. String ISO penuh → parse lalu format LOKAL (fix UTC)
+  // '2026-09-19T00:00:00.000Z' = 19 Sep 07:00 WIB → tetap 19 Sep lokal.
+  // '2026-09-18T17:00:00.000Z' = 19 Sep 00:00 WIB → tetap 19 Sep lokal (bukan 18).
+  assert_(dateKey10_('2026-09-19T00:00:00.000Z') === '2026-09-19', 'dateKey10_ ISO tengah malam UTC → 19 Sep WIB.');
+  assert_(dateKey10_('2026-09-18T17:00:00.000Z') === '2026-09-19', 'dateKey10_ ISO 17:00 UTC → 19 Sep WIB (bug lama = 18).');
+
+  // 4. String legacy 'dd/MM/yyyy'
+  assert_(dateKey10_('19/09/2026') === '2026-09-19', 'dateKey10_ dd/MM/yyyy legacy.');
+
+  // 5. String 'yyyy-MM-dd HH:mm' → parse lalu format lokal
+  assert_(dateKey10_('2026-09-19 14:30') === '2026-09-19', 'dateKey10_ yyyy-MM-dd HH:mm.');
+
+  // 6. Nilai kosong → ''
+  assert_(dateKey10_(null) === '', 'dateKey10_ null → empty.');
+  assert_(dateKey10_('') === '', 'dateKey10_ empty → empty.');
+  assert_(dateKey10_(undefined) === '', 'dateKey10_ undefined → empty.');
+
+  // 7. Wrapper publik
+  assert_(dateKey10('2026-09-19') === '2026-09-19', 'public dateKey10.');
+}
+
+// C1: paginate_() — potong array + meta.
+function testPaginateV230(ctx) {
+  var rows = [];
+  for (var i = 1; i <= 25; i++) rows.push({ id: i });
+
+  // 1. Halaman normal
+  var p1 = paginate_(rows, 1, 10);
+  assert_(p1.success === true, 'paginate_ success.');
+  assert_(p1.data.length === 10, 'paginate_ halaman 1 = 10 baris.');
+  assert_(p1.data[0].id === 1 && p1.data[9].id === 10, 'paginate_ halaman 1 nilai benar.');
+  assert_(p1.meta.total === 25, 'paginate_ total=25.');
+  assert_(p1.meta.total_pages === 3, 'paginate_ total_pages=3.');
+  assert_(p1.meta.page === 1 && p1.meta.limit === 10, 'paginate_ meta page/limit.');
+
+  // 2. Halaman terakhir (sisa)
+  var p3 = paginate_(rows, 3, 10);
+  assert_(p3.data.length === 5, 'paginate_ halaman 3 = 5 baris.');
+  assert_(p3.data[0].id === 21 && p3.data[4].id === 25, 'paginate_ halaman 3 nilai benar.');
+
+  // 3. Halaman di luar range → data kosong, meta tetap benar
+  var p9 = paginate_(rows, 9, 10);
+  assert_(p9.data.length === 0, 'paginate_ halaman di luar range = kosong.');
+  assert_(p9.meta.total_pages === 3, 'paginate_ meta total_pages tetap.');
+
+  // 4. Input non-array → array kosong
+  var pN = paginate_(null, 1, 10);
+  assert_(pN.data.length === 0 && pN.meta.total === 0, 'paginate_ null → kosong.');
+
+  // 5. page/limit invalid → default 1/10
+  var pDef = paginate_(rows, 0, 0);
+  assert_(pDef.meta.page === 1 && pDef.meta.limit === 10, 'paginate_ default page/limit.');
+
+  // 6. Wrapper publik
+  var pp = paginate(rows, 2, 5);
+  assert_(pp.data.length === 5 && pp.data[0].id === 6, 'public paginate.');
+}
+
+// C2: matchSearch_() — substring case-insensitive.
+function testMatchSearchV230(ctx) {
+  var row = { deskripsi: 'Laporan Patroli Wilayah', hasil: 'Selesai 100%', kendala: '' };
+
+  // 1. Match salah satu field
+  assert_(matchSearch_(row, 'patroli', ['deskripsi', 'hasil']) === true, 'matchSearch_ patroli di deskripsi.');
+  assert_(matchSearch_(row, 'selesai', ['deskripsi', 'hasil']) === true, 'matchSearch_ selesai di hasil.');
+  assert_(matchSearch_(row, '100%', ['hasil']) === true, 'matchSearch_ simbol 100%.');
+
+  // 2. Case-insensitive
+  assert_(matchSearch_(row, 'PATROLI', ['deskripsi']) === true, 'matchSearch_ case-insensitive.');
+  assert_(matchSearch_(row, 'PaTrOlI', ['deskripsi']) === true, 'matchSearch_ mixed case.');
+
+  // 3. Tidak match
+  assert_(matchSearch_(row, 'kebakaran', ['deskripsi', 'hasil']) === false, 'matchSearch_ tidak match.');
+
+  // 4. q kosong → true (selalu lolos)
+  assert_(matchSearch_(row, '', ['deskripsi']) === true, 'matchSearch_ q kosong → true.');
+  assert_(matchSearch_(row, null, ['deskripsi']) === true, 'matchSearch_ q null → true.');
+  assert_(matchSearch_(row, '   ', ['deskripsi']) === true, 'matchSearch_ q whitespace → true.');
+
+  // 5. fields kosong / non-array → false (cermin si-lahar: tidak ada field
+  //    dicari = tidak match). Perilaku konsisten untuk [] dan null.
+  assert_(matchSearch_(row, 'apa saja', []) === false, 'matchSearch_ fields [] → false.');
+  assert_(matchSearch_(row, 'apa saja', null) === false, 'matchSearch_ fields null → false.');
+
+  // 6. Field kosong di row diabaikan
+  assert_(matchSearch_(row, 'x', ['kendala']) === false, 'matchSearch_ field kosong diabaikan.');
+
+  // 7. Wrapper publik
+  assert_(matchSearch(row, 'patroli', ['deskripsi']) === true, 'public matchSearch.');
 }
 
 // ==================== RUNNER & HELPERS ====================
@@ -895,7 +1003,7 @@ function testAll() {
   });
 }
 
-// Quick check bahwa library v2.2.1 aktif.
+// Quick check bahwa library v2.3.0 aktif.
 function cekUpdateCorelib() {
   try {
     var testRole = CoreLib.getHighestRole(['kasat']);
@@ -909,8 +1017,13 @@ function cekUpdateCorelib() {
     Logger.log('✅ parseDate_ tersedia: ' + (typeof parseDate_ === 'function'));
     Logger.log('✅ requireRole_ tersedia: ' + (typeof requireRole_ === 'function'));
     Logger.log('✅ isAllowedConfigKey_ tersedia: ' + (typeof isAllowedConfigKey_ === 'function'));
+    // v2.3.0 baru
+    Logger.log('✅ todayIsoLocal_ tersedia: ' + (typeof todayIsoLocal_ === 'function'));
+    Logger.log('✅ dateKey10_ tersedia: ' + (typeof dateKey10_ === 'function'));
+    Logger.log('✅ paginate_ tersedia: ' + (typeof paginate_ === 'function'));
+    Logger.log('✅ matchSearch_ tersedia: ' + (typeof matchSearch_ === 'function'));
   } catch (e) {
-    Logger.log('❌ Fungsi v2.2 tidak lengkap: ' + e.message);
+    Logger.log('❌ Fungsi v2.3.0 tidak lengkap: ' + e.message);
   }
 
   // Cek fix genUniqueCode (v2.2.1)
