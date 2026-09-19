@@ -102,14 +102,15 @@ frontend-cdn/
 
 ---
 
-## 🚀 Keunggulan Arsitektur 2-Berkas HTML (Single Include)
+## 🚀 Keunggulan Arsitektur Include Modular (standar berlaku)
 
-1. **Ringan & Bebas Bug di Apps Script**:
-   - GAS hanya memproses **satu kali include** (`<?!= include('V_Layout'); ?>`) di dalam `Index.html`.
-   - Menghilangkan risiko *nested include* / *recursion error*.
-2. **Nyaman dikelola di browser tablet**: struktur berkas editor GAS tetap ramping.
-3. **Pustaka terpusat via CDN jsDelivr**: semua aplikasi berbagi `<app-sidebar>`, `<app-header>`, `<app-badge>`, `<app-stat-card>`, `<app-login>`, `<app-modal>`, `<app-crud-table>`, `<app-profile>`, `<app-settings>`.
-4. **Backend terpusat via CoreLib**: satu library GAS untuk auth SSO, role guard, CRUD generik, dan test suite — aplikasi satelit tinggal konfigurasi.
+1. **`Index.html` = shell tipis**: pin CDN (tag versi), identitas tema per aplikasi, dan daftar include modul **satu tingkat** — tanpa logika bisnis.
+2. **View & logika terpisah per modul**: halaman = modul `V_*.html`, logika = modul `J_*.html`; pola **seragam lintas aplikasi** (standar si-lahar) — masalah pada "1 file yang hampir sama" antar app jadi mudah ditelusuri.
+3. **Aman untuk Apps Script**: semua include satu tingkat dari `Index.html` (tanpa *nested include* / *recursion error*); struktur berkas editor GAS tetap ramping, nyaman dikelola dari browser tablet.
+4. **Pustaka terpusat via CDN jsDelivr**: semua aplikasi berbagi `<app-sidebar>`, `<app-header>`, `<app-badge>`, `<app-stat-card>`, `<app-login>`, `<app-modal>`, `<app-crud-table>`, `<app-profile>`, `<app-settings>`.
+5. **Backend terpusat via CoreLib**: satu library GAS untuk auth SSO, role guard, CRUD generik, dan test suite — aplikasi satelit tinggal konfigurasi.
+
+> **Catatan warisan**: si-pelaporan masih memakai pola lama 2-berkas (`V_Layout.html` = seluruh tampilan). Itu utang konvergensi yang terdokumentasi, **bukan** standar untuk aplikasi baru.
 
 ---
 
