@@ -1,22 +1,22 @@
 # 🏛️ Panduan Arsitektur & Standar Pengembangan Aplikasi Ekosistem Pemkab Trenggalek
-### Standar Terpadu CoreLib v2.2.3 • Frontend CDN v2.7.0 • Portal SSO SI-Platform • Starter Template
+### Standar Terpadu CoreLib v2.2.4 • Frontend CDN v2.8.0 • Portal SSO SI-Platform • Starter Template
 
 > **Dokumen Resmi Arsitektur & Standar Rekayasa Perangkat Lunak**  
 > **Pemerintah Kabupaten Trenggalek — Dinas Komunikasi dan Informatika**  
-> *Versi Ekosistem: 2.5.2 | Tahun: 2026*
+> *Versi Ekosistem: 2.6.0 | Tahun: 2026*
 
 ---
 
 ## 📑 Daftar Isi
 1. [Ringkasan Eksekutif & Prinsip Arsitektur](#1-ringkasan-eksekutif--prinsip-arsitektur)
 2. [Peta Ekosistem & Matriks Komponen](#2-peta-ekosistem--matriks-komponen)
-3. [Backend Core Foundation v2.2.3 (`CoreLib`)](#3-backend-core-foundation-v223-corelib)
+3. [Backend Core Foundation v2.2.4 (`CoreLib`)](#3-backend-core-foundation-v224-corelib)
    - [3.1 Skema Spreadsheet & Physical Row Indexing](#31-skema-spreadsheet--physical-row-indexing)
    - [3.2 Column-Aligned Schema Serialization](#32-column-aligned-schema-serialization)
    - [3.3 Namespace Database Caching](#33-namespace-database-caching)
    - [3.4 Declarative Resource Router](#34-declarative-resource-router)
    - [3.5 Standardisasi Waktu & ISO-8601 Canonical Format](#35-standardisasi-waktu--iso-8601-canonical-format)
-4. [Frontend CDN v2.7.0 Shared Library](#4-frontend-cdn-v270-shared-library)
+4. [Frontend CDN v2.8.0 Shared Library](#4-frontend-cdn-v280-shared-library)
    - [4.1 Distribusi Aset CDN jsDelivr](#41-distribusi-aset-cdn-jsdelivr)
    - [4.2 On-Demand Library Lazy Loading](#42-on-demand-library-lazy-loading)
    - [4.3 Stale-While-Revalidate (SWR) SIMPEG Cache](#43-stale-while-revalidate-swr-simpeg-cache)
@@ -57,7 +57,7 @@ Ekosistem aplikasi web Pemerintah Kabupaten Trenggalek dirancang di atas infrast
 ┌─────────────────────────────────────────────────────────────────────────────────────────┐
 │                                   SHARED FOUNDATION LAYER                               │
 ├────────────────────────────────────────────┬────────────────────────────────────────────┤
-│ 1. CoreLib Global Backend Library v2.2.3     │ 2. Frontend CDN v2.7.0 (jsDelivr)          │
+│ 1. CoreLib Global Backend Library v2.2.4     │ 2. Frontend CDN v2.8.0 (jsDelivr)          │
 │    ID: 1GmeYflfMpRa1iTVgFHRD6K1DMoxc9Oo... │    CSS: app-common.min.css                 │
 │    - Physical Row Database Engine          │    JS : app-components.min.js              │
 │    - Declarative Resource Router           │         app-modules.min.js                 │
@@ -82,17 +82,20 @@ Ekosistem aplikasi web Pemerintah Kabupaten Trenggalek dirancang di atas infrast
 | `backend` (`CoreLib`) | Global Apps Script Library | GAS V8 Runtime, Google Sheets API, Drive API |
 | `frontend` (`frontend-cdn`) | Shared CSS/JS Bundle CDN | Vue 3, Tailwind CSS, Font Awesome 6.5.2 |
 | `si-platform` | Portal Pusat SSO & SIMPEG | Vue 3, Tailwind CSS, Font Awesome 6.5.2, `app-common.css` |
-| `si-kompetensi` | Aplikasi Satelit Kompetensi ASN | `CoreLib` pin 12 + `developmentMode:true`, `frontend-cdn @v2.6.5` |
-| `si-pelaporan` | Aplikasi Satelit Laporan | `CoreLib` pin 13 (pinned = v2.2.3), `frontend-cdn @v2.6.5` |
+| `si-kompetensi` | Aplikasi Satelit Kompetensi ASN | `CoreLib` pin 14 (v2.2.4), `frontend-cdn @v2.7.5` |
+| `si-pelaporan` | Aplikasi Satelit Laporan | `CoreLib` pin 13 (pinned = v2.2.3), `frontend-cdn @v2.7.5` |
+| `si-lahar` | Aplikasi Satelit e-Kinerja Harian ASN | `CoreLib` pin 14 (v2.2.4), `frontend-cdn @v2.8.0` |
 | ~~`backend/Code.gs`~~ (dihapus 2026-09-17 → starter-kit) | ~~Template kerangka aplikasi baru~~ | `CoreLib v2.2.3`, `frontend-cdn v2.6.5` |
 
 ---
 
-## 3. Backend Core Foundation v2.2.3 (`CoreLib`)
+## 3. Backend Core Foundation v2.2.4 (`CoreLib`)
 
 > **v2.2.3 (2026-09-16)** ⭐: FIX keamanan `levelOf_` — fallback `|| 1` (yang mengangkat viewer/role tak dikenal ke level 1 dan meloloskannya di 9 gerbang akses) diganti fail-closed `lv === undefined ? 0 : lv`. Diverifikasi live: `testAll()` PASS 38 / FAIL 0, `[PASS] testRoleGateV222`.
 >
 > **v2.2.2 (2026-09-15)**: FIX `checkAuth` (`=== undefined → 0`), `dispatchAction` membuang `data._cacheBust`, penguatan `requireRole_`, test regresi `testRoleGateV222`. ⚠️ Fix `levelOf_` belum ikut terkirim di versi ini (test-nya mendahului fix-nya) — dilengkapi di v2.2.3.
+>
+> **v2.2.4 (2026-09-16/17)**: aditif murni (Batch 3 ROADMAP) — `CoreLib.ensureSheet`, `CoreLib.getDb`/`masterDbFor_`, opsi `decorate` pada delegasi `initDatabase`; perilaku lama tidak berubah.
 >
 > Changelog lengkap: [`backend/00_MIGRATION_v2.md`](backend/00_MIGRATION_v2.md).
 
@@ -172,7 +175,7 @@ function handleAction(payload) {
 
 ---
 
-## 4. Frontend CDN v2.7.0 Shared Library
+## 4. Frontend CDN v2.8.0 Shared Library
 
 ### 4.1 Distribusi Aset CDN jsDelivr
 Setiap aplikasi web cukup memuat tag berikut di file `Index.html`:
@@ -186,18 +189,18 @@ Setiap aplikasi web cukup memuat tag berikut di file `Index.html`:
 <script>tailwind.config = { darkMode: 'class' };</script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/css/all.min.css">
-<script src="https://cdn.jsdelivr.net/npm/vue@3.4.21/dist/vue.global.prod.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue@3.5.42/dist/vue.global.prod.js"></script>
 
-<!-- Shared CDN Pemkab Trenggalek v2.6.5 — selalu pakai TAG VERSI, jangan @main -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.7.0/frontend/app-common.min.css">
+<!-- Shared CDN Pemkab Trenggalek v2.8.0 — selalu pakai TAG VERSI, jangan @main -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.8.0/frontend/app-common.min.css">
 
 <!-- Tema per aplikasi: override CSS variables di <style> lokal, mis.
      :root { --primary: #059669; --primary-dark: #047857; ... } -->
 
 <!-- ========== Sebelum </body> : JS Shared CDN ========== -->
-<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.7.0/frontend/app-components.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.7.0/frontend/app-modules.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.7.0/frontend/app-core.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.8.0/frontend/app-components.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.8.0/frontend/app-modules.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.8.0/frontend/app-core.min.js"></script>
 ```
 
 > Salinan persis + aturan rilis: [`frontend/CDN_SNIPPET.md`](frontend/CDN_SNIPPET.md).
@@ -270,6 +273,7 @@ Seluruh ikon wajib menggunakan class Font Awesome 6.5.2 (`fa-solid fa-*`):
 * Direktif `v-can` *(v2.7.0)*: Gating elemen UI by role sesi (fail-closed, cermin `levelOf_` CoreLib v2.2.3).
 * `<app-profile>`: Modul profil ASN mandiri dengan data terverifikasi SIMPEG.
 * `<app-settings>`: Modul pengaturan konfigurasi sistem berbasis tabs.
+* Kelas tombol kit *(v2.8.0 / F2)*: `.btn-icon` (aksi ikon 32px), `.btn-icon-danger` (varian hapus), `.btn-lg` (CTA besar) — bawaan `app-common.css` (light & dark); jangan ditulis ulang di `<style>` app.
 
 ---
 
@@ -285,7 +289,7 @@ Seluruh ikon wajib menggunakan class Font Awesome 6.5.2 (`fa-solid fa-*`):
                                              3. Generate Ticket SSO
                                                 (Valid 5 Menit)
                                                     │
-[ Pengguna ] ◄─── 4. Redirect ke URL App ───────────┘
+[ Pengguna ] ◄─── 4. Redirect ke URL App ───────────
                        (?ticket=ST-xxxx)
      │
      ▼
@@ -299,7 +303,7 @@ Seluruh ikon wajib menggunakan class Font Awesome 6.5.2 (`fa-solid fa-*`):
                                                                         7. Verifikasi & Return
                                                                            User Profile + Roles
                                                                                │
-          [ Backend GAS Satelit ] ◄── 8. Status: VALID + User Data ────────────┘
+          [ Backend GAS Satelit ] ◄─── 8. Status: VALID + User Data ───────────┘
                  │
                  ├── 9. Buat Token Sesi HMAC Lokal (Valid 8 Jam)
                  │
@@ -356,7 +360,7 @@ si-cuti/
     ├── 02_AppLogic.gs        # doGet, handleAction, custom handlers bisnis
     ├── 03_SeedData.gs        # Inisialisasi sheet & data awal
     ├── 99_TestSuite.gs       # Test suite aplikasi
-    ├── Index.html            # Shell: CDN v2.6.5 + include V_Layout + mount Vue
+    ├── Index.html            # Shell: CDN v2.8.0 + include V_Layout + mount Vue
     └── V_Layout.html         # SELURUH tampilan (arsitektur 2-berkas HTML)
 ```
 
@@ -381,13 +385,13 @@ Dan di `src/appsscript.json`, daftarkan library:
   "libraries": [{
     "userSymbol": "CoreLib",
     "libraryId": "1GmeYflfMpRa1iTVgFHRD6K1DMoxc9OoKqpuucPJXgNZ9XBK06O7wgDkO",
-    "version": "13"
+    "version": "14"
   }]
 }
 ```
 
-> `developmentMode: true` = selalu pakai kode HEAD (untuk pengembangan, dipakai si-kompetensi).
-> Tanpa `developmentMode` = terkunci di `version` (untuk produksi stabil, dipakai si-pelaporan).
+> `developmentMode: true` = selalu pakai kode HEAD (hanya untuk pengembangan).
+> Tanpa `developmentMode` = terkunci di `version` (produksi stabil; praktik si-pelaporan & si-lahar).
 
 ---
 
@@ -466,5 +470,5 @@ Setiap repository aplikasi yang dibuat melalui template telah dilengkapi `.githu
 
 ## 📜 Kontak & Pemeliharaan
 * **Pengelola Ekosistem**: Tim Pengembang TI — Dinas Komunikasi dan Informatika Kabupaten Trenggalek
-* **Dokumentasi & Versi**: CoreLib v2.2.4 (GAS versi 14) • Frontend CDN v2.7.5 (diperbarui 2026-09-17)
-* **Lisensi**: MIT License
+* **Dokumentasi & Versi**: CoreLib v2.2.4 (GAS versi 14) • Frontend CDN v2.8.0 (diperbarui 2026-09-19)
+* **Lisensi**: MIT Licens
