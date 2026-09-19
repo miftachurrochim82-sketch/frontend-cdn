@@ -1,5 +1,8 @@
 // ============================================================
-// CORE LIBRARY GLOBAL v2.2.3 - 02_CoreGateway.gs
+// CORE LIBRARY GLOBAL v2.3.0 - 02_CoreGateway.gs
+// Changelog v2.3.0 (2026-09-19):
+// - Sinkron rilis v2.3.0 (C1/C2/C3 ditambahkan di 01_CoreFoundation.gs).
+//   Tanpa perubahan fungsional di berkas ini.
 // Changelog v2.2.3 (2026-09-16):
 // - FIX KEAMANAN (P1-C1 TUNTAS): levelOf_ — fallback `|| 1` ternyata BELUM
 //   diganti saat v2.2.2 (changelog mengklaim sudah). viewer (level 0, falsy)
