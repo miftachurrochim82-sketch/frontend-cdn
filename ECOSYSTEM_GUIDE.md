@@ -263,7 +263,7 @@ Seluruh ikon wajib menggunakan class Font Awesome 6.5.2 (`fa-solid fa-*`):
 * `<app-badge>`: Label status berwarna otomatis — props `status` (menerima sinonim: `disetujui/approved/aktif/menunggu/pending/proses/revisi/ditolak/inactive/definitif/plt/kosong`), `label` (timpa teks), `size` (`sm`/`md`), `icon` *(baru v2.6.5)*.
 * `<app-modal>`: Dialog popup responsif berbasis animasi CSS.
 * `<app-crud-table>`: Tabel data interaktif dengan pencarian cepat, pengurutan kolom, paginasi, tombol ekspor (Excel/PDF), dan aksi CRUD.
-* `<app-filter-bar>` *(v2.7.0)*: Bar filter deklaratif (text/select/date) dengan v-model + emit `change`/`reset`.
+* `<app-filter-bar>` *(v2.7.0; v2.8.0)*: Bar filter deklaratif (text/select/date) dengan v-model + emit `change`/`reset`. v2.8.0: tiap filter boleh bawa `span` (2..4) agar satu baris bisa lebar tak seragam (mis. pencarian `span:2` + dua select) — tanpa span = perilaku lama.
 * `<app-empty-state>` & `<app-skeleton>` *(v2.7.0)*: Keadaan kosong & loading pulse seragam (lines/cards/table).
 * `<app-chart-bar>` / `<app-chart-doughnut>` *(v2.7.0)*: Chart kit bertema — Chart.js on-demand, warna & grid ikut dark mode.
 * `<app-pegawai-picker>` *(v2.7.0)*: Picker searchable master SIMPEG berbasis cache SWR.
