@@ -289,7 +289,7 @@ Seluruh ikon wajib menggunakan class Font Awesome 6.5.2 (`fa-solid fa-*`):
                                              3. Generate Ticket SSO
                                                 (Valid 5 Menit)
                                                     │
-[ Pengguna ] ◄─── 4. Redirect ke URL App ───────────
+[ Pengguna ] ◄─── 4. Redirect ke URL App ───────────┘
                        (?ticket=ST-xxxx)
      │
      ▼
@@ -303,7 +303,7 @@ Seluruh ikon wajib menggunakan class Font Awesome 6.5.2 (`fa-solid fa-*`):
                                                                         7. Verifikasi & Return
                                                                            User Profile + Roles
                                                                                │
-          [ Backend GAS Satelit ] ◄─── 8. Status: VALID + User Data ───────────┘
+          [ Backend GAS Satelit ] ◄── 8. Status: VALID + User Data ────────────┘
                  │
                  ├── 9. Buat Token Sesi HMAC Lokal (Valid 8 Jam)
                  │
@@ -337,32 +337,39 @@ function handleHapusLaporan(payload, session) {
 Tidak ada CLI generator — aplikasi baru dibuat manual dari dua cetakan di repo ini:
 
 1. **Backend**: salin [`backend/Code.gs`](backend/Code.gs) ke proyek GAS aplikasi baru sebagai `Code.gs`. Isi `getAppConfig_()`: `appCode`, `appTitle`, `headersMap` (skema sheet), `pkFields`, `localHandlers` (endpoint bisnis khusus). Semua CRUD generik, auth SSO, dan setup otomatis sudah ditangani CoreLib (`dispatchAction`, `executeAppSetup`).
-2. **Frontend**: salin blok `<head>`/`</body>` dari [`frontend/CDN_SNIPPET.md`](frontend/CDN_SNIPPET.md) ke `Index.html`, lalu bangun tampilan di `V_Layout.html` memakai komponen `<app-...>`.
+2. **Frontend**: salin blok `<head>`/`</body>` dari [`frontend/CDN_SNIPPET.md`](frontend/CDN_SNIPPET.md) ke `Index.html`, lalu bangun tampilan di **modul `V_*.html` per halaman** memakai komponen `<app-...>` (standar berlaku, contoh si-lahar). Pola lama 2-berkas (`V_Layout.html` = seluruh tampilan) hanya warisan si-pelaporan.
 3. **Library**: daftarkan CoreLib di `appsscript.json` (lihat 6.3).
 
 ### 6.2 Struktur Berkas Aplikasi Standar
 
-Struktur nyata (contoh: repo `si-pelaporan`):
+Struktur standar berlaku (include modular, contoh: repo `si-lahar`):
 
 ```text
-si-cuti/
-├── .clasp.json               # Konfigurasi target Script ID proyek GAS
-├── .claspignore              # Whitelist berkas yang boleh di-push
-├── package.json              # Script npm (clasp push/pull, set-script-id)
+si-lahar/
 ├── README.md                 # Dokumentasi operasional aplikasi
-├── .github/workflows/
-│   └── deploy-gas.yml        # CI/CD deploy saat push ke branch main
-├── scripts/
-│   └── set-script-id.js      # Helper isi .clasp.json otomatis
+├── docs/                     # Dokumen Gate 0 (BRD/PRD/FRD/DATABASE/UIUX/API/TESTCASE)
 └── src/
-    ├── appsscript.json       # Manifest V8 + dependensi library CoreLib
+    ├── appsscript.json       # Manifest V8 + dependensi library CoreLib (pin versi)
     ├── 01_ConfigAndBridge.gs # Konfigurasi konstanta & bridge CoreLib
     ├── 02_AppLogic.gs        # doGet, handleAction, custom handlers bisnis
-    ├── 03_SeedData.gs        # Inisialisasi sheet & data awal
-    ├── 99_TestSuite.gs       # Test suite aplikasi
-    ├── Index.html            # Shell: CDN v2.8.0 + include V_Layout + mount Vue
-    └── V_Layout.html         # SELURUH tampilan (arsitektur 2-berkas HTML)
+    ├── 03_Maintenance.gs     # Tooling pemeliharaan (keluarga rapikan*)
+    ├── 04_…09_*.gs           # Modul API per domain bisnis
+    ├── 99_Test.gs            # Test suite aplikasi
+    ├── Index.html            # Shell tipis: pin CDN bertag + include SATU tingkat + mount Vue
+    ├── A0_Style.html         # CSS khas aplikasi (hanya yang tidak punya komponen kit)
+    ├── V_*.html              # Modul view per halaman (V_Dashboard, V_Profil, …)
+    ├── V_Modals.html         # Modal form bersama satu aplikasi
+    └── J_*.html              # Modul logika (J_State, J_Api, J_Actions, J_Export,
+                              #  J_Kinerja, J_App, J_Helpers)
 ```
+
+Aturan pola: semua include **satu tingkat** dari `Index.html` (tanpa nested include);
+modul view (`V_*`) terpisah dari modul logika (`J_*`); pola seragam lintas aplikasi
+supaya masalah pada "1 file yang hampir sama" mudah ditelusuri antar app.
+
+> **Catatan warisan**: `si-pelaporan` masih memakai pola lama 2-berkas
+> (`Index.html` + `V_Layout.html` = SELURUH tampilan). Itu utang konvergensi yang
+> terdokumentasi, **bukan** standar untuk aplikasi baru.
 
 ### 6.3 Konfigurasi Script Properties
 Buka Google Apps Script Editor ➡️ **Project Settings** ➡️ **Script Properties**, tambahkan key berikut:
@@ -471,4 +478,4 @@ Setiap repository aplikasi yang dibuat melalui template telah dilengkapi `.githu
 ## 📜 Kontak & Pemeliharaan
 * **Pengelola Ekosistem**: Tim Pengembang TI — Dinas Komunikasi dan Informatika Kabupaten Trenggalek
 * **Dokumentasi & Versi**: CoreLib v2.2.4 (GAS versi 14) • Frontend CDN v2.8.0 (diperbarui 2026-09-19)
-* **Lisensi**: MIT Licens
+* **Lisensi**: MIT License
