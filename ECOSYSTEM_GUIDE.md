@@ -1,22 +1,22 @@
 # 🏛️ Panduan Arsitektur & Standar Pengembangan Aplikasi Ekosistem Pemkab Trenggalek
-### Standar Terpadu CoreLib v2.2.4 • Frontend CDN v2.8.0 • Portal SSO SI-Platform • Starter Template
+### Standar Terpadu CoreLib v2.3.0 • Frontend CDN v2.8.1 • Portal SSO SI-Platform • Starter Template
 
 > **Dokumen Resmi Arsitektur & Standar Rekayasa Perangkat Lunak**  
 > **Pemerintah Kabupaten Trenggalek — Dinas Komunikasi dan Informatika**  
-> *Versi Ekosistem: 2.8.0 | Tahun: 2026*
+> *Versi Ekosistem: 2.8.1 | Tahun: 2026*
 
 ---
 
 ## 📑 Daftar Isi
 1. [Ringkasan Eksekutif & Prinsip Arsitektur](#1-ringkasan-eksekutif--prinsip-arsitektur)
 2. [Peta Ekosistem & Matriks Komponen](#2-peta-ekosistem--matriks-komponen)
-3. [Backend Core Foundation v2.2.4 (`CoreLib`)](#3-backend-core-foundation-v224-corelib)
+3. [Backend Core Foundation v2.3.0 (`CoreLib`)](#3-backend-core-foundation-v230-corelib)
    - [3.1 Skema Spreadsheet & Physical Row Indexing](#31-skema-spreadsheet--physical-row-indexing)
    - [3.2 Column-Aligned Schema Serialization](#32-column-aligned-schema-serialization)
    - [3.3 Namespace Database Caching](#33-namespace-database-caching)
    - [3.4 Declarative Resource Router](#34-declarative-resource-router)
    - [3.5 Standardisasi Waktu & ISO-8601 Canonical Format](#35-standardisasi-waktu--iso-8601-canonical-format)
-4. [Frontend CDN v2.8.0 Shared Library](#4-frontend-cdn-v280-shared-library)
+4. [Frontend CDN v2.8.1 Shared Library](#4-frontend-cdn-v281-shared-library)
    - [4.1 Distribusi Aset CDN jsDelivr](#41-distribusi-aset-cdn-jsdelivr)
    - [4.2 On-Demand Library Lazy Loading](#42-on-demand-library-lazy-loading)
    - [4.3 Stale-While-Revalidate (SWR) SIMPEG Cache](#43-stale-while-revalidate-swr-simpeg-cache)
@@ -26,7 +26,7 @@
    - [5.1 Alur Autentikasi Tiket SSO](#51-alur-autentikasi-tiket-sso)
    - [5.2 Autentikasi Mandiri (Direct Login)](#52-autentikasi-mandiri-direct-login)
    - [5.3 Role Guard & Hak Akses Berbasis Izin](#53-role-guard--hak-akses-berbasis-izin)
-6. [Panduan Pembuatan Aplikasi Baru (template `backend/Code.gs`)](#6-panduan-pembuatan-aplikasi-baru-template-backendcodegs)
+6. [Panduan Pembuatan Aplikasi Baru (starter-kit)](#6-panduan-pembuatan-aplikasi-baru-starter-kit)
    - [6.1 Kerangka Awal](#61-kerangka-awal)
    - [6.2 Struktur Berkas Aplikasi Standar](#62-struktur-berkas-aplikasi-standar)
    - [6.3 Konfigurasi Script Properties](#63-konfigurasi-script-properties)
@@ -57,11 +57,12 @@ Ekosistem aplikasi web Pemerintah Kabupaten Trenggalek dirancang di atas infrast
 ┌─────────────────────────────────────────────────────────────────────────────────────────┐
 │                                   SHARED FOUNDATION LAYER                               │
 ├────────────────────────────────────────────┬────────────────────────────────────────────┤
-│ 1. CoreLib Global Backend Library v2.2.4     │ 2. Frontend CDN v2.8.0 (jsDelivr)          │
+│ 1. CoreLib Global Backend Library v2.3.0     │ 2. Frontend CDN v2.8.1 (jsDelivr)          │
 │    ID: 1GmeYflfMpRa1iTVgFHRD6K1DMoxc9Oo... │    CSS: app-common.min.css                 │
 │    - Physical Row Database Engine          │    JS : app-components.min.js              │
 │    - Declarative Resource Router           │         app-modules.min.js                 │
 │    - SSO HMAC Auth Bridge & Role Guard     │         app-core.min.js (SWR Engine)       │
+│    - todayIsoLocal/dateKey10 (sadar-WIB)   │                                            │
 └────────────────────────────────────────────┴────────────────────────────────────────────┘
                                              │
              ┌───────────────────────────────┴───────────────────────────────┐
@@ -70,8 +71,8 @@ Ekosistem aplikasi web Pemerintah Kabupaten Trenggalek dirancang di atas infrast
 │ 3. SI-PLATFORM (Portal SSO & Master Hub)   │  │ 4. APLIKASI SATELIT SKPD / CONSUMER     │
 │    - Single Sign-On Identity Provider      │  │    Contoh:                              │
 │    - Master Kepegawaian (SIMPEG)           │  │    - SI-PELAPORAN (Laporan Kinerja)     │
-│    - RBAC: Manajemen User, Role, Izin      │  │    - SI-CUTI, SI-PERJADIN, SI-ASET, dll │
-│    - Portal App Launcher ASN               │  │    - Dibuat dari template Code.gs       │
+│    - RBAC: Manajemen User, Role, Izin      │  │    - SI-LAHAR (e-Kinerja Harian)        │
+│    - Portal App Launcher ASN               │  │    - SI-CUTI, SI-PERJADIN, SI-ASET, dll │
 └────────────────────────────────────────────┘  └─────────────────────────────────────────┘
 ```
 
@@ -82,20 +83,26 @@ Ekosistem aplikasi web Pemerintah Kabupaten Trenggalek dirancang di atas infrast
 | `backend` (`CoreLib`) | Global Apps Script Library | GAS V8 Runtime, Google Sheets API, Drive API |
 | `frontend` (`frontend-cdn`) | Shared CSS/JS Bundle CDN | Vue 3, Tailwind CSS, Font Awesome 6.5.2 |
 | `si-platform` | Portal Pusat SSO & SIMPEG | Vue 3, Tailwind CSS, Font Awesome 6.5.2, `app-common.css` |
-| `si-kompetensi` | Aplikasi Satelit Kompetensi ASN | `CoreLib` pin 14 (v2.2.4), `frontend-cdn @v2.7.5` |
-| `si-pelaporan` | Aplikasi Satelit Laporan | `CoreLib` pin 13 (pinned = v2.2.3), `frontend-cdn @v2.7.5` |
-| `si-lahar` | Aplikasi Satelit e-Kinerja Harian ASN | `CoreLib` pin 14 (v2.2.4), `frontend-cdn @v2.8.0` |
-| ~~`2026-09-17 → starter-kit | `CoreLib v2.2.4`, `frontend-cdn v2.8.0` |
+| `si-kompetensi` | Aplikasi Satelit Kompetensi ASN | `CoreLib` pin 12 (`developmentMode: true`), `frontend-cdn @v2.7.5` |
+| `si-pelaporan` | Aplikasi Satelit Laporan | `CoreLib` pin 13 (`v2.2.3`), `frontend-cdn @v2.7.5` |
+| `si-lahar` | Aplikasi Satelit e-Kinerja Harian ASN | `CoreLib` pin 15 (`v2.3.0`), `frontend-cdn @v2.8.1` |
+| ~~`backend/Code.gs`~~ (dihapus 2026-09-17 → starter-kit) | ~~Template kerangka aplikasi baru~~ | `CoreLib v2.3.0`, `frontend-cdn v2.8.1` |
 
 ---
 
-## 3. Backend Core Foundation v2.2.4 (`CoreLib`)
+## 3. Backend Core Foundation v2.3.0 (`CoreLib`)
 
-> **v2.2.3 (2026-09-16)** ⭐: FIX keamanan `levelOf_` — fallback `|| 1` (yang mengangkat viewer/role tak dikenal ke level 1 dan meloloskannya di 9 gerbang akses) diganti fail-closed `lv === undefined ? 0 : lv`. Diverifikasi live: `testAll()` PASS 38 / FAIL 0, `[PASS] testRoleGateV222`.
->
-> **v2.2.2 (2026-09-15)**: FIX `checkAuth` (`=== undefined → 0`), `dispatchAction` membuang `data._cacheBust`, penguatan `requireRole_`, test regresi `testRoleGateV222`. ⚠️ Fix `levelOf_` belum ikut terkirim di versi ini (test-nya mendahului fix-nya) — dilengkapi di v2.2.3.
+> **v2.3.0 (2026-09-19)** ⭐: Aditif murni — 4 util baru.
+> **C3**: `todayIsoLocal()` + `dateKey10()` (fix bug UTC-vs-WIB `todayIso()` lama yang mundur 1 hari untuk user WIB sebelum 07:00). `todayIso()` LAMA tidak diubah (backward-compat).
+> **C1**: `paginate(rows, page, limit)` (potong array + meta, cermin si-lahar).
+> **C2**: `matchSearch(row, q, fields)` (substring case-insensitive; `q` kosong → true; `fields` kosong/null → false, cermin si-lahar).
+> Diverifikasi live: `testAll()` PASS 42 / FAIL 0 / SKIP 1. Versi library tersimpan = **15**.
 >
 > **v2.2.4 (2026-09-16/17)**: aditif murni (Batch 3 ROADMAP) — `CoreLib.ensureSheet`, `CoreLib.getDb`/`masterDbFor_`, opsi `decorate` pada delegasi `initDatabase`; perilaku lama tidak berubah.
+>
+> **v2.2.3 (2026-09-16)** ⭐: FIX keamanan `levelOf_` — fallback `|| 1` (yang mengangkat viewer/role tak dikenal ke level 1 dan meloloskannya di 9 gerbang akses) diganti fail-closed `lv === undefined ? 0 : lv`. Diverifikasi live: `testAll()` PASS 38 / FAIL 0, `[PASS] testRoleGateV222`.
+>
+> **v2.2.2 (2026-09-15)**: FIX `checkAuth` (`=== undefined → 0`), `dispatchAction` membuang `data._cacheBust`, penguatan `requireRole_`, test regresi `testRoleGateV222`. ⚠️ Fix `levelOf_` belum ikut terkirim di versi ini — dilengkapi di v2.2.3.
 >
 > Changelog lengkap: [`backend/00_MIGRATION_v2.md`](backend/00_MIGRATION_v2.md).
 
@@ -172,10 +179,20 @@ function handleAction(payload) {
 ### 3.5 Standardisasi Waktu & ISO-8601 Canonical Format
 * **Penyimpanan di Database (Google Sheet)**: Selalu dalam format ISO-8601 UTC string (`YYYY-MM-DDTHH:mm:ss.sssZ`).
 * **Format Tampilan Pengguna**: Diformat di sisi frontend via helper `this.formatDate(val)` menjadi `DD/MM/YYYY` atau `DD MMMM YYYY, HH:mm WIB`.
+* **⚠️ Tanggal "hari ini" dan perbandingan tanggal**: JANGAN pakai `CoreLib.todayIso()` — fungsi itu berbasis **UTC** dan mundur 1 hari untuk user WIB sebelum 07:00. Gunakan **`CoreLib.todayIsoLocal()`** atau **`CoreLib.dateKey10(val)`** (v2.3.0) yang sadar zona waktu Script.
+
+```javascript
+// BENAR (v2.3.0):
+var hariIni = CoreLib.todayIsoLocal();            // '2026-09-19' (WIB)
+var kunci   = CoreLib.dateKey10('2026-09-18T17:00:00.000Z'); // '2026-09-19' (WIB)
+
+// SALAH untuk form/validasi user:
+var hariIni = CoreLib.todayIso();                 // UTC — mundur 1 hari sebelum 07:00 WIB
+```
 
 ---
 
-## 4. Frontend CDN v2.8.0 Shared Library
+## 4. Frontend CDN v2.8.1 Shared Library
 
 ### 4.1 Distribusi Aset CDN jsDelivr
 Setiap aplikasi web cukup memuat tag berikut di file `Index.html`:
@@ -191,16 +208,16 @@ Setiap aplikasi web cukup memuat tag berikut di file `Index.html`:
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/vue@3.5.42/dist/vue.global.prod.js"></script>
 
-<!-- Shared CDN Pemkab Trenggalek v2.8.0 — selalu pakai TAG VERSI, jangan @main -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.8.0/frontend/app-common.min.css">
+<!-- Shared CDN Pemkab Trenggalek v2.8.1 — selalu pakai TAG VERSI, jangan @main -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.8.1/frontend/app-common.min.css">
 
 <!-- Tema per aplikasi: override CSS variables di <style> lokal, mis.
      :root { --primary: #059669; --primary-dark: #047857; ... } -->
 
 <!-- ========== Sebelum </body> : JS Shared CDN ========== -->
-<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.8.0/frontend/app-components.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.8.0/frontend/app-modules.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.8.0/frontend/app-core.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.8.1/frontend/app-components.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.8.1/frontend/app-modules.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.8.1/frontend/app-core.min.js"></script>
 ```
 
 > Salinan persis + aturan rilis: [`frontend/CDN_SNIPPET.md`](frontend/CDN_SNIPPET.md).
@@ -259,21 +276,48 @@ Seluruh ikon wajib menggunakan class Font Awesome 6.5.2 (`fa-solid fa-*`):
 | Status Bahaya / Error | `fa-solid fa-circle-xmark text-rose-500` |
 
 ### 4.5 Katalog Komponen Bersama (`<app-...>`)
+
+#### Komponen utama
 * `<app-login>`: Layar autentikasi mandiri dan Single Sign-On launcher.
 * `<app-sidebar>`: Navigasi responsif dengan collapse mode dan indikator role.
 * `<app-header>`: Topbar dengan Dark Mode switch, notifikasi, dan profil user.
-* `<app-stat-card>` *(baru v2.6.5)*: Kartu metrik KPI — props `title`, `value` (Number diformat `id-ID` otomatis), `icon` (default `fa-solid fa-chart-simple`), `color` (`emerald`/`sky`/`amber`/`purple`/`rose`), `subtext`.
-* `<app-badge>`: Label status berwarna otomatis — props `status` (menerima sinonim: `disetujui/approved/aktif/menunggu/pending/proses/revisi/ditolak/inactive/definitif/plt/kosong`), `label` (timpa teks), `size` (`sm`/`md`), `icon` *(baru v2.6.5)*.
-* `<app-modal>`: Dialog popup responsif berbasis animasi CSS.
+* `<app-modal>`: Dialog popup responsif berbasis animasi CSS. Props: `show`, `title`, `subtitle`, `icon`, `size` (`sm`/`md`/`lg`/`xl`/`2xl`/`3xl`/`4xl`/`5xl`), `loading`, `confirmText`, `cancelText`, `confirmClass`, `showFooter`, `showConfirm`.
 * `<app-crud-table>`: Tabel data interaktif dengan pencarian cepat, pengurutan kolom, paginasi, tombol ekspor (Excel/PDF), dan aksi CRUD.
-* `<app-filter-bar>` *(v2.7.0; v2.8.0)*: Bar filter deklaratif (text/select/date) dengan v-model + emit `change`/`reset`. v2.8.0: tiap filter boleh bawa `span` (2..4) agar satu baris bisa lebar tak seragam (mis. pencarian `span:2` + dua select) — tanpa span = perilaku lama.
-* `<app-empty-state>` & `<app-skeleton>` *(v2.7.0)*: Keadaan kosong & loading pulse seragam (lines/cards/table).
-* `<app-chart-bar>` / `<app-chart-doughnut>` *(v2.7.0)*: Chart kit bertema — Chart.js on-demand, warna & grid ikut dark mode.
-* `<app-pegawai-picker>` *(v2.7.0)*: Picker searchable master SIMPEG berbasis cache SWR.
-* Direktif `v-can` *(v2.7.0)*: Gating elemen UI by role sesi (fail-closed, cermin `levelOf_` CoreLib v2.2.3).
-* `<app-profile>`: Modul profil ASN mandiri dengan data terverifikasi SIMPEG.
-* `<app-settings>`: Modul pengaturan konfigurasi sistem berbasis tabs.
-* Kelas tombol kit *(v2.8.0 / F2)*: `.btn-icon` (aksi ikon 32px), `.btn-icon-danger` (varian hapus), `.btn-lg` (CTA besar) — bawaan `app-common.css` (light & dark); jangan ditulis ulang di `<style>` app.
+* `<app-profile>` *(app-modules)*: Modul profil ASN mandiri dengan data terverifikasi SIMPEG.
+* `<app-settings>` *(app-modules)*: Modul pengaturan konfigurasi sistem berbasis tabs.
+
+#### Komponen data & display
+* `<app-stat-card>` *(v2.6.5)*: Kartu metrik KPI — props `title`, `value` (Number diformat `id-ID` otomatis), `icon` (default `fa-solid fa-chart-simple`), `color` (`emerald`/`sky`/`amber`/`purple`/`rose`), `subtext`.
+* `<app-badge>`: Label status berwarna otomatis — props `status` (menerima sinonim: `disetujui/approved/aktif/menunggu/pending/proses/revisi/ditolak/inactive/definitif/plt/kosong`), `label` (timpa teks), `size` (`sm`/`md`), `icon` *(v2.6.5)*.
+  > ⚠️ **Default `status = 'menunggu'`** (kuning). Untuk badge identitas (mis. nama pegawai), kirim `status=""` eksplisit agar warna netral (slate).
+* `<app-empty-state>` *(v2.7.0)*: Keadaan kosong seragam — props `icon`, `title`, `subtitle`, `action-label` + emit `action`.
+* `<app-skeleton>` *(v2.7.0)*: Loading pulse seragam — props `type` (`lines`/`cards`/`table`), `count` (Number, default **3**).
+* `<app-filter-bar>` *(v2.7.0; v2.8.0)*: Bar filter deklaratif (text/select/date) dengan v-model + emit `change`/`reset`. v2.8.0: tiap filter boleh bawa `span` (2..4) agar satu baris bisa lebar tak seragam — tanpa span = perilaku lama.
+* `<app-chart-bar>` / `<app-chart-doughnut>` *(v2.7.0; v2.7.1: prop `bare`)*: Chart kit bertema — Chart.js on-demand, warna & grid ikut dark mode. Props: `labels`, `datasets`, `title`, `height`, `legend`, `colors`, `bare`.
+* `<app-pegawai-picker>` *(v2.7.0; v2.7.3: prop `source`)*: Picker searchable master SIMPEG berbasis cache SWR. Props: `modelValue` (v-model = id pegawai), `source` (daftar custom opsional), `label`, `placeholder`, `clearable`, `disabled`.
+
+#### Direktif & helper
+* Direktif `v-can` *(v2.7.0)*: Gating elemen UI by role sesi (fail-closed, cermin `levelOf_` CoreLib v2.3.0).
+* `AppCore.paginate(list, page, perPage)` & `AppCore.pageCount(list, perPage)` — paginasi sisi klien, pasangan `<app-filter-bar>`/`<app-crud-table>`.
+* `this.appCode` — identitas app dari config `AppCore.create({ appCode })`.
+
+#### Kelas tombol kit (referensi lengkap — bawaan `app-common.css`)
+
+Semua sudah punya varian light & dark — **jangan** ditulis ulang di `<style>` aplikasi.
+
+| Kelas | Deskripsi |
+|---|---|
+| `.btn` | Base — inline-flex, gap, padding, radius, transisi |
+| `.btn-primary` | Tombol utama (warna `--primary` aplikasi) |
+| `.btn-secondary` | Tombol netral (background putih/slate) |
+| `.btn-danger` | Tombol hapus/merah |
+| `.btn-success` | Tombol setujui/hijau |
+| `.btn-warning` | Tombol kuning |
+| `.btn-info` | Tombol biru |
+| `.btn-icon` *(v2.8.0/F2)* | Tombol aksi ikon 32×32 (mis. edit di tabel) |
+| `.btn-icon-danger` *(v2.8.0/F2)* | Varian hapus untuk `.btn-icon` |
+| `.btn-lg` *(v2.8.0/F2)* | CTA besar (padding lebih lega, font lebih tebal) |
+| `.btn-aksi` | Tombol aksi kecil di baris tabel (padding lebih rapat) |
 
 ---
 
@@ -317,6 +361,7 @@ Seluruh ikon wajib menggunakan class Font Awesome 6.5.2 (`fa-solid fa-*`):
 Jika aplikasi diakses tanpa tiket SSO (misal pengujian lokal atau akun darurat), sistem mendukung otentikasi mandiri berbasis `USER_CREDENTIALS` lokal dengan hashing password aman.
 
 ### 5.3 Role Guard & Hak Akses Berbasis Izin
+
 Hierarki role (`levelOf_`, fail-closed sejak **v2.2.3**): `admin` (3) > `verifikator` (2) > `user` (1) > `viewer` (0); role tak dikenal = 0. Setiap panggilan API divalidasi `checkAuth` + `requireRole_` di `02_CoreGateway.gs`:
 
 ```javascript
@@ -327,16 +372,32 @@ function handleHapusLaporan(payload, session) {
 }
 ```
 
+#### Default `actionLevels` (built-in CoreLib — TIDAK perlu didaftarkan)
+
+CoreLib sudah menyimpan default tersembunyi di `dispatchAction`. Aplikasi **tidak perlu** menambahkan key berikut ke `localConfig.actionLevels`:
+
+| Aksi | Level Default | Catatan |
+|---|---|---|
+| `save` | `admin` | Generic CRUD lewat `case 'save'` |
+| `delete` | `admin` | Generic CRUD lewat `case 'delete'` |
+| `save_config_item` | `admin` | Built-in untuk `<app-settings>` |
+| `get_config` | `viewer` (default) | Kecuali di-override di `actionLevels` app |
+| `get_<entity>_list` | `viewer` (default) | Router deklaratif |
+| `save_<entity>` | `user`/`admin` (dari `roles` resource) | Router deklaratif |
+| Semua aksi tak dikenal | `viewer` | Fail-closed |
+
+App hanya perlu mendaftarkan aksi yang **ingin di-override**, mis. `save_my_profile: 'viewer'` (self-service), atau `save_rhk: 'admin'` (khusus bisnis).
+
 ---
 
-## 6. Panduan Pembuatan Aplikasi Baru (template `backend/Code.gs`)
+## 6. Panduan Pembuatan Aplikasi Baru (starter-kit)
 
-> ⚠️ **UPDATE 2026-09-17:** template `backend/Code.gs` **DIHAPUS** — digantikan **starter-kit** (folder `/home/user/starter-kit/`, dicetak dari pola si-kompetensi/si-platform yang teruji; lihat README-nya untuk checklist app baru). Panduan di bawah dipertahankan sebagai referensi historis pola config-driven (`CoreLib.dispatchAction`).
+> ⚠️ **UPDATE 2026-09-17:** template `backend/Code.gs` **DIHAPUS** — digantikan **starter-kit** (dicetak dari pola si-kompetensi/si-platform/si-lahar yang teruji; lihat README-nya untuk checklist app baru). Panduan di bawah dipertahankan sebagai referensi historis pola config-driven (`CoreLib.dispatchAction`).
 
 ### 6.1 Kerangka Awal
 Tidak ada CLI generator — aplikasi baru dibuat manual dari dua cetakan di repo ini:
 
-1. **Backend**: salin [`backend/Code.gs`](backend/Code.gs) ke proyek GAS aplikasi baru sebagai `Code.gs`. Isi `getAppConfig_()`: `appCode`, `appTitle`, `headersMap` (skema sheet), `pkFields`, `localHandlers` (endpoint bisnis khusus). Semua CRUD generik, auth SSO, dan setup otomatis sudah ditangani CoreLib (`dispatchAction`, `executeAppSetup`).
+1. **Backend**: salin template dari `starter-kit` ke proyek GAS aplikasi baru sebagai `Code.gs`. Isi `getAppConfig_()`: `appCode`, `appTitle`, `headersMap` (skema sheet), `pkFields`, `localHandlers` (endpoint bisnis khusus). Semua CRUD generik, auth SSO, dan setup otomatis sudah ditangani CoreLib (`dispatchAction`, `executeAppSetup`).
 2. **Frontend**: salin blok `<head>`/`</body>` dari [`frontend/CDN_SNIPPET.md`](frontend/CDN_SNIPPET.md) ke `Index.html`, lalu bangun tampilan di **modul `V_*.html` per halaman** memakai komponen `<app-...>` (standar berlaku, contoh si-lahar). Pola lama 2-berkas (`V_Layout.html` = seluruh tampilan) hanya warisan si-pelaporan.
 3. **Library**: daftarkan CoreLib di `appsscript.json` (lihat 6.3).
 
@@ -372,7 +433,7 @@ supaya masalah pada "1 file yang hampir sama" mudah ditelusuri antar app.
 > terdokumentasi, **bukan** standar untuk aplikasi baru.
 
 ### 6.3 Konfigurasi Script Properties
-Buka Google Apps Script Editor ➡️ **Project Settings** ➡️ **Script Properties**, tambahkan key berikut:
+Buka Google Apps Script Editor ➡️ **Project Settings** → **Script Properties**, tambahkan key berikut:
 
 | Key Property | Contoh Nilai | Deskripsi |
 |---|---|---|
@@ -392,7 +453,7 @@ Dan di `src/appsscript.json`, daftarkan library:
   "libraries": [{
     "userSymbol": "CoreLib",
     "libraryId": "1GmeYflfMpRa1iTVgFHRD6K1DMoxc9OoKqpuucPJXgNZ9XBK06O7wgDkO",
-    "version": "14"
+    "version": "15"
   }]
 }
 ```
@@ -431,10 +492,21 @@ Setiap repository aplikasi yang dibuat melalui template telah dilengkapi `.githu
 
 ### 7.3 Menjalankan Automated Diagnostic Test Suite (CoreLib)
 1. Buka editor Apps Script proyek **CoreLib**.
-2. Jalankan **`testAll()`** (39 test; butuh Script Properties `SPREADSHEET_ID` + `MASTER_SPREADSHEET_ID`).
-3. Hasil wajib: **`PASS: 38 / FAIL: 0 / SKIP: 1`** — SKIP = `testCacheIsolation` (normal, hanya jalan bila `TEST_SPREADSHEET_ID_B` di-set), dan `[PASS] testRoleGateV222` (regresi keamanan v2.2.3).
+2. Jalankan **`testAll()`** (**43 test**; butuh Script Properties `SPREADSHEET_ID` + `MASTER_SPREADSHEET_ID`).
+3. Hasil wajib: **`PASS: 42 / FAIL: 0 / SKIP: 1`** — SKIP = `testCacheIsolation` (normal, hanya jalan bila `TEST_SPREADSHEET_ID_B` di-set), dan wajib lulus: `testRoleGateV222` (regresi keamanan v2.2.3), `testTodayIsoLocalV230`, `testDateKey10V230`, `testPaginateV230`, `testMatchSearchV230` (regresi v2.3.0).
 4. Diagnostik cepat: **`cekUpdateCorelib()`** — baris `❌ CoreLib is not defined` di dalamnya **normal** bila dijalankan di proyek CoreLib sendiri.
-5. Catatan: menjalankan `runCoreTests()` langsung (tanpa `testAll`) menghasilkan `PASS: 21 / SKIP: 18` karena 18 test database butuh `ctx` — bukan pengganti `testAll()`.
+5. Catatan: menjalankan `runCoreTests()` langsung (tanpa `testAll`) menghasilkan `PASS: 21 / SKIP: 22` karena test database butuh `ctx` — bukan pengganti `testAll()`.
+
+### Distribusi 43 test
+| Grup | Jumlah |
+|---|---|
+| File 1 (Foundation) | 12 |
+| File 2 (Gateway) | 11 |
+| v2.1 | 6 |
+| v2.2 | 9 |
+| v2.2.2 | 1 |
+| **v2.3.0** | **4** |
+| **Total** | **43** (PASS 42 + SKIP 1) |
 
 ---
 
@@ -442,13 +514,15 @@ Setiap repository aplikasi yang dibuat melalui template telah dilengkapi `.githu
 
 | Gejala / Permasalahan | Kemungkinan Penyebab | Solusi yang Direkomendasikan |
 |---|---|---|
-| Data tertimpa saat update | Masih memakai indeks array terfilter lama | Pastikan menggunakan `CoreLib v2.2.3` yang mengadopsi `_row` physical index. |
-| Role `viewer`/tak dikenal bisa akses fitur level user | `levelOf_` versi lama memakai fallback `\|\| 1` | Upgrade CoreLib ke **v2.2.3** (fail-closed) lalu simpan versi library & naikkan pin aplikasi. |
-| Kolom di Spreadsheet bergeser/salah posisi | Array `setValues` diasumsikan urut | Pastikan proses simpan melewati `toAlignedRow_` yang membaca header baris 1. |
-| Master SIMPEG lambat saat pertama kali dibuka | Cache browser kosong | SWR otomatis mengambil data lokal dan menyinkronkan di latar belakang; pastikan `MASTER_SPREADSHEET_ID` valid. |
-| Tiket SSO menghasilkan error `INVALID_TICKET` | Tiket kedaluwarsa (> 5 menit) atau sudah dipakai | Arahkan pengguna kembali ke SI-PLATFORM untuk membuat tiket baru. |
-| Ikon tidak muncul (kotak kosong) | Masih menggunakan class Phosphor (`ph ph-*`) | Ubah class ikon menjadi format Font Awesome 6.5.2 (`fa-solid fa-*`). |
-| Bundle aplikasi berat saat initial load | Mengimpor XLSX / PDF / ChartJS di `<head>` | Hapus script berat dari `<head>`, gunakan `AppCore.loadLib('xlsx')` on-demand. |
+| Tanggal "hari ini" salah (mundur 1 hari pagi WIB) | Memakai `todayIso()` (UTC) untuk form/validasi | Ganti ke `CoreLib.todayIsoLocal()` atau `CoreLib.dateKey10(val)` (v2.3.0) |
+| Data tertimpa saat update | Masih memakai indeks array terfilter lama | Pastikan menggunakan `CoreLib v2.2.3+` yang mengadopsi `_row` physical index |
+| Role `viewer`/tak dikenal bisa akses fitur level user | `levelOf_` versi lama memakai fallback `\|\| 1` | Upgrade CoreLib ke **v2.2.3+** (fail-closed) lalu simpan versi library & naikkan pin aplikasi |
+| Kolom di Spreadsheet bergeser/salah posisi | Array `setValues` diasumsikan urut | Pastikan proses simpan melewati `toAlignedRow_` yang membaca header baris 1 |
+| Master SIMPEG lambat saat pertama kali dibuka | Cache browser kosong | SWR otomatis mengambil data lokal dan menyinkronkan di latar belakang; pastikan `MASTER_SPREADSHEET_ID` valid |
+| Tiket SSO menghasilkan error `INVALID_TICKET` | Tiket kedaluwarsa (> 5 menit) atau sudah dipakai | Arahkan pengguna kembali ke SI-PLATFORM untuk membuat tiket baru |
+| Ikon tidak muncul (kotak kosong) | Masih menggunakan class Phosphor (`ph ph-*`) | Ubah class ikon menjadi format Font Awesome 6.5.2 (`fa-solid fa-*`) |
+| Bundle aplikasi berat saat initial load | Mengimpor XLSX / PDF / ChartJS di `<head>` | Hapus script berat dari `<head>`, gunakan `AppCore.loadLib('xlsx')` on-demand |
+| `AppCore.version` melaporkan versi lama (mis. 2.7.4) | CDN tag lama atau tag basi | Bump tag di `Index.html` ke `@v2.8.1`; jalankan `AppCore.version` untuk verifikasi (= `"2.8.0"`) |
 
 ---
 
@@ -457,7 +531,7 @@ Setiap repository aplikasi yang dibuat melalui template telah dilengkapi `.githu
 **Aturan emas sebelum menulis kode baru di aplikasi mana pun:**
 
 1. **Cari dulu di milik bersama.** Butuh fungsi util (normalisasi ID, parse tanggal, kode unik,
-   cek role)? → CoreLib sudah punya. Butuh UI (tabel, modal, filter, chart, badge, sidebar)?
+   cek role, kunci tanggal sadar-WIB, paginasi, pencarian)? → CoreLib sudah punya (lihat §9 `00_MIGRATION_v2.md` untuk daftar publik API). Butuh UI (tabel, modal, filter, chart, badge, sidebar)?
    → katalog komponen kit (`app-components.min.js` / `app-modules.min.js`) sudah punya.
    Duplikasi hanya sah untuk **logika bisnis** (mesin SKJ, JP 20/24, dsb.).
 2. **Delegasi, jangan salin.** Wrapper lokal boleh, isinya wajib `return CoreLib.x(...)` —
@@ -477,5 +551,5 @@ Setiap repository aplikasi yang dibuat melalui template telah dilengkapi `.githu
 
 ## 📜 Kontak & Pemeliharaan
 * **Pengelola Ekosistem**: Tim Pengembang TI — Dinas Komunikasi dan Informatika Kabupaten Trenggalek
-* **Dokumentasi & Versi**: CoreLib v2.2.4 (GAS versi 14) • Frontend CDN v2.8.0 (diperbarui 2026-09-19)
+* **Dokumentasi & Versi**: CoreLib v2.3.0 (GAS versi 15) • Frontend CDN v2.8.1 (diperbarui 2026-09-19)
 * **Lisensi**: MIT License
