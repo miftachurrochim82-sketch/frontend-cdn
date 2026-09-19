@@ -1,6 +1,6 @@
 {
   "name": "@trenggalekkab/frontend-cdn",
-  "version": "2.4.0",
+  "version": "2.8.0",
   "description": "Shared Frontend CDN Library (v2.4.0) for Pemkab Trenggalek Applications with High-Performance Lazy Loaders, SIMPEG SWR Cache & Universal Exporters",
   "main": "app-core.min.js",
   "author": "Pemerintah Kabupaten Trenggalek",
