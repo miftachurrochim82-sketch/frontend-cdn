@@ -55,6 +55,7 @@
 |---|---|---|
 | `v-can` | direktif gating role (fail-closed) | `<button v-can="'verifikator'">Verifikasi</button>` |
 | `<app-filter-bar>` | filter deklaratif + v-model | `<app-filter-bar :filters="fs" v-model="filterState" />` |
+| — opsi `span` *(v2.8.0)* | filter lebar 2..4 kolom | `fs = [{key:'q', type:'text', span:2}, ...]` |
 | `<app-empty-state>` / `<app-skeleton>` | keadaan kosong & loading | `<app-skeleton type="cards" :count="6" />` |
 | `<app-chart-bar>` / `<app-chart-doughnut>` | chart kit bertema dark mode | `<app-chart-bar :labels="bln" :datasets="ds" title="Laporan per Bulan" />` |
 | `<app-pegawai-picker>` | picker master SIMPEG | `<app-pegawai-picker v-model="form.pegawai_id" />` |
