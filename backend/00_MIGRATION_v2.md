@@ -1,11 +1,11 @@
-# 📖 Dokumen Master CoreLib — Backend Global v2.2.3
+# 📖 Dokumen Master CoreLib — Backend Global v2.3.0
 
 > **Dokumen ini adalah master referensi backend CoreLib.** Disimpan hanya di GitHub
 > (Google Apps Script tidak bisa menyimpan file `.md`). Folder `backend/` di repo ini
 > adalah **salinan sumber resmi** dari library GAS `CoreLib` — setiap perubahan pada
 > library harus dicerminkan di sini, dan sebaliknya.
 >
-> **Status terakhir**: v2.2.3 — diverifikasi live 2026-09-16 (`testAll()` → PASS 38 / FAIL 0 / SKIP 1).
+> **Status terakhir**: v2.3.0 — diverifikasi live 2026-09-19 (`testAll()` → PASS 42 / FAIL 0 / SKIP 1).
 
 ---
 
@@ -17,15 +17,16 @@
 | Script ID | `1GmeYflfMpRa1iTVgFHRD6K1DMoxc9OoKqpuucPJXgNZ9XBK06O7wgDkO` |
 | Identifier di app | `CoreLib` |
 | Runtime | Apps Script V8, timezone `Asia/Jakarta` |
-| Versi kode saat ini | **v2.2.3** (2026-09-16) |
-| Versi library tersimpan | **13 = v2.2.3** (disimpan 2026-09-16; URL `/library/d/1GmeYflf…/13`) |
+| Versi kode saat ini | **v2.3.0** (2026-09-19) |
+| Versi library tersimpan | **15 = v2.3.0** (disimpan 2026-09-19; URL `/library/d/1GmeYflf…/15`) |
 
 ### Aplikasi konsumen
 
 | Aplikasi | Pin di `appsscript.json` | `developmentMode` | Efek |
 |---|---|---|---|
-| `si-kompetensi` | `"version": "12"` | `true` | Selalu pakai kode HEAD terbaru → otomatis dapat v2.2.3 |
-| `si-pelaporan` | `"version": "13"` | *(tidak ada)* | Terkunci di v13 = v2.2.3 ✅ (pin dinaikkan 2026-09-16 setelah versi 13 disimpan) |
+| `si-kompetensi` | `"version": "12"` | `true` | Selalu pakai kode HEAD terbaru → otomatis dapat v2.3.0 |
+| `si-pelaporan` | `"version": "13"` | *(tidak ada)* | Terkunci di v13 = **v2.2.3** (belum bump) |
+| `si-lahar` | `"version": "15"` | *(tidak ada)* | Terkunci di v15 = **v2.3.0** ✅ (pin dinaikkan 2026-09-19) |
 | `si-platform` | — | — | Tidak memakai CoreLib (portal SSO mandiri) |
 
 ---
@@ -37,10 +38,10 @@
 | File | Isi |
 |---|---|
 | `appsscript.json` | Manifest: runtime V8, timezone, oauth scopes |
-| `01_CoreFoundation.gs` | Engine database Google Sheets (physical row index, `toAlignedRow_`), caching ber-namespace + TTL, parser tanggal ISO-8601, helper SIMPEG (level jabatan, unit bawahan), logger |
+| `01_CoreFoundation.gs` | Engine database Google Sheets (physical row index, `toAlignedRow_`), caching ber-namespace + TTL, parser tanggal ISO-8601, **§7b util tanggal sadar-WIB (`todayIsoLocal_`, `dateKey10_`)**, **§11b util publik v2.3.0 (`paginate_`, `matchSearch_`)**, helper SIMPEG (level jabatan, unit bawahan), logger |
 | `02_CoreGateway.gs` | Auth bridge SSO (tiket → token sesi HMAC), `checkAuth`, role guard (`requireRole_`, `getRoleForEmail_`, `levelOf_`), `dispatchAction` + declarative resource router, whitelist config |
 | `03_CoreServices.gs` | Layanan siap pakai: CRUD generik (`apiSave`/`apiDelete`), config service, `executeAppSetup` (pembuatan sheet + folder Drive), resolusi pegawai |
-| `99_CoreTest.gs` | Test suite diagnostik: `testAll()` (39 test), `runCoreTests(ctx)`, `cekUpdateCorelib()` |
+| `99_CoreTest.gs` | Test suite diagnostik: `testAll()` (43 test total, PASS 42 + SKIP 1), `runCoreTests(ctx)`, `cekUpdateCorelib()` |
 
 ### Yang HANYA ada di GitHub (JANGAN dimasukkan ke GAS CoreLib)
 
@@ -94,6 +95,33 @@ return lv === undefined ? 0 : lv;
 ```
 Verifikasi live 2026-09-16: `testAll()` → **PASS 38 / FAIL 0 / SKIP 1**, termasuk `[PASS] testRoleGateV222`.
 
+### v2.2.4 (2026-09-16/17) — Aditif (C1 ROADMAP Batch 3)
+- ADD: `ensureSheet` menerima `options.decorate {bg, font, bold, frozen}` — kosmetik header aditif; perilaku default **tidak berubah** (si-pelaporan pin v13 aman).
+- ADD (dipakai app Batch 3, bukan publik): `CoreLib.getDb`/`masterDbFor_`, delegasi per-sheet `initDatabase` via `ensureSheet`.
+- Verifikasi live 2026-09-17: `testAll()` → PASS 38 / FAIL 0 / SKIP 1. Versi library tersimpan = **14**.
+
+### v2.3.0 (2026-09-19) — Util Sadar-WIB & Publik (C1/C2/C3) ⭐
+Aditif murni — util baru, tanpa perubahan perilaku lama.
+
+| Kode | Fungsi Publik | Internal | Deskripsi |
+|---|---|---|---|
+| **C3** ⭐ | `todayIsoLocal()` | `todayIsoLocal_()` | Tanggal hari ini `yyyy-MM-dd` menurut **zona waktu Script (Asia/Jakarta)**. **Fix bug UTC vs WIB** pada `todayIso()` lama yang mundur 1 hari untuk user WIB sebelum 07:00. |
+| **C3** | `dateKey10(val)` | `dateKey10_(val)` | Kunci tanggal `yyyy-MM-dd` sadar zona waktu Script. Menangani Date object, ISO penuh, legacy `dd/MM/yyyy`, dan `yyyy-MM-dd HH:mm`. Cermin helper lokal `tanggalKey10_` (si-lahar, fix G12) + **fix 3 bug laten** di si-kompetensi (`04_Diklat:347`, `07_Rencana:324/384`). |
+| **C1** | `paginate(rows, page, limit)` | `paginate_()` | Potong array untuk paginasi server-side. Return `{ success, data, meta: {total, page, limit, total_pages} }`. Cermin `paginate_` (si-lahar `02_AppLogic`). |
+| **C2** | `matchSearch(row, q, fields)` | `matchSearch_()` | Cek substring case-insensitive pada beberapa field. `q` kosong → true. `fields` kosong/null → false (cermin si-lahar). |
+
+**Backward-compat**: `todayIso()` **TIDAK DIUBAH** — app lama tetap memakainya.
+
+**Semantic `matchSearch_`** (cermin setia si-lahar):
+
+| Input | Output | Alasan |
+|---|---|---|
+| `q = ''` / `null` | `true` | Tidak ada filter → semua lolos |
+| `q = 'teks'`, `fields = null/[]` | `false` | Filter ada, tapi tidak ada field → tidak match |
+| `q = 'teks'`, `fields = [...]` | `true`/`false` | Cek substring case-insensitive |
+
+Verifikasi live 2026-09-19: `testAll()` → **PASS 42 / FAIL 0 / SKIP 1**. Versi library tersimpan = **15**.
+
 ---
 
 ## 4. Script Properties
@@ -122,11 +150,23 @@ Verifikasi live 2026-09-16: `testAll()` → **PASS 38 / FAIL 0 / SKIP 1**, terma
 
 | Fungsi | Kegunaan | Hasil yang diharapkan |
 |---|---|---|
-| **`testAll()`** | Test lengkap resmi (39 test, termasuk akses spreadsheet) | `PASS: 38 / FAIL: 0 / SKIP: 1` — SKIP = `testCacheIsolation` (butuh `TEST_SPREADSHEET_ID_B`) |
-| `cekUpdateCorelib()` | Diagnostik cepat: fungsi v2.2 tersedia? properti benar? | Semua ✅. Baris `❌ CoreLib is not defined` **normal** bila dijalankan di dalam proyek CoreLib sendiri (library tidak me-reference dirinya sendiri) |
-| `runCoreTests()` langsung | Tanpa `ctx` → `ctx = {}` | `PASS: 21 / FAIL: 0 / SKIP: 18` — 18 test database otomatis SKIP. Bukan pengganti `testAll()` |
+| **`testAll()`** | Test lengkap resmi (**43 test total**, termasuk akses spreadsheet) | **`PASS: 42 / FAIL: 0 / SKIP: 1`** — SKIP = `testCacheIsolation` (butuh `TEST_SPREADSHEET_ID_B`) |
+| `cekUpdateCorelib()` | Diagnostik cepat: fungsi v2.2/v2.3.0 tersedia? properti benar? | Semua ✅. Baris `❌ CoreLib is not defined` **normal** bila dijalankan di dalam proyek CoreLib sendiri (library tidak me-reference dirinya sendiri) |
+| `runCoreTests()` langsung | Tanpa `ctx` → `ctx = {}` | `PASS: 21 / FAIL: 0 / SKIP: 22` — test database otomatis SKIP. Bukan pengganti `testAll()` |
 
-Setiap rilis wajib: `testAll()` → **FAIL: 0** dan `[PASS] testRoleGateV222`.
+Setiap rilis wajib: `testAll()` → **FAIL: 0** + `[PASS] testRoleGateV222` + `[PASS] testTodayIsoLocalV230` / `[PASS] testDateKey10V230` / `[PASS] testPaginateV230` / `[PASS] testMatchSearchV230`.
+
+### Distribusi 43 test
+
+| Grup | Jumlah | Keterangan |
+|---|---|---|
+| File 1 (Foundation) | 12 | Database, cache, tanggal, PK, audit |
+| File 2 (Gateway) | 11 | SSO, session, role, dispatcher, router |
+| v2.1 | 6 | Role levels, tanggal, jabatan, unit bawahan, action not found, session expired |
+| v2.2 | 9 | Util publik baru (norm/parse/whitelist/validate/genUnique/requireRole/checkRole/getRoleForEmail/isAllowedConfigKey) |
+| v2.2.2 | 1 | Regresi fail-closed `levelOf_` (`testRoleGateV222`) |
+| **v2.3.0** | **4** | **`testTodayIsoLocalV230`, `testDateKey10V230`, `testPaginateV230`, `testMatchSearchV230`** |
+| **Total** | **43** | PASS 42 + SKIP 1 (cacheIsolation) |
 
 ---
 
@@ -135,10 +175,11 @@ Setiap rilis wajib: `testAll()` → **FAIL: 0** dan `[PASS] testRoleGateV222`.
 1. Ubah file di repo ini (`frontend-cdn/backend/`) — workspace = sumber kebenaran.
 2. Paste file yang berubah ke editor GAS CoreLib (whole-file, jangan find-replace manual).
 3. Jalankan `testAll()` → pastikan `FAIL: 0`.
-4. **Simpan versi library baru** (versi akan bertambah: 13, 14, dst).
-5. Naikkan pin `"version"` di `appsscript.json` aplikasi yang *pinned* (saat ini `si-pelaporan`). Aplikasi dengan `developmentMode: true` (`si-kompetensi`) otomatis ikut HEAD.
+4. **Simpan versi library baru** (versi akan bertambah: 13, 14, 15, dst).
+5. Naikkan pin `"version"` di `appsscript.json` aplikasi yang *pinned*.
 6. Unggah salinan file yang berubah ke GitHub (`backend/*.gs`) agar repo = live.
-7. Perbarui dokumen ini (changelog + nomor versi) dan `STATUS_PROYEK.md` workspace.
+7. Tag GitHub dengan nomor versi baru (`v2.3.0`).
+8. Perbarui dokumen ini (changelog + nomor versi) dan `STATUS_PROYEK.md` workspace.
 
 > ⚠️ **Urutan penting**: paste → test → save versi → bump pin → GitHub.
 > Jangan pernah men-tag/mengunggah ke GitHub sebelum kode terverifikasi di GAS.
@@ -152,11 +193,57 @@ Setiap rilis wajib: `testAll()` → **FAIL: 0** dan `[PASS] testRoleGateV222`.
 - **`testMode` sudah DIHAPUS** — exchange tiket palsu selalu ditolak (`testTestModeRemoved`).
 - **Sheet referensi master tidak boleh dibuat/ditulis** oleh fungsi baca.
 - **Tanggal disimpan ISO-8601**; tampilan `dd/MM/yyyy` urusan frontend.
+- **`todayIso()` adalah UTC** — JANGAN dipakai untuk form/validasi/perbandingan tanggal user.
+  Gunakan `todayIsoLocal()` atau `dateKey10()` (v2.3.0) yang sadar zona waktu Script.
 - **`_cacheBust` dibuang** `dispatchAction` sebelum routing.
-
 
 ---
 
 ## 8. Keputusan: Config App di Script Properties (C3, 2026-09-16)
 
 Konfigurasi tingkat aplikasi (SPREADSHEET_ID, MASTER_SPREADSHEET_ID, platform URL, dsb.) disimpan di **Script Properties** (Project Settings → Script properties), **bukan** di sheet `KONFIGURASI`. Alasan: (1) config dibaca sebelum DB terbuka — menyimpannya di sheet menciptakan masalah ayam-telur; (2) Script Properties tidak terbawa ekspor/salinan sheet sehingga tidak bisa diubah tanpa sengaja oleh pengguna non-teknis; (3) satu sumber kebenaran per deployment (dev/prod bisa beda properti tanpa beda kode). Konsekuensi: tidak ada fungsi `saveConfigItem_` untuk menulis config dari UI — perubahan config adalah tindakan deployment yang disengaja. Data yang bersifat *operasional* (daftar nilai, katalog, referensi) tetap di sheet.
+
+---
+
+## 9. Publik API (untuk App Konsumer)
+
+Daftar fungsi yang bisa dipanggil via `CoreLib.xxx` dari aplikasi konsumen.
+
+### Util umum (v2.2)
+| Fungsi | Deskripsi |
+|---|---|
+| `CoreLib.normId(v)` | Normalisasi ID/string: trim + safe null |
+| `CoreLib.normStr(v)` | Normalisasi string: trim + lowercase |
+| `CoreLib.parseDate(v)` | Parse tanggal multi-format → `Date` atau `null` |
+| `CoreLib.whitelist(val, allowed, fieldName)` | Validasi nilai terhadap whitelist (case-insensitive), return nilai kanonik |
+| `CoreLib.validateFields(obj, fields)` | Validasi field wajib, throw bila kosong |
+| `CoreLib.genUniqueCode(prefix, sheet, field, pad, ssId, headersMap)` | Generate kode unik per sheet |
+
+### Auth & role (v2.2)
+| Fungsi | Deskripsi |
+|---|---|
+| `CoreLib.requireRole(user, minRole, customLevels)` | Throw bila role user < minRole |
+| `CoreLib.checkRole(user, action, actionRoleMap)` | `{allowed, minRole, error}` |
+| `CoreLib.getRoleForEmail(email, store)` | Tentukan role dari whitelist `ADMIN_EMAILS`/`VERIFIKATOR_EMAILS` |
+| `CoreLib.isAllowedConfigKey(key, extraKeys)` | Cek apakah key config boleh diubah dari UI |
+
+### Util tanggal sadar-WIB (v2.3.0 / C3) ⭐
+| Fungsi | Deskripsi |
+|---|---|
+| `CoreLib.todayIsoLocal()` | Tanggal hari ini `yyyy-MM-dd` menurut zona waktu Script |
+| `CoreLib.dateKey10(val)` | Kunci tanggal `yyyy-MM-dd` sadar zona waktu Script |
+
+### Util paginasi & pencarian (v2.3.0 / C1, C2)
+| Fungsi | Deskripsi |
+|---|---|
+| `CoreLib.paginate(rows, page, limit)` | Potong array untuk paginasi server-side |
+| `CoreLib.matchSearch(row, q, fields)` | Cek substring case-insensitive pada beberapa field |
+
+### Kandidat promosi berikutnya (v2.4.0+)
+| Kode | Kandidat | Status |
+|---|---|---|
+| C4 | `validateTransition(sekarang, tujuan, peta, isAdmin)` | Antre |
+| C5 | `assertOwnership(actor, rowPegawaiId, opts)` | Antre |
+| C6 | `periodeBulan` / `dalamPeriode` / `hitungHariKerja` | Antre |
+| C7 | `findUnique` / `upsertUnique` by unique-key | Antre |
+| C8 | Keputusan mazhab config/profil/AUDIT (BUKAN fungsi baru) | Diskusi |
