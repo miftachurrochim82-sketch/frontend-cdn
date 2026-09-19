@@ -9,23 +9,26 @@ Repositori ini adalah **master bersama** ekosistem: memuat pustaka frontend CDN 
 
 | Paket | Versi | Catatan |
 |---|---|---|
-| **CoreLib** (backend GAS library, `backend/`) | `v2.2.3` | ⭐ FIX keamanan `levelOf_` fail-closed (viewer/role tak dikenal = level 0, bukan 1). Terverifikasi live 2026-09-16: `testAll()` PASS 38 / FAIL 0. |
-| **Frontend CDN** (`frontend/`, satu versi untuk semua berkas) | `v2.7.0` | 13 komponen: +`app-filter-bar`, `app-empty-state`, `app-skeleton`, chart kit (`app-chart-bar/doughnut`), `app-pegawai-picker`; direktif `v-can`; `AppCore.paginate/pageCount`; `this.appCode`. |
+| **CoreLib** (backend GAS library, `backend/`) | `v2.2.4` | ⭐ FIX keamanan `levelOf_` fail-closed (viewer/role tak dikenal = level 0, bukan 1). Terverifikasi live 2026-09-17: `testAll()` PASS 38 / FAIL 0. |
+| **Frontend CDN** (`frontend/`, satu versi untuk semua berkas) | `v2.8.0` | 13 komponen + `.btn-icon`/`.btn-icon-danger`/`.btn-lg`, filter-bar `span`, chart kit, pegawai-picker, dll. |
 
 <details>
 <summary>Riwayat versi sebelumnya</summary>
 
 | Versi | Tanggal | Perubahan |
 |---|---|---|
+| CDN v2.8.0 | 2026-09-18 | Gelombang 1 Batch 4: Promosi `.btn-icon`/`.btn-icon-danger`/`.btn-lg` dari A0_Style si-lahar ke app-common.css; `<app-filter-bar>` dukung `span` (2..4). |
+| CoreLib v2.2.4 | 2026-09-16/17 | Aditif murni (Batch 3 ROADMAP) — `CoreLib.ensureSheet`, `CoreLib.getDb`/`masterDbFor_`, opsi `decorate` pada delegasi `initDatabase`. |
 | CDN v2.7.0 | 2026-09-16 | Gelombang 1 Batch 1: 6 komponen/fitur horizontal baru (filter-bar, empty-state, skeleton, chart kit, pegawai-picker, v-can, paginate helper, appCode). |
-| CoreLib v2.2.2 | 2026-09-15 | FIX `checkAuth` fail-closed (`=== undefined → 0`), `dispatchAction` buang `_cacheBust`, penguatan `requireRole_`, test regresi `testRoleGateV222`. ⚠️ Fix `levelOf_` belum ikut terkirim → dilengkapi di v2.2.3. |
+| CoreLib v2.2.3 | 2026-09-16 | ⭐ FIX keamanan `levelOf_` fail-closed. |
+| CoreLib v2.2.2 | 2026-09-15 | FIX `checkAuth` fail-closed (`=== undefined → 0`), `dispatchAction` buang `_cacheBust`, penguatan `requireRole_`. |
 | CoreLib v2.2.1 | 2026-09-15 | FIX `genUniqueCode_` (regex `reAnyNumber` buggy). |
 | CDN v2.6.4 | 2026-09 | Satu nomor versi ekosistem untuk semua berkas; pelajaran tag-setelah-unggah. |
 | CDN v2.6.0 | 2026-09 | Registry pustaka `AppCore.libs` + `loadLib()` on-demand (chart/xlsx/jspdf/autotable/pdflib). |
 
 </details>
 
-> Aplikasi konsumen memuat aset via jsDelivr dengan **tag versi** (`@v2.6.5`), bukan `@main`.
+> Aplikasi konsumen memuat aset via jsDelivr dengan **tag versi** (`@v2.8.0`), bukan `@main`.
 > Berkas `.min.*` dijamin sinkron dengan sumbernya oleh `npm run build`.
 
 ---
@@ -43,7 +46,7 @@ frontend-cdn/
 │   ├── *.min.*             # Hasil build — yang dimuat aplikasi via jsDelivr
 │   ├── README.md           # Katalog komponen & props lengkap
 │   └── CDN_SNIPPET.md      # Snippet <head>/</body> standar untuk app baru
-├── backend/                # ★ SALINAN SUMBER RESMI library GAS "CoreLib" v2.2.3
+├── backend/                # ★ SALINAN SUMBER RESMI library GAS "CoreLib" v2.2.4
 │   ├── 01_CoreFoundation.gs   # Engine DB Sheets, cache, tanggal, helper SIMPEG
 │   ├── 02_CoreGateway.gs      # SSO auth, role guard, dispatchAction/router
 │   ├── 03_CoreServices.gs     # CRUD generik, config service, app setup
