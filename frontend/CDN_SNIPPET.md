@@ -1,4 +1,4 @@
-# 📋 Snippet Standar Pemuatan CDN — v2.7.0
+# 📋 Snippet Standar Pemuatan CDN — v2.8.1
 
 > **Salin blok di bawah ini ke `Index.html` setiap web app baru.**
 > Dokumen ini dibuat untuk menghentikan tiga pola pemuatan yang saling
@@ -11,22 +11,24 @@
 ```html
   <!-- ========== Pustaka pihak ketiga (WAJIB) ========== -->
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config = { darkMode: 'class' };</script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/vue@3.4.21/dist/vue.global.prod.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue@3.5.42/dist/vue.global.prod.js"></script>
 
   <!-- ========== Shared CDN Pemkab Trenggalek ==========
        ATURAN:
-       1. Pakai TAG VERSI (mis. @v2.6.5), JANGAN @main.
+       1. Pakai TAG VERSI (mis. @v2.8.1), JANGAN @main.
           -> @main di-cache jsDelivr hingga 12 jam, update Anda tidak
              langsung terlihat dan tiap app bisa dapat versi berbeda.
        2. Pakai berkas .min (sudah di-build & di-commit di repo ini).
        3. JANGAN muat chart.js / xlsx / jspdf / pdf-lib di sini.
           Semua itu dimuat otomatis saat dibutuhkan lewat AppCore.loadLib().
   -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.7.0/frontend/app-common.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.8.1/frontend/app-common.min.css">
 ```
 
 ## 2. Blok standar sebelum `</body>`
@@ -34,9 +36,9 @@
 ```html
   <!-- Shared CDN: JS (urutan bebas — AppCore membaca window.AppComponents
        & window.AppModules saat create() dipanggil) -->
-  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.7.0/frontend/app-components.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.7.0/frontend/app-modules.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.7.0/frontend/app-core.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.8.1/frontend/app-components.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.8.1/frontend/app-modules.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.8.1/frontend/app-core.min.js"></script>
 
   <!-- Local App JS -->
   <?!= include('J_State'); ?>
@@ -49,7 +51,7 @@
 
 ---
 
-## 2b. Komponen baru di v2.7.0
+## 2b. Komponen baru & fitur (v2.7.0 → v2.8.1)
 
 | Fitur | Bentuk | Contoh |
 |---|---|---|
@@ -60,6 +62,7 @@
 | `<app-chart-bar>` / `<app-chart-doughnut>` | chart kit bertema dark mode | `<app-chart-bar :labels="bln" :datasets="ds" title="Laporan per Bulan" />` |
 | `<app-pegawai-picker>` | picker master SIMPEG | `<app-pegawai-picker v-model="form.pegawai_id" />` |
 | `AppCore.paginate/pageCount` | helper paginasi | `AppCore.paginate(list, page, 10)` |
+| Kelas tombol kit *(v2.8.0)* | `.btn-icon` / `.btn-icon-danger` / `.btn-lg` | `<button class="btn-icon"><i class="fa-solid fa-pen"></i></button>` |
 
 ### Komponen baru di v2.6.5
 
@@ -160,10 +163,29 @@ setelah masuk ke GitHub**. Urutannya:
 Buka aplikasi, jalankan di Console browser:
 
 ```javascript
-AppCore.version        // harus "2.7.0" (atau lebih baru)
+AppCore.version        // harus "2.8.0" (tag rilis: v2.8.1)
 Object.keys(AppCore.libs)   // ['chart','xlsx','jspdf','autotable','pdflib','pdf']
-AppComponents.version  // harus sama dengan tag yang Anda rujuk
+AppComponents.version  // harus "2.8.0"
+AppModules.version     // harus "2.8.0"
 ```
 
+> **Catatan versi**: sejak v2.8.1, ketiga bundle (`app-components`, `app-core`,
+> `app-modules`) melaporkan `"2.8.0"` secara konsisten. Tag rilis di GitHub
+> (`v2.8.1`) mewakili nomor rilis; `"2.8.0"` mewakili nomor versi berkas
+> (generasi kode). Perbedaan ini normal untuk patch release yang tidak
+> mengubah kode fungsional.
+
 Kalau `AppCore.version` masih versi lama, berarti jsDelivr belum menyegarkan
-cache — paksa dengan menaikkan query string (`?v=2.7.0`) atau tunggu.
+cache — paksa dengan menaikkan query string (`?v=2.8.1`) atau tunggu.
+
+---
+
+## 6. Riwayat versi CDN
+
+| Tag | Versi berkas | Perubahan kunci |
+|---|---|---|
+| `v2.8.1` | `"2.8.0"` | Patch konsistensi internal (T49) — fix `AppCore.version`/`AppModules.version` |
+| `v2.8.0` | `"2.8.0"` | F2: promosi `.btn-icon`/`.btn-icon-danger`/`.btn-lg`; F1: `<app-filter-bar>` dukung `span` |
+| `v2.7.0` | `"2.7.0"` | B1–B7: picker, chart kit, filter-bar, empty-state, skeleton, v-can, paginate helper |
+| `v2.6.5` | `"2.6.5"` | AppBadge `icon`, `app-stat-card` baru, badge variants |
+| `v2.6.0` | `"2.6.0"` | Registry `AppCore.libs` + `loadLib()` on-demand |
