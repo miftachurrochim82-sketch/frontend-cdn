@@ -1,5 +1,8 @@
 // ============================================================
-// CORE LIBRARY GLOBAL v2.2.3 - 03_CoreServices.gs
+// CORE LIBRARY GLOBAL v2.3.0 - 03_CoreServices.gs
+// Changelog v2.3.0 (2026-09-19):
+// - Sinkron rilis v2.3.0 (C1/C2/C3 ditambahkan di 01_CoreFoundation.gs).
+//   Tanpa perubahan fungsional di berkas ini.
 // Changelog v2.2.3 (2026-09-16):
 // - Sinkron rilis v2.2.3 (fix levelOf_ ada di 02_CoreGateway). Tanpa
 //   perubahan fungsional di berkas ini.
