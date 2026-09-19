@@ -3,7 +3,7 @@
 
 > **Dokumen Resmi Arsitektur & Standar Rekayasa Perangkat Lunak**  
 > **Pemerintah Kabupaten Trenggalek — Dinas Komunikasi dan Informatika**  
-> *Versi Ekosistem: 2.6.0 | Tahun: 2026*
+> *Versi Ekosistem: 2.8.0 | Tahun: 2026*
 
 ---
 
@@ -85,7 +85,7 @@ Ekosistem aplikasi web Pemerintah Kabupaten Trenggalek dirancang di atas infrast
 | `si-kompetensi` | Aplikasi Satelit Kompetensi ASN | `CoreLib` pin 14 (v2.2.4), `frontend-cdn @v2.7.5` |
 | `si-pelaporan` | Aplikasi Satelit Laporan | `CoreLib` pin 13 (pinned = v2.2.3), `frontend-cdn @v2.7.5` |
 | `si-lahar` | Aplikasi Satelit e-Kinerja Harian ASN | `CoreLib` pin 14 (v2.2.4), `frontend-cdn @v2.8.0` |
-| ~~`backend/Code.gs`~~ (dihapus 2026-09-17 → starter-kit) | ~~Template kerangka aplikasi baru~~ | `CoreLib v2.2.3`, `frontend-cdn v2.6.5` |
+| ~~`2026-09-17 → starter-kit | `CoreLib v2.2.4`, `frontend-cdn v2.8.0` |
 
 ---
 
