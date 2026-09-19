@@ -1,87 +1,93 @@
-/* ============================================================
-   app-core.js — Factory Inisialisasi Vue App (Shared CDN v2.6.5)
-
-   AppCore.create(AppConfig) mengembalikan instance aplikasi Vue 3
-   yang sudah terkonfigurasi lengkap dengan optimasi performa tinggi:
-   - High Performance Core : Dynamic script loading (on-demand SheetJS/
-                             jsPDF/Chart.js), In-flight request
-                             deduplication, Stale-While-Revalidate
-                             Master SIMPEG Cache (LocalStorage).
-   - State Shell           : token, currentUser, currentPage, sidebar,
-                             dark mode, toasts, loading, modal, pagination.
-   - Auth SSO              : exchange_platform_ticket, validasi sesi,
-                             logout, handleSessionExpired.
-   - Bridge Backend        : callServer(action, data) via google.script.run.
-   - Master SIMPEG         : Auto-caching & Lookup Helpers.
-   - Exporter Kit          : On-demand exportExcel, exportPDF.
-   - Library Registry      : AppCore.libs + loadLib() — semua URL pustaka
-                             pihak ketiga terpusat, dimuat on-demand.
-   - Komponen Shell        : <app-login>, <app-sidebar>, <app-header>,
-                             <app-badge>, <app-stat-card>, <app-modal>,
-                             <app-crud-table>.
-
-   Changelog v2.6.4 (2026-09-15):
-   - 🔢 KEMBALI KE VERSI TUNGGAL: mulai rilis ini SELURUH berkas CDN
-     (app-core, app-components, app-modules, app-common.css) memakai SATU
-     nomor versi ekosistem (2.6.4), menggantikan skema versi-per-berkas.
-     Satu tag git = satu nomor untuk semua berkas = lebih mudah dikelola.
-   - Tidak ada perubahan perilaku pada berkas ini di rilis 2.6.4.
-
-   Changelog v2.6.2 (2026-09-15):
-   - 🔴 FIX: uji registry `autotable` memakai nama properti resmi plugin,
-     `API.autoTable` (huruf T besar). Uji v2.6.1 menulis `API.autotable`
-     (t kecil) sehingga SELALU bernilai false: loadLib('pdf') dan
-     loadLib('autotable') melaporkan gagal meski plugin termuat sempurna
-     (gejala: toast "Gagal memuat pustaka" saat cetak PDF).
-   - 🛡 ADD: guard `!!jspdf.jsPDF.API` pada uji autotable agar tidak
-     melempar TypeError bila jsPDF ada tanpa API.
-   - 🔢 Versi berkas: 2.6.1 → 2.6.2. Tag rilis ekosistem: v2.6.2.
-
-   Changelog v2.6.1 (2026-09-15):
-   - 🔴 FIX KRITIS: SAFE STORAGE. Akses sessionStorage/localStorage kini
-     lewat pembungkus aman dengan fallback memori. Sebelumnya akses
-     mentah melempar DOMException ("Access is denied for this document")
-     bila web app berjalan di iframe lintas-site dengan pemblokiran
-     cookie pihak ketiga (alur SSO si-platform -> aplikasi satelit),
-     sehingga AppCore.create() gagal total dan splash berputar selamanya.
-   - Konsekuensi yang diterima: bila storage ditolak browser, sesi tetap
-     berjalan lewat memori tetapi tidak bertahan setelah reload (alur
-     tiket SSO akan masuk ulang otomatis).
-   - 🔢 Versi berkas: 2.6.0 → 2.6.1. Tag rilis ekosistem: v2.6.1.
-     (Berkas lain tidak berubah pada rilis patch ini.)
-
-   Changelog v2.6.0 (2026-09-15):
-   - 🆕 ADD: LIBRARY REGISTRY (`AppCore.libs`) + `AppCore.loadLib(name)`.
-     URL Chart.js / SheetJS / jsPDF / AutoTable / pdf-lib yang tadinya
-     tersebar sebagai string literal kini terpusat & diberi versi tetap.
-     Chart.js sebelumnya dimuat TANPA versi terkunci (`npm/chart.js`) —
-     sekarang dikunci ke 4.4.1 agar tidak berubah diam-diam.
-   - 🆕 ADD: method `loadLib(name, {silent})` di instance Vue, plus
-     alias grup `'pdf'` = jsPDF + AutoTable, dan dependensi otomatis
-     (`autotable` memuat `jspdf` lebih dulu).
-   - ♻️ REFACTOR: ensureChartLibrary / exportExcel / exportPDF kini
-     memakai registry. Perilaku & tanda tangan fungsi TIDAK berubah
-     (kompatibel ke belakang).
-   - 🔢 Version bump: 2.5.1 → 2.6.0.
-   - 📌 CATATAN: seluruh berkas frontend (app-core, app-components,
-     app-modules, app-common.css) kini memakai SATU nomor versi bersama
-     agar mudah dirujuk lewat tag git `@v2.6.0`.
-
-   Changelog v2.5.1 (2026-09-14):
-   - 🆕 ADD: cache busting via `_cacheBust` timestamp di payload
-     callServer. Backend HARUS mengabaikan field ini (hapus sebelum
-     diproses). Efek: GAS tidak cache response, selalu fresh.
-   - In-flight dedup tetap bekerja karena reqKey dihitung dari data
-     ORIGINAL (sebelum _cacheBust ditambahkan).
-   - ✅ Backend CoreLib SUDAH menangani ini: `02_CoreGateway.gs`
-     mengecualikan `_cacheBust` dari whitelist kolom (baris ~59),
-     sehingga kolom sampah tidak tercipta di sheet.
-
-   Changelog v2.5.0 (2026-09-13):
-   - Konsolidasi CDN URL jsPDF & jspdf-autotable ke jsDelivr (konsisten
-     dengan pustaka lain). Sebelumnya dari cdnjs.cloudflare.com.
-   - Version bump: 2.4.0 → 2.5.0.
-   ============================================================ */
+// ============================================================
+// app-core.js — Factory Inisialisasi Vue App (Shared CDN v2.8.1)
+// Changelog v2.8.1 (2026-09-19):
+// - FIX (T49): internal `version` diselaraskan ke '2.8.0' (dari '2.7.4')
+//   agar konsisten dengan tag rilis @v2.8.0 dan app-components.js.
+//   Sebelumnya AppCore.version mengembalikan '2.7.4' meski tag CDN
+//   yang dimuat adalah v2.8.0 — menyesatkan cek versi & dokumentasi.
+//   Tidak ada perubahan perilaku fungsional.
+//
+// AppCore.create(AppConfig) mengembalikan instance aplikasi Vue 3
+// yang sudah terkonfigurasi lengkap dengan optimasi performa tinggi:
+// - High Performance Core : Dynamic script loading (on-demand SheetJS/
+//                           jsPDF/Chart.js), In-flight request
+//                           deduplication, Stale-While-Revalidate
+//                           Master SIMPEG Cache (LocalStorage).
+// - State Shell           : token, currentUser, currentPage, sidebar,
+//                           dark mode, toasts, loading, modal, pagination.
+// - Auth SSO              : exchange_platform_ticket, validasi sesi,
+//                           logout, handleSessionExpired.
+// - Bridge Backend        : callServer(action, data) via google.script.run.
+// - Master SIMPEG         : Auto-caching & Lookup Helpers.
+// - Exporter Kit          : On-demand exportExcel, exportPDF.
+// - Library Registry      : AppCore.libs + loadLib() — semua URL pustaka
+//                           pihak ketiga terpusat, dimuat on-demand.
+// - Komponen Shell        : <app-login>, <app-sidebar>, <app-header>,
+//                           <app-badge>, <app-stat-card>, <app-modal>,
+//                           <app-crud-table>.
+//
+// Changelog v2.6.4 (2026-09-15):
+// - 🔢 KEMBALI KE VERSI TUNGGAL: mulai rilis ini SELURUH berkas CDN
+//   (app-core, app-components, app-modules, app-common.css) memakai SATU
+//   nomor versi ekosistem (2.6.4), menggantikan skema versi-per-berkas.
+//   Satu tag git = satu nomor untuk semua berkas = lebih mudah dikelola.
+// - Tidak ada perubahan perilaku pada berkas ini di rilis 2.6.4.
+//
+// Changelog v2.6.2 (2026-09-15):
+// - 🔴 FIX: uji registry `autotable` memakai nama properti resmi plugin,
+//   `API.autoTable` (huruf T besar). Uji v2.6.1 menulis `API.autotable`
+//   (t kecil) sehingga SELALU bernilai false: loadLib('pdf') dan
+//   loadLib('autotable') melaporkan gagal meski plugin termuat sempurna
+//   (gejala: toast "Gagal memuat pustaka" saat cetak PDF).
+// - 🛡 ADD: guard `!!jspdf.jsPDF.API` pada uji autotable agar tidak
+//   melempar TypeError bila jsPDF ada tanpa API.
+// - 🔢 Versi berkas: 2.6.1 → 2.6.2. Tag rilis ekosistem: v2.6.2.
+//
+// Changelog v2.6.1 (2026-09-15):
+// - 🔴 FIX KRITIS: SAFE STORAGE. Akses sessionStorage/localStorage kini
+//   lewat pembungkus aman dengan fallback memori. Sebelumnya akses
+//   mentah melempar DOMException ("Access is denied for this document")
+//   bila web app berjalan di iframe lintas-site dengan pemblokiran
+//   cookie pihak ketiga (alur SSO si-platform -> aplikasi satelit),
+//   sehingga AppCore.create() gagal total dan splash berputar selamanya.
+// - Konsekuensi yang diterima: bila storage ditolak browser, sesi tetap
+//   berjalan lewat memori tetapi tidak bertahan setelah reload (alur
+//   tiket SSO akan masuk ulang otomatis).
+// - 🔢 Versi berkas: 2.6.0 → 2.6.1. Tag rilis ekosistem: v2.6.1.
+//   (Berkas lain tidak berubah pada rilis patch ini.)
+//
+// Changelog v2.6.0 (2026-09-15):
+// - 🆕 ADD: LIBRARY REGISTRY (`AppCore.libs`) + `AppCore.loadLib(name)`.
+//   URL Chart.js / SheetJS / jsPDF / AutoTable / pdf-lib yang tadinya
+//   tersebar sebagai string literal kini terpusat & diberi versi tetap.
+//   Chart.js sebelumnya dimuat TANPA versi terkunci (`npm/chart.js`) —
+//   sekarang dikunci ke 4.4.1 agar tidak berubah diam-diam.
+// - 🆕 ADD: method `loadLib(name, {silent})` di instance Vue, plus
+//   alias grup `'pdf'` = jsPDF + AutoTable, dan dependensi otomatis
+//   (`autotable` memuat `jspdf` lebih dulu).
+// - ♻️ REFACTOR: ensureChartLibrary / exportExcel / exportPDF kini
+//   memakai registry. Perilaku & tanda tangan fungsi TIDAK berubah
+//   (kompatibel ke belakang).
+// - 🔢 Version bump: 2.5.1 → 2.6.0.
+// - 📌 CATATAN: seluruh berkas frontend (app-core, app-components,
+//   app-modules, app-common.css) kini memakai SATU nomor versi bersama
+//   agar mudah dirujuk lewat tag git `@v2.6.0`.
+//
+// Changelog v2.5.1 (2026-09-14):
+// - 🆕 ADD: cache busting via `_cacheBust` timestamp di payload
+//   callServer. Backend HARUS mengabaikan field ini (hapus sebelum
+//   diproses). Efek: GAS tidak cache response, selalu fresh.
+// - In-flight dedup tetap bekerja karena reqKey dihitung dari data
+//   ORIGINAL (sebelum _cacheBust ditambahkan).
+// - ✅ Backend CoreLib SUDAH menangani ini: `02_CoreGateway.gs`
+//   mengecualikan `_cacheBust` dari whitelist kolom (baris ~59),
+//   sehingga kolom sampah tidak tercipta di sheet.
+//
+// Changelog v2.5.0 (2026-09-13):
+// - Konsolidasi CDN URL jsPDF & jspdf-autotable ke jsDelivr (konsisten
+//   dengan pustaka lain). Sebelumnya dari cdnjs.cloudflare.com.
+// - Version bump: 2.4.0 → 2.5.0.
+// ============================================================
 (function (global) {
   'use strict';
 
@@ -829,7 +835,7 @@
     loadLib: loadLib,
     libs: LIBS,
     debounce: debounce,
-    version: '2.7.4'
+    version: '2.8.0'
   };
 
-})(window);
+})(window)
