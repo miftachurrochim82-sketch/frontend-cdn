@@ -56,7 +56,7 @@ AppModules.version     // "2.7.0"
 ### Komponen lain
 | Komponen | Fungsi |
 |---|---|
-| `<app-filter-bar>` *(v2.7.0)* | Bar filter deklaratif: `filters` = [{key,label,type:'text'\|'select'\|'date',options,placeholder}]; v-model objek nilai; emit `change`/`reset` |
+| `<app-filter-bar>` *(v2.7.0; v2.8.0: `span` per filter)* | Bar filter deklaratif: `filters` = [{key,label,type:'text'\|'select'\|'date',options,placeholder,span?}]; `span` 2..4 = kolom grid lebih lebar (lg:grid-cols-4); v-model objek nilai; emit `change`/`reset` |
 | `<app-empty-state>` *(v2.7.0)* | Keadaan kosong seragam: `icon`, `title`, `subtitle`, `action-label` + emit `action` |
 | `<app-skeleton>` *(v2.7.0)* | Loading pulse: `type` = `lines`\|`cards`\|`table`, `count` |
 | `<app-chart-bar>` / `<app-chart-doughnut>` *(v2.7.0; v2.7.1: prop `bare`)* | Chart kit bertema: `labels`, `datasets` ([{label,data,colors?}]), `title`, `height`, `legend`, `colors`, `bare` (embed tanpa kartu); Chart.js on-demand & ikut dark mode |
