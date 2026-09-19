@@ -35,7 +35,7 @@ Repositori ini adalah **master bersama** ekosistem: memuat pustaka frontend CDN 
 
 ## 🗂️ Struktur Repositori
 
-```text
+```
 frontend-cdn/
 ├── frontend/               # Pustaka CDN (CSS + Vue 3 components)
 │   ├── app-common.css      # Design tokens & kelas util bersama
@@ -85,7 +85,7 @@ frontend-cdn/
 
 | Proyek | Deskripsi | Dependensi dari repo ini | Tautan |
 |---|---|---|---|
-| **`si-platform`** | Portal SSO, User Management, Role RBAC, Storage & Audit Log | `app-common.css` `@v2.6.4` (CSS only) | [GitHub](https://github.com/miftachurrochim82-sketch/si-platform) |
+| **`si-platform`** | Portal SSO, User Management, Role RBAC, Storage & Audit Log | `app-common.css @v2.7.5 (CSS + JS kit) | [GitHub](https://github.com/miftachurrochim82-sketch/si-platform) |
 | **`si-kompetensi`** | Riwayat & Analisis Pengembangan Kompetensi ASN | CDN `@v2.6.5` + CoreLib v12 (`developmentMode: true`) | [GitHub](https://github.com/miftachurrochim82-sketch/si-kompetensi) |
 | **`si-pelaporan`** | Manajemen & Verifikasi Pelaporan Kinerja ASN | CDN `@v2.6.5` + CoreLib v13 (pinned = v2.2.3) | [GitHub](https://github.com/miftachurrochim82-sketch/si-pelaporan) |
 | **`frontend-cdn`** | Master bersama: CDN frontend + sumber CoreLib | — | repo ini |
