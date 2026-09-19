@@ -1,5 +1,18 @@
 // ============================================================
-// CORE LIBRARY GLOBAL v2.2.4 - 01_CoreFoundation.gs
+// CORE LIBRARY GLOBAL v2.3.0 - 01_CoreFoundation.gs
+// Changelog v2.3.0 (2026-09-19):
+// - ADD (C3) — FIX UTC vs WIB: todayIsoLocal_() & dateKey10_() publik.
+//   todayIso() LAMA memakai UTC — mundur 1 hari untuk user WIB sebelum
+//   07:00 (Asia/Jakarta = UTC+7). Fungsi baru ini sadar zona waktu Script
+//   via Utilities.formatDate(val, Session.getScriptTimeZone(), ...).
+//   todayIso() LAMA TIDAK DIUBAH (backward-compat app lama).
+// - ADD (C1): paginate_(rows, page, limit) — potong array untuk paginasi
+//   server-side, kembalikan { success, data, meta }.
+// - ADD (C2): matchSearch_(row, q, fields) — cek substring case-insensitive
+//   pada beberapa field, q kosong → selalu true.
+// - Wrapper publik tanpa underscore: todayIsoLocal, dateKey10, paginate,
+//   matchSearch (pintu API untuk app konsumer via CoreLib.xxx).
+// - Aditif murni: seluruh util lama TIDAK diubah signature-nya.
 // Changelog v2.2.4 (2026-09-16):
 // - ADD (C1): ensureSheet menerima options.decorate {bg, font, bold, frozen} —
 //   kosmetik header aditif; perilaku default TIDAK berubah (si-pelaporan pin v13 aman).
@@ -422,6 +435,67 @@ function formatDateForSheet(val) {
 }
 
 // ============================================================
+// §7b TANGGAL SADAR ZONA WAKTU (v2.3.0 / C3)
+// ------------------------------------------------------------
+// todayIso() di atas memakai UTC — mundur 1 hari untuk user WIB
+// sebelum 07:00 (Asia/Jakarta = UTC+7). Fungsi di bawah ini SADAR
+// zona waktu Script sehingga aman untuk form/validasi/perbandingan.
+// ============================================================
+
+/**
+ * todayIsoLocal_() — tanggal hari ini 'yyyy-MM-dd' menurut zona waktu
+ * Script (Asia/Jakarta). BEDA dengan todayIso() yang memakai UTC.
+ *
+ * Gunakan untuk: form default tanggal, kunci tanggal, perbandingan
+ * tanggal, filter "hari ini", dsb.
+ *
+ * @returns {string} 'yyyy-MM-dd'
+ */
+function todayIsoLocal_() {
+  try {
+    return Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd');
+  } catch (e) {
+    // Fallback darurat: potong dari ISO UTC (jarang terjadi di runtime GAS).
+    return new Date().toISOString().slice(0, 10);
+  }
+}
+
+/**
+ * dateKey10_(val) — konversi nilai tanggal apa pun menjadi kunci
+ * 'yyyy-MM-dd' yang SADAR ZONA WAKTU Script.
+ *
+ * Menangani:
+ *   - Date object → format lokal
+ *   - String ISO penuh ('2026-09-19T...') → parse lalu format lokal
+ *   - String legacy 'dd/MM/yyyy' atau 'yyyy-MM-dd HH:mm' → parse lalu
+ *     format lokal
+ *   - String 'yyyy-MM-dd' murni → potong 10 karakter
+ *
+ * Bug yang dicegah: parseTanggalBackend('yyyy-MM-dd') menghasilkan
+ * tengah malam LOKAL, lalu toISOString() (UTC) menggeser mundur 1 hari
+ * di WIB (+7).
+ *
+ * @param {*} val
+ * @returns {string} 'yyyy-MM-dd' atau '' bila tidak valid
+ */
+function dateKey10_(val) {
+  if (!val) return '';
+  var tz = Session.getScriptTimeZone();
+  if (val instanceof Date) {
+    return isNaN(val.getTime()) ? '' : Utilities.formatDate(val, tz, 'yyyy-MM-dd');
+  }
+  var str = String(val).trim();
+  if (!str) return '';
+  // ISO penuh / legacy dd/MM / 'yyyy-MM-dd HH:mm' → parse lalu format LOKAL.
+  if (str.indexOf('T') !== -1 || str.indexOf('/') !== -1 || str.indexOf(' ') !== -1) {
+    var d = parseTanggalBackend(str);
+    if (d && !isNaN(d.getTime())) return Utilities.formatDate(d, tz, 'yyyy-MM-dd');
+  }
+  // 'yyyy-MM-dd...' murni / sisa kasus → potong 10 char
+  return str.slice(0, 10);
+}
+
+// ============================================================
 // §8 SIMPEG HELPERS
 // ============================================================
 function getUnitNama(units, unitId) {
@@ -828,3 +902,75 @@ function validateFields(obj, fields) { return validateFields_(obj, fields); }
 function genUniqueCode(prefix, sheetName, field, padWidth, ssId, headersMap) {
   return genUniqueCode_(prefix, sheetName, field, padWidth, ssId, headersMap);
 }
+
+// ============================================================
+// §11b UTIL PUBLIK v2.3.0 (C1, C2)
+// ============================================================
+
+/**
+ * paginate_(rows, page, limit) — potong array untuk paginasi server-side.
+ *
+ * @param {Array} rows
+ * @param {number} page — 1-indexed
+ * @param {number} limit
+ * @returns {Object} { success, data, meta: {total, page, limit, total_pages} }
+ */
+function paginate_(rows, page, limit) {
+  rows  = Array.isArray(rows) ? rows : [];
+  page  = parseInt(page  || 1,  10); if (isNaN(page)  || page  < 1) page  = 1;
+  limit = parseInt(limit || 10, 10); if (isNaN(limit) || limit < 1) limit = 10;
+  var start = (page - 1) * limit;
+  return {
+    success: true,
+    data: rows.slice(start, start + limit),
+    meta: {
+      total:       rows.length,
+      page:        page,
+      limit:       limit,
+      total_pages: Math.max(1, Math.ceil(rows.length / limit))
+    }
+  };
+}
+
+/**
+ * matchSearch_(row, q, fields) — cek apakah ada field di `row` yang
+ * mengandung substring `q` (case-insensitive). q kosong → selalu true.
+ *
+ * @param {Object} row
+ * @param {string} q
+ * @param {string[]} fields
+ * @returns {boolean}
+ */
+function matchSearch_(row, q, fields) {
+  if (!q) return true;
+  var needle = String(q).toLowerCase().trim();
+  if (!needle) return true;
+  // Cermin setia si-lahar: field kosong/null = tidak match (bukan lolos).
+  if (!Array.isArray(fields) || fields.length === 0) return false;
+  for (var i = 0; i < fields.length; i++) {
+    if (String((row && row[fields[i]]) || '').toLowerCase().indexOf(needle) !== -1) return true;
+  }
+  return false;
+}
+
+// ============================================================
+// §11c PUBLIC API v2.3.0 — wrapper tanpa underscore
+// ============================================================
+// Fungsi berikut adalah pintu API resmi untuk app konsumer:
+//   CoreLib.todayIsoLocal()
+//   CoreLib.dateKey10(val)
+//   CoreLib.paginate(rows, page, limit)
+//   CoreLib.matchSearch(row, q, fields)
+// ============================================================
+
+/** Tanggal 'yyyy-MM-dd' hari ini menurut zona waktu Script. */
+function todayIsoLocal() { return todayIsoLocal_(); }
+
+/** Kunci tanggal 'yyyy-MM-dd' sadar zona waktu Script. */
+function dateKey10(val) { return dateKey10_(val); }
+
+/** Potong array untuk paginasi server-side. */
+function paginate(rows, page, limit) { return paginate_(rows, page, limit); }
+
+/** Cek substring case-insensitive pada beberapa field. */
+function matchSearch(row, q, fields) { return matchSearch_(row, q, fields); }
