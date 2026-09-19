@@ -58,16 +58,11 @@ frontend-cdn/
 ├── tests/                  # Simulasi integrasi SSO (Node.js)
 ├── ECOSYSTEM_GUIDE.md      # Panduan arsitektur lengkap ekosistem
 └── package.json            # Skrip build (npm run build)
-```
 
-> **Penting**: yang ada di proyek GAS `CoreLib` HANYA `appsscript.json` + `01`/`02`/`03`/`99`.
-> `00_MIGRATION_v2.md` sengaja hanya hidup di GitHub. Template app baru = **starter-kit** (menggantikan `Code.gs`, 2026-09-17).
-
----
+---text
 
 ## 🏛️ Arsitektur Ekosistem Terpadu
 
-```text
 ┌──────────────────────────────────────────────────────────────┐
 │             SI-PLATFORM (Portal SSO & Master Hub)            │
 │           - Menerbitkan & memvalidasi Tiket SSO              │
@@ -82,8 +77,7 @@ frontend-cdn/
 │ (Kompetensi) │        │ (Pelaporan)  │        │ (e-Kinerja)  │
 └──────────────┘        └──────────────┘        └──────────────┘
         Semua aplikasi satelit memakai CoreLib (backend)
-        + frontend-cdn (UI) yang sama dari repo ini.
-```
+        + frontend-cdn (UI) yang sama dari repo ini.```
 
 ---
 
