@@ -53,12 +53,12 @@ APPS = [
     {
         "name": "starter-kit",
         "src": os.path.join(HOME, "starter-kit", "src"),
-        "pin": "2.7.5",
+        "pin": "2.8.1",   # blueprint mengikuti tag stabil terbaru (rebuild 2026-09-19)
         "waiver": False,
         "markers": [
-            ("J_App.html", "AppComponents"),
-            ("03_AppLogic.gs", "CoreLib.exchangePlatformTicket"),
-            ("02_SetupAndSeed.gs", "CoreLib.ensureSheet"),
+            ("J_App.html", "AppCore.create"),
+            ("02_AppLogic.gs", "CoreLib.getDb"),
+            ("01_ConfigAndBridge.gs", "CoreLib.getEnvProperty"),
         ],
     },
     {
@@ -67,16 +67,6 @@ APPS = [
         "pin": "2.7.0",   # alignment ditunda (keputusan user) -> waiver
         "waiver": True,
         "markers": [],
-    },
-    {
-        "name": "si-lahar",
-        "src": os.path.join(HOME, "si-lahar", "src"),
-        "pin": "2.7.5",   # BELUM pakai kit frontend-cdn (Tailwind Play + CSS own A0) -> WARN pin wajar
-        "waiver": False,
-        "markers": [
-            ("02_AppLogic.gs", "CoreLib.dispatchAction"),
-            ("01_ConfigAndBridge.gs", "CoreLib.exchangePlatformTicket"),
-        ],
     },
 ]
 
