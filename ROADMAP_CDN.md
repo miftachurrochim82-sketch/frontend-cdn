@@ -52,7 +52,7 @@
 
 | Lapisan | Baris | Rasio (indikator) |
 |---|---|---|
-| CDN frontend (live tag v2.7.5) | **2.814** | — |
+| CDN frontend (live tag v2.7.5; workspace siap v2.8.0) | **2.848** | app-core 835 • app-components 907 • app-modules 507 • app-common.css 599 |
 | CoreLib v2.2.3 | **2.917** | — |
 | si-kompetensi | **11.835** | kepala **4,21 : 1** • stack-bersama **2,07 : 1** |
 | si-pelaporan | **3.365** | tipis **0,59 : 1** — sasaran S3 lama (≤1) TERCAPAI |
@@ -116,6 +116,17 @@
 - [x] C1 — initDatabase → delegasi per-sheet `CoreLib.ensureSheet` + opsi `decorate` (CoreLib v2.2.4 aditif; 2026-09-16; −10 baris app). DEVIASI terdokumentasi: `CoreLib.initDatabase` TIDAK dipakai utuh — selalu memaksa buat AUDIT_LOGS/KONFIGURASI/MAIN_DATA yang tidak dipakai si-kompetensi.
 - [x] C5 — aturan "CoreLib first" + contract-check (2026-09-17): `tools/contract_check.py` (7 kelas pemeriksaan, 3 app; baseline HIJAU exit 0 dengan 2 warn Play-CDN yang jujur; negative-test 5/5 pelanggaran tertangkap) + seksi aturan di ECOSYSTEM_GUIDE.md. **BATCH 3 TUTUP — SELURUH ROADMAP GELOMBANG 1 SELESAI.**
 - [x] ~~C4~~ — TIDAK DIPICU (amandemen 2026-09-16).
+
+**Batch 4 — CDN v2.8.0 (2026-09-18, frontend-only; backend v2.3.0 tetap antre):**
+- [x] F2: `.btn-icon`/`.btn-icon-danger`/`.btn-lg` dipromosikan dari A0_Style si-lahar (G18c-2) ke app-common.css — sumber hex light+dark identik, struktur pakai var(--slate-*/--transition).
+- [x] F1: `<app-filter-bar>` dukung `span` (2..4) per filter via `spanCls` (peta literal Tailwind; tanpa span = perilaku lama, aditif murni).
+- [x] Versi: package.json 2.8.0; exporter app-components '2.8.0'; default prop `version` <app-login> v2.8.0; changelog app-common.css.
+- [x] `npm run build` → 4 `.min` diregenerasi; node --check min OK; isi baru terverifikasi ada di min (btn-icon, span classes).
+- [x] `tools/contract_check.py` exit 0 (PUTUSAN: SEMUA KONTRAK TERPENUHI; 2 warn Play-CDN jujur + waiver pin pelaporan).
+- [x] Harness drift fix: tests/sso-integration-simulation.js → platform split 04a–04d + path CoreLib frontend-cdn/backend → **20/20 PASS**.
+- [x] Docs: README root (versi aktif + riwayat), frontend/README (props), ECOSYSTEM_GUIDE, CDN_SNIPPET, entri ini + baris baseline §2 di bawah.
+- [ ] **RILIS (user)**: unggah berkas → tag BARU `v2.8.0` (tag lama tak dipindah) → verifikasi jsDelivr @v2.8.0 HTTP 200 + byte-identik.
+- [ ] Adopsi app (setelah tag live): si-lahar pin @v2.8.0 + hapus .btn-icon/.btn-lg lokal di A0_Style (konvergensi); si-kompetensi pin bump MANUAL oleh pemilik (gerbong bersih-bersih).
 
 **Disiplin rilis (selalu):** perubahan aditif (prop baru boleh, arti prop lama jangan); satu tag untuk semua berkas; `.min` di-commit bersama sumber; unggah via *Upload files* (anti kontaminasi CF); dokumen master + tabel baseline §2 diperbarui di rilis yang sama; `testAll()` CoreLib FAIL:0 sebelum save versi.
 
