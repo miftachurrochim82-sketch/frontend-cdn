@@ -9,19 +9,20 @@ Repositori ini adalah **master bersama** ekosistem: memuat pustaka frontend CDN 
 
 | Paket | Versi | Catatan |
 |---|---|---|
-| **CoreLib** (backend GAS library, `backend/`) | `v2.2.4` | ⭐ FIX keamanan `levelOf_` fail-closed (viewer/role tak dikenal = level 0, bukan 1). Terverifikasi live 2026-09-17: `testAll()` PASS 38 / FAIL 0. |
-| **Frontend CDN** (`frontend/`, satu versi untuk semua berkas) | `v2.8.0` | 13 komponen + `.btn-icon`/`.btn-icon-danger`/`.btn-lg`, filter-bar `span`, chart kit, pegawai-picker, dll. |
+| **CoreLib** (backend GAS library, `backend/`) | `v2.2.4` | Aditif murni (Batch 3 ROADMAP): `ensureSheet`, `getDb`/`masterDbFor_`, opsi `decorate` pada delegasi `initDatabase`; perilaku lama tidak berubah. Pin GAS: 14. |
+| **Frontend CDN** (`frontend/`, satu versi untuk semua berkas) | `v2.8.0` | 13 komponen `<app-…>` + F2 `.btn-icon`/`.btn-icon-danger`/`.btn-lg` di app-common.css + F1 `span` per filter di `<app-filter-bar>`; akumulasi batch v2.7.0 & hotfix 2.7.1–2.7.5. |
 
 <details>
 <summary>Riwayat versi sebelumnya</summary>
 
 | Versi | Tanggal | Perubahan |
 |---|---|---|
-| CDN v2.8.0 | 2026-09-18 | Gelombang 1 Batch 4: Promosi `.btn-icon`/`.btn-icon-danger`/`.btn-lg` dari A0_Style si-lahar ke app-common.css; `<app-filter-bar>` dukung `span` (2..4). |
+| CDN v2.8.0 | 2026-09-18 | F2: `.btn-icon`/`.btn-icon-danger`/`.btn-lg` promosi dari A0_Style si-lahar ke app-common.css (light+dark). F1: `<app-filter-bar>` dukung `span` 2..4 per filter. Harness: simulasi SSO 20/20 PASS. |
 | CoreLib v2.2.4 | 2026-09-16/17 | Aditif murni (Batch 3 ROADMAP) — `CoreLib.ensureSheet`, `CoreLib.getDb`/`masterDbFor_`, opsi `decorate` pada delegasi `initDatabase`. |
+| CDN v2.7.1–v2.7.5 | 2026-09-16/17 | Hotfix beruntun: prop `bare` chart; fix bootstrap `AppCore.loadLib`; picker `source`+nama; blur-race + `type=button` picker. |
 | CDN v2.7.0 | 2026-09-16 | Gelombang 1 Batch 1: 6 komponen/fitur horizontal baru (filter-bar, empty-state, skeleton, chart kit, pegawai-picker, v-can, paginate helper, appCode). |
-| CoreLib v2.2.3 | 2026-09-16 | ⭐ FIX keamanan `levelOf_` fail-closed. |
-| CoreLib v2.2.2 | 2026-09-15 | FIX `checkAuth` fail-closed (`=== undefined → 0`), `dispatchAction` buang `_cacheBust`, penguatan `requireRole_`. |
+| CoreLib v2.2.3 | 2026-09-16 | ⭐ FIX keamanan `levelOf_` fail-closed (viewer/role tak dikenal = level 0, bukan 1). Terverifikasi live: `testAll()` PASS 38 / FAIL 0. |
+| CoreLib v2.2.2 | 2026-09-15 | FIX `checkAuth` fail-closed (`=== undefined → 0`), `dispatchAction` buang `_cacheBust`, penguatan `requireRole_`, test regresi `testRoleGateV222`. ⚠️ Fix `levelOf_` belum ikut terkirim → dilengkapi di v2.2.3. |
 | CoreLib v2.2.1 | 2026-09-15 | FIX `genUniqueCode_` (regex `reAnyNumber` buggy). |
 | CDN v2.6.4 | 2026-09 | Satu nomor versi ekosistem untuk semua berkas; pelajaran tag-setelah-unggah. |
 | CDN v2.6.0 | 2026-09 | Registry pustaka `AppCore.libs` + `loadLib()` on-demand (chart/xlsx/jspdf/autotable/pdflib). |
@@ -35,7 +36,7 @@ Repositori ini adalah **master bersama** ekosistem: memuat pustaka frontend CDN 
 
 ## 🗂️ Struktur Repositori
 
-```
+```text
 frontend-cdn/
 ├── frontend/               # Pustaka CDN (CSS + Vue 3 components)
 │   ├── app-common.css      # Design tokens & kelas util bersama
@@ -56,13 +57,20 @@ frontend-cdn/
 │   ├── 00_MIGRATION_v2.md     # ★ Dokumen master CoreLib (changelog, rilis, kontrak)
 │   └── .claspignore           # Hanya 5 file library yang boleh ter-push
 ├── tests/                  # Simulasi integrasi SSO (Node.js)
+├── tools/contract_check.py # Penjaga kontrak sebelum salin ke GAS (exit 0 = aman)
 ├── ECOSYSTEM_GUIDE.md      # Panduan arsitektur lengkap ekosistem
+├── ROADMAP_CDN.md          # Roadmap & log rilis CDN
 └── package.json            # Skrip build (npm run build)
+```
 
----text
+> **Penting**: yang ada di proyek GAS `CoreLib` HANYA `appsscript.json` + `01`/`02`/`03`/`99`.
+> `00_MIGRATION_v2.md` sengaja hanya hidup di GitHub. Template app baru = **starter-kit** (menggantikan `Code.gs`, 2026-09-17).
+
+---
 
 ## 🏛️ Arsitektur Ekosistem Terpadu
 
+```text
 ┌──────────────────────────────────────────────────────────────┐
 │             SI-PLATFORM (Portal SSO & Master Hub)            │
 │           - Menerbitkan & memvalidasi Tiket SSO              │
@@ -77,7 +85,8 @@ frontend-cdn/
 │ (Kompetensi) │        │ (Pelaporan)  │        │ (e-Kinerja)  │
 └──────────────┘        └──────────────┘        └──────────────┘
         Semua aplikasi satelit memakai CoreLib (backend)
-        + frontend-cdn (UI) yang sama dari repo ini.```
+        + frontend-cdn (UI) yang sama dari repo ini.
+```
 
 ---
 
@@ -85,9 +94,10 @@ frontend-cdn/
 
 | Proyek | Deskripsi | Dependensi dari repo ini | Tautan |
 |---|---|---|---|
-| **`si-platform`** | Portal SSO, User Management, Role RBAC, Storage & Audit Log | `app-common.css @v2.7.5 (CSS + JS kit) | [GitHub](https://github.com/miftachurrochim82-sketch/si-platform) |
-| **`si-kompetensi`** | Riwayat & Analisis Pengembangan Kompetensi ASN | CDN `@v2.6.5` + CoreLib v12 (`developmentMode: true`) | [GitHub](https://github.com/miftachurrochim82-sketch/si-kompetensi) |
-| **`si-pelaporan`** | Manajemen & Verifikasi Pelaporan Kinerja ASN | CDN `@v2.6.5` + CoreLib v13 (pinned = v2.2.3) | [GitHub](https://github.com/miftachurrochim82-sketch/si-pelaporan) |
+| **`si-platform`** | Portal SSO, User Management, Role RBAC, Storage & Audit Log | CDN `@v2.7.5` (CSS + JS kit; Track A–E selesai) | [GitHub](https://github.com/miftachurrochim82-sketch/si-platform) |
+| **`si-kompetensi`** | Riwayat & Analisis Pengembangan Kompetensi ASN | CDN `@v2.7.5` + CoreLib pin 14 (v2.2.4) | [GitHub](https://github.com/miftachurrochim82-sketch/si-kompetensi) |
+| **`si-pelaporan`** | Manajemen & Verifikasi Pelaporan Kinerja ASN | CDN `@v2.7.5` + CoreLib pin 13 (pinned = v2.2.3) | [GitHub](https://github.com/miftachurrochim82-sketch/si-pelaporan) |
+| **`si-lahar`** | e-Kinerja Harian ASN: rencana, realisasi, verifikasi, Paspor Kinerja | CDN `@v2.8.0` + CoreLib pin 14 (v2.2.4) | [GitHub](https://github.com/miftachurrochim82-sketch/si-lahar) |
 | **`frontend-cdn`** | Master bersama: CDN frontend + sumber CoreLib | — | repo ini |
 
 ---
@@ -108,6 +118,6 @@ frontend-cdn/
 | Dokumen | Isi |
 |---|---|
 | [`ECOSYSTEM_GUIDE.md`](ECOSYSTEM_GUIDE.md) | Panduan arsitektur lengkap (backend, frontend, SSO, deployment, troubleshooting) |
-| [`backend/00_MIGRATION_v2.md`](backend/00_MIGRATION_v2.md) | **Master CoreLib**: changelog v2.0→v2.2.3, prosedur rilis, kontrak keamanan |
+| [`backend/00_MIGRATION_v2.md`](backend/00_MIGRATION_v2.md) | **Master CoreLib**: changelog v2.0→v2.2.4, prosedur rilis, kontrak keamanan |
 | [`frontend/README.md`](frontend/README.md) | Katalog komponen & props |
 | [`frontend/CDN_SNIPPET.md`](frontend/CDN_SNIPPET.md) | Snippet pemuatan CDN standar untuk aplikasi baru |
