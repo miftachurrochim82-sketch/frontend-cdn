@@ -51,6 +51,27 @@ APPS = [
         ],
     },
     {
+        "name": "si-arsip-2026",
+        "src": os.path.join(HOME, "si-arsip-2026", "src"),
+        "pin": "2.8.1",   # app baru (v1 shell 2026-09-20)
+        "waiver": False,
+        "markers": [
+            ("J_App.html", "AppCore.create"),
+            ("01_ConfigAndBridge.gs", "CoreLib.getEnvProperty"),
+        ],
+    },
+    {
+        "name": "si-lahar",
+        "src": os.path.join(HOME, "si-lahar", "src"),
+        "pin": "2.8.1",   # refaktor 2026-09-19 (V_Rencana/V_Master, delegasi CoreLib v2.3.0)
+        "waiver": False,
+        "markers": [
+            ("J_App.html", "AppCore.create"),
+            ("02_AppLogic.gs", "CoreLib.matchSearch"),
+            ("02_AppLogic.gs", "CoreLib.paginate"),
+        ],
+    },
+    {
         "name": "starter-kit",
         "src": os.path.join(HOME, "starter-kit", "src"),
         "pin": "2.8.1",   # blueprint mengikuti tag stabil terbaru (rebuild 2026-09-19)
