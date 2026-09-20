@@ -553,3 +553,17 @@ Setiap repository aplikasi yang dibuat melalui template telah dilengkapi `.githu
 * **Pengelola Ekosistem**: Tim Pengembang TI — Dinas Komunikasi dan Informatika Kabupaten Trenggalek
 * **Dokumentasi & Versi**: CoreLib v2.3.0 (GAS versi 15) • Frontend CDN v2.8.1 (diperbarui 2026-09-19)
 * **Lisensi**: MIT License
+
+## Garis versi frontend vs backend (revisi 2026-09-20 malam: pecah repo TERLAKSANA)
+
+- **Backend/CoreLib** kini berumah di repo tersendiri:
+  `github.com/miftachurrochim82-sketch/LIbrary-CoreLib` (src/ = 6 berkas GAS,
+  byte-identik dengan backend v2.3.0 yang teruji). Tag garis backend
+  (`corelib-v2.3.0`, f1a8d2a) hidup DI REPO ITU, bukan di sini.
+  Repo itu juga memuat clasp.json (scriptId saja, tanpa token) + claspignore =
+  bibit otomatisasi deploy bertahap.
+- **Repo ini (frontend-cdn)** = rumah kit frontend saja ke depan; tag polos
+  `v2.8.x` dilanjutkan; jsDelivr tetap membaca tag repo ini.
+- Folder `backend/` di repo ini = **cermin beku historis** (jangan diedit lagi;
+  edit CoreLib selanjutnya wajib di LIbrary-CoreLib lalu salin ke GAS).
+- Doktrin tetap: GitHub = salinan/arsip; GAS = rujukan hidup & sumber error.
