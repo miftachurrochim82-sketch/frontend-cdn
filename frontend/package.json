@@ -1,0 +1,28 @@
+{
+  "name": "@trenggalekkab/frontend-cdn",
+  "version": "2.9.0",
+  "description": "Shared Frontend CDN Library (v2.9.0) 8 FILE & 31 OPSI — Sekali Jalan: tabs, pagination, theme-picker, drawer, export, tree, charts",
+  "main": "app-core.min.js",
+  "author": "Pemerintah Kabupaten Trenggalek",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/miftachurrochim82-sketch/frontend-cdn.git"
+  },
+  "keywords": [
+    "trenggalek",
+    "vue3",
+    "cdn",
+    "sso",
+    "app-core",
+    "high-performance",
+    "stale-while-revalidate",
+    "app-tabs",
+    "app-pagination",
+    "app-theme-picker",
+    "app-crud-table",
+    "app-stat-card",
+    "app-modal",
+    "app-badge"
+  ]
+}
