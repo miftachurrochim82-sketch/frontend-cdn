@@ -83,6 +83,17 @@ APPS = [
         ],
     },
     {
+        "name": "si-dokumen",
+        "src": os.path.join(HOME, "si-dokumen", "src"),
+        "pin": "2.8.1",   # v1.7.0 (2026-09-22) — CoreLib pin 15
+        "waiver": False,
+        "markers": [
+            ("J_App.html", "AppCore.create"),
+            ("01_ConfigAndBridge.gs", "CoreLib.getEnvProperty"),
+            ("17_RtlApi.gs", "RTL_TRANSISI_LEGAL_"),
+        ],
+    },
+    {
         "name": "si-pelaporan",
         "src": os.path.join(HOME, "si-pelaporan", "src"),
         "pin": "2.7.0",   # alignment ditunda (keputusan user) -> waiver
