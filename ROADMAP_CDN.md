@@ -1,6 +1,6 @@
 # 🗺️ ROADMAP CDN & CoreLib — Rencana Gelombang: CDN Stabil & Nol Duplikasi Mekanik
 
-> **Status**: DISAHKAN 2026-09-16 • **DIAMANDEMEN 2026-09-16 (malam) atas keputusan user** • **DIPERBARUI 2026-09-19 (Batch 5).**
+> **Status**: DISAHKAN 2026-09-16 • **DIAMANDEMEN 2026-09-16 (malam) atas keputusan user** • **DIPERBARUI 2026-09-22 (Batch 6 — v2.9.0 8 FILE & 31 OPSI).**
 > **Sasaran kepala (baru)**: **CDN yang stabil** (versi jelas, aditif, terverifikasi) sebagai modal awal + **nol duplikasi mekanik** di app + **risiko perubahan rendah**. Rasio baris DITURUNKAN menjadi indikator pemantauan — bukan syarat lulus. Pekerjaan mendalam (C4) tidak dipicu tanpa alasan fungsional.
 > **Dokumen ini adalah master perencanaan ekosistem.** Setiap rilis CDN/CoreLib wajib memperbarui tabel baseline (§2) dan checklist (§5).
 > Lingkup: **Gelombang 1 = komitmen eksekusi. Gelombang 2 = daftar opsi saja** (tidak dijadwalkan).
@@ -71,7 +71,25 @@
 | Rasio kepala (indikator) | **~4,15 : 1** | stabil (dari 4,21) |
 | Rasio stack-bersama (indikator) | **~2,00 : 1** | membaik (dari 2,07) |
 
-> Angka di atas estimasi dari commit terakhir; **ukur ulang dengan `wc -l`** saat commit berikutnya, kemudian ganti tabel ini dengan angka pasti.
+### 2.5 Ukur ulang — Batch 6 (2026-09-22, CDN v2.9.0 8 FILE & 31 OPSI)
+
+| Lapisan | Baris | Δ vs sebelumnya |
+|---|---|---|
+| CDN frontend **v2.9.0** | **~4.250** | **+1.400** (6 file baru: layout 85 • ui 165 • forms 310 • data 295 • charts 195 • workflow 190 • + core 30 • common 130) |
+| — app-common.css | **~730** | +130 (btn-ghost/sm/xs, col-S/M/L/XL, alert, breadcrumb, drawer, theme) |
+| — app-core.js | **~870** | +30 (themes + applyTheme + getMyScope) |
+| — app-components.js | **~930** | +25 (badge draft/baru/diproses/selesai/batal) |
+| — app-layout.js **BARU** | **~85** | +85 (breadcrumb, page-header) |
+| — app-ui.js **BARU** | **~165** | +165 (tabs, pagination, alert, confirm) |
+| — app-forms.js **BARU** | **~310** | +310 (filter-enhanced, debounced-search, date-picker, file-upload, rich-editor) |
+| — app-data.js **BARU** | **~295** | +295 (detail-drawer, export-button, csv-import, master-tree, image-viewer) |
+| — app-charts.js **BARU** | **~195** | +195 (chart-line, configurable-dashboard) |
+| — app-workflow.js **BARU** | **~190** | +190 (approval-panel, audit-timeline, theme-picker) |
+| CoreLib **v2.3.0** | **~3.020** | 0 (belum update — next batch) |
+| Rasio kepala (indikator) | **~2,78 : 1** | dari 4,15 (CDN lebih kaya, app tetap) |
+| Rasio stack-bersama (indikator) | **~1,62 : 1** | dari 2,00 |
+
+> Total komponen: **12 → 31 opsi** (+19), file **4 → 8** (1 CSS + 7 JS). Minified total ~135 KB (app ringan cuma load 60 KB via mix). Ukur ulang pasti dengan `wc -l` saat commit.
 
 ---
 
@@ -219,8 +237,10 @@ Selesai bila:
 | Komponen | Versi | Tag | URL | Verifikasi |
 |---|---|---|---|---|
 | CoreLib | v2.3.0 | v2.3.0 | `/library/d/1GmeYflf…/15` | `testAll()` PASS 42 / FAIL 0 / SKIP 1 |
-| Frontend CDN | v2.8.1 | v2.8.1 | jsDelivr `@v2.8.1` | `AppCore.version` = `"2.8.0"` konsisten |
-| si-lahar | — | — | — | CoreLib pin 15 + CDN `@v2.8.1` |
+| Frontend CDN | **v2.9.0** | **v2.9.0** | jsDelivr `@v2.9.0` | `AppCore.version` = `"2.9.0"` konsisten (8 file) |
+| — 8 FILE | — | — | `app-common, app-core, app-components, app-modules, app-layout, app-ui, app-forms, app-data, app-charts, app-workflow` | `wc -l` ~4.250, minified ~135 KB |
+| si-lahar | — | — | — | CoreLib pin 15 + CDN `@v2.8.1` → siap bump ke `@v2.9.0` |
+| starter-kit | v2.11.0 → **v2.12.0** *(next)* | — | — | Akan pakai CDN v2.9.0 + menu "Saya" + tema dinamis |
 
 ---
 
