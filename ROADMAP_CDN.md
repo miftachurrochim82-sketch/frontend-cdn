@@ -1,6 +1,6 @@
 # 🗺️ ROADMAP CDN & CoreLib — Rencana Gelombang: CDN Stabil & Nol Duplikasi Mekanik
 
-> **Status**: DISAHKAN 2026-09-16 • **DIAMANDEMEN 2026-09-16 (malam) atas keputusan user** • **DIPERBARUI 2026-09-22 (Batch 6 — v2.9.0 8 FILE & 31 OPSI).**
+> **Status**: DISAHKAN 2026-09-16 • **DIAMANDEMEN 2026-09-16 (malam) atas keputusan user** • **DIPERBARUI 2026-09-23 (Batch 6 — v2.9.0 10 FILE (1 CSS+9 JS) & 31 OPSI).**
 > **Sasaran kepala (baru)**: **CDN yang stabil** (versi jelas, aditif, terverifikasi) sebagai modal awal + **nol duplikasi mekanik** di app + **risiko perubahan rendah**. Rasio baris DITURUNKAN menjadi indikator pemantauan — bukan syarat lulus. Pekerjaan mendalam (C4) tidak dipicu tanpa alasan fungsional.
 > **Dokumen ini adalah master perencanaan ekosistem.** Setiap rilis CDN/CoreLib wajib memperbarui tabel baseline (§2) dan checklist (§5).
 > Lingkup: **Gelombang 1 = komitmen eksekusi. Gelombang 2 = daftar opsi saja** (tidak dijadwalkan).
@@ -71,7 +71,7 @@
 | Rasio kepala (indikator) | **~4,15 : 1** | stabil (dari 4,21) |
 | Rasio stack-bersama (indikator) | **~2,00 : 1** | membaik (dari 2,07) |
 
-### 2.5 Ukur ulang — Batch 6 (2026-09-22, CDN v2.9.0 8 FILE & 31 OPSI)
+### 2.5 Ukur ulang — Batch 6 (2026-09-22, CDN v2.9.0 10 FILE (1 CSS+9 JS) & 31 OPSI)
 
 | Lapisan | Baris | Δ vs sebelumnya |
 |---|---|---|
@@ -238,7 +238,7 @@ Selesai bila:
 |---|---|---|---|---|
 | CoreLib | v2.3.0 | v2.3.0 | `/library/d/1GmeYflf…/15` | `testAll()` PASS 42 / FAIL 0 / SKIP 1 |
 | Frontend CDN | **v2.9.0** | **v2.9.0** | jsDelivr `@v2.9.0` | `AppCore.version` = `"2.9.0"` konsisten (8 file) |
-| — 8 FILE | — | — | `app-common, app-core, app-components, app-modules, app-layout, app-ui, app-forms, app-data, app-charts, app-workflow` | `wc -l` ~4.250, minified ~135 KB |
+| — 10 FILE (1 CSS+9 JS) | — | — | `app-common.css + 9 JS (app-core,app-components,app-modules,app-layout,app-ui,app-forms,app-data,app-charts,app-workflow)` | `wc -l` ~4.250, minified ~135 KB |
 | si-lahar | — | — | — | CoreLib pin 17 + CDN `@v2.9.0` ✅ LIVE |
 | starter-kit | v2.11.0 → **v2.12.0** *(next)* | — | — | Akan pakai CDN v2.9.0 + menu "Saya" + tema dinamis |
 
