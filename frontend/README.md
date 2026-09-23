@@ -1,4 +1,4 @@
-# Frontend CDN — Pustaka UI Bersama v2.9.0 (8 File & 31 Opsi)
+# Frontend CDN — Pustaka UI Bersama v2.9.0 (10 File — 1 CSS + 9 JS & 31 Opsi)
 ### Vue 3 + Tailwind CSS • Pemkab Trenggalek
 
 Seluruh aplikasi ekosistem (si-kompetensi, si-pelaporan, si-platform, si-lahar, dan aplikasi baru) memuat UI dari folder ini via jsDelivr. **Satu nomor versi berlaku untuk semua berkas** — satu tag rilis (`v2.9.0`) mengunci 1 CSS + 7 JS sekaligus.
@@ -7,7 +7,7 @@ Seluruh aplikasi ekosistem (si-kompetensi, si-pelaporan, si-platform, si-lahar, 
 
 ---
 
-## 🆕 Rilis v2.9.0 (2026-09-22) — 8 FILE & 31 OPSI — Sekali Jalan
+## 🆕 Rilis v2.9.0 (2026-09-22) — 10 FILE (1 CSS + 9 JS) & 31 OPSI — Sekali Jalan
 
 **Tujuan:** tutup 5 keluhan berulang (button/tab/filter/pagination/kolom) + kaya fitur + tema dinamis — tidak tambal-sulam lagi.
 
@@ -29,11 +29,11 @@ Seluruh aplikasi ekosistem (si-kompetensi, si-pelaporan, si-platform, si-lahar, 
 
 **Badge:** status baru `draft/baru/diproses/selesai/batal` — cermin `V_Utama` starter-kit
 
-> Total: **dari 12 → 31 opsi** (+19), dari 4 → **8 file** (1 CSS + 7 JS), baris 2.850 → ~4.250 (+49%), minified ~135 KB (app ringan cuma load 60 KB via mix)
+> Total: **dari 12 → 31 opsi** (+19), dari 4 → **10 file fisik (1 CSS + 9 JS)**, baris 2.850 → ~4.250 (+49%), minified ~135 KB (app ringan cuma load 60–80 KB via mix)
 
 ---
 
-## 📦 Berkas (8 File — 1 Toko, 1 Versi)
+## 📦 Berkas (10 File Fisik — 1 CSS + 9 JS — 1 Toko, 1 Versi)
 
 | Berkas | Isi | Dimuat via | Wajib? |
 |---|---|---|---|
@@ -222,7 +222,7 @@ Alur rilis (urutan WAJIB — pelajaran insiden tag v2.6.3):
 ### Riwayat rilis singkat
 | Tag | Versi berkas | Perubahan |
 |---|---|---|
-| `v2.9.0` | `"2.9.0"` | **8 FILE & 31 OPSI** — 6 file baru (layout/ui/forms/data/charts/workflow) + tema dinamis Opsi B + badge draft/baru/diproses/selesai/batal |
+| `v2.9.0` | `"2.9.0"` | **10 FILE (1 CSS + 9 JS) & 31 OPSI** — 6 file baru (layout/ui/forms/data/charts/workflow) + tema dinamis Opsi B + badge draft/baru/diproses/selesai/batal |
 | `v2.8.1` | `"2.8.0"` | Patch konsistensi internal (T49) — fix `AppCore.version`/`AppModules.version` |
 | `v2.8.0` | `"2.8.0"` | F2: promosi `.btn-icon`/`.btn-icon-danger`/`.btn-lg` ke kit; F1: `<app-filter-bar>` dukung `span` |
 | `v2.7.0` | `"2.7.0"` | B1–B7: picker, chart kit, filter-bar, empty-state, skeleton, v-can, paginate helper |

@@ -1,5 +1,5 @@
 # Panduan Frontend CDN v2.9.0 — Pemkab Trenggalek
-### Satu Toko Perkakas untuk Semua Aplikasi (Vue 3 + Tailwind)
+### Satu Toko Perkakas untuk Semua Aplikasi (Vue 3 + Tailwind) — **1 CSS + 9 JS**
 
 > **Repo ini = FRONTEND SAJA.** Backend `CoreLib` hidup di repo terpisah **[LIbrary-CoreLib](https://github.com/miftachurrochim82-sketch/LIbrary-CoreLib)** (pin **17**, v2.4.0 LIVE). Dokumen lama gabungan diarsipkan di [`ECOSYSTEM_GUIDE_LEGACY_2026-09-23.md`](ECOSYSTEM_GUIDE_LEGACY_2026-09-23.md) — jangan pakai lagi.
 
@@ -10,7 +10,7 @@
 Ekosistem app Pemkab Trenggalek pakai **frontend CDN terpusat** — semua app (si-kompetensi, si-pelaporan, si-lahar, si-dokumen, app baru dari `starter-kit`) load UI dari **satu versi yang sama** via jsDelivr. Hasil: tampilan seragam, dark mode sinkron, update sekali jalan.
 
 **5 prinsip:**
-1. **Satu versi untuk semua berkas** — 1 tag `v2.9.0` kunci 1 CSS + 7 JS inti (total fisik 10 file incl. bundle compat, lihat §3).
+1. **Satu versi untuk semua berkas** — 1 tag `v2.9.0` kunci **1 CSS + 9 JS** (total 10 file fisik, lihat §3).
 2. **Zero render-blocking** — library berat (Chart.js, XLSX) load on-demand via `AppCore.loadLib()`.
 3. **SWR cache** — data master SIMPEG load 0 ms setelah cache.
 4. **Low-boilerplate** — cukup deklarasi komponen, tidak tulis ulang CSS/JS.
@@ -23,7 +23,7 @@ Ekosistem app Pemkab Trenggalek pakai **frontend CDN terpusat** — semua app (s
 ```text
 ┌────────────────────────────────────────────┐
 │  FRONTEND CDN v2.9.0 (repo ini, jsDelivr)  │
-│  1 CSS + 7 JS inti + 2 bundle compat       │
+│  1 CSS + 9 JS (31 opsi) — 10 file fisik   │
 │  Vue 3, Tailwind, FA 6.5.2, SWR, Theme     │
 └──────────────────────┬─────────────────────┘
                        │  cdn.jsdelivr.net/gh/...@v2.9.0
@@ -48,9 +48,9 @@ Ekosistem app Pemkab Trenggalek pakai **frontend CDN terpusat** — semua app (s
 
 ---
 
-## 3. File CDN — 10 File Fisik (9 js + 1 css)
+## 3. File CDN — 10 File Fisik (1 CSS + 9 JS) — 31 OPSI
 
-> Slogan **“8 FILE & 31 OPSI”** = 1 CSS + 7 JS inti (core + 6 BARU). Fisik di repo = **10 file source** (9 js + 1 css) karena masih simpan 2 bundle lama untuk kompatibilitas — app baru cukup load 8 inti, app lama tetap jalan.
+> **Mudah diingat: 1 baju (CSS) + 9 perkakas (JS) = 10 file.** Dulu disebut “8 FILE” (hanya hitung 7 inti), sekarang **dibuat jelas 10 file** (9 js + 1 css) biar pemula tidak bingung — 7 file inti + 2 bundle lama compat = tetap 9 JS.
 
 | # | File source | Min | Isi | Wajib? |
 |---|---|---|---|---|
@@ -65,6 +65,8 @@ Ekosistem app Pemkab Trenggalek pakai **frontend CDN terpusat** — semua app (s
 | 9 | `app-components.js` | `.min.js` | **Bundle kompatibilitas** — gabungan 12 komponen inti lama (biar app lama tidak pecah) | opsional (compat) |
 | 10 | `app-modules.js` | `.min.js` | **Bundle kompatibilitas** — `app-profile`, `app-settings` lama | opsional (compat) |
 | + | `app-tailwind.min.css` | — | Tailwind v3.4.17 ter-compile (bahan mentah) | WAJIB bareng common |
+
+> **Catatan pemula:** 9 JS = `app-core` (mesin) + 6 BARU (`layout/ui/forms/data/charts/workflow`) + 2 bundle lama (`components/modules` untuk app lama). App baru cukup load 7–8 file, tidak harus 9 sekaligus — pilih sesuai kebutuhan.
 
 **Total baris v2.9.0:** ~4.250 (dari 2.850 di v2.8.1), minified ~135 KB (app ringan cuma load ~60 KB).
 
@@ -120,8 +122,8 @@ Preset: `emerald` `#065f46` (default), `sky` `#0c4a6e`, `amber` `#92400e`, `viol
 
 ## 7. Deployment & Versioning
 
-- **Satu tag untuk semua file:** `v2.9.0` (jsDelivr `@v2.9.0`). Jangan pecah versi per-file.
-- **Rilis:** `git tag -a v2.9.0 -m "v2.9.0 8 FILE & 31 OPSI"` → `git push --tags` → tunggu jsDelivr ~5 menit → cek `https://cdn.jsdelivr.net/gh/...@v2.9.0/frontend/app-core.min.js` HTTP 200.
+- **Satu tag untuk semua file:** `v2.9.0` (jsDelivr `@v2.9.0`) — kunci 1 CSS + 9 JS sekaligus. Jangan pecah versi per-file.
+- **Rilis:** `git tag -a v2.9.0 -m "v2.9.0 10 FILE (1 CSS+9 JS) & 31 OPSI"` → `git push --tags` → tunggu jsDelivr ~5 menit → cek `https://cdn.jsdelivr.net/gh/...@v2.9.0/frontend/app-core.min.js` HTTP 200.
 - **Pin di app:** `appsscript.json` / `Index.html` harus tulis eksplisit `@v2.9.0`, jangan `@main`.
 - **Starter-kit** sudah pin `@v2.9.0` (v2.12.0). App baru cetak dari starter-kit, jangan copy manual.
 
@@ -142,7 +144,7 @@ Jangan cari folder `backend/` di repo ini — sudah **DIHAPUS 2026-09-19** (`2d5
 
 | Versi | Tanggal | Inti |
 |---|---|---|
-| **v2.9.0** | 2026-09-23 | 8 FILE & 31 OPSI — 6 file baru + tema dinamis + badge baru |
+| **v2.9.0** | 2026-09-23 | **10 FILE (1 CSS + 9 JS) & 31 OPSI** — 6 file baru + tema dinamis + badge baru |
 | v2.8.1 | 2026-09-19 | Patch `AppCore.version` → `"2.8.0"` |
 | v2.8.0 | 2026-09-18 | `btn-icon`, `filter-bar span` |
 | v2.7.x | 2026-09-16 | filter-bar, chart kit, picker, skeleton |
