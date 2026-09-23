@@ -1,6 +1,6 @@
 {
     "name": "@miftachurrochim82/frontend-cdn",
-    "version": "2.9.0",
+    "version": "2.9.1",
     "description": "Shared Frontend Assets CDN for Google Apps Script Web Apps (Pemkab Trenggalek) — Vue 3 + Tailwind",
     "main": "frontend/app-core.js",
     "scripts": {

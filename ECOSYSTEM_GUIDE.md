@@ -10,7 +10,7 @@
 Ekosistem app Pemkab Trenggalek pakai **frontend CDN terpusat** — semua app (si-kompetensi, si-pelaporan, si-lahar, si-dokumen, app baru dari `starter-kit`) load UI dari **satu versi yang sama** via jsDelivr. Hasil: tampilan seragam, dark mode sinkron, update sekali jalan.
 
 **5 prinsip:**
-1. **Satu versi untuk semua berkas** — 1 tag `v2.9.0` kunci **1 CSS + 9 JS** (total 10 file fisik, lihat §3).
+1. **Satu versi untuk semua berkas** — 1 tag `v2.9.1` kunci **1 CSS + 9 JS** (total 10 file fisik, lihat §3).
 2. **Zero render-blocking** — library berat (Chart.js, XLSX) load on-demand via `AppCore.loadLib()`.
 3. **SWR cache** — data master SIMPEG load 0 ms setelah cache.
 4. **Low-boilerplate** — cukup deklarasi komponen, tidak tulis ulang CSS/JS.
@@ -122,8 +122,8 @@ Preset: `emerald` `#065f46` (default), `sky` `#0c4a6e`, `amber` `#92400e`, `viol
 
 ## 7. Deployment & Versioning
 
-- **Satu tag untuk semua file:** `v2.9.0` (jsDelivr `@v2.9.0`) — kunci 1 CSS + 9 JS sekaligus. Jangan pecah versi per-file.
-- **Rilis:** `git tag -a v2.9.0 -m "v2.9.0 10 FILE (1 CSS+9 JS) & 31 OPSI"` → `git push --tags` → tunggu jsDelivr ~5 menit → cek `https://cdn.jsdelivr.net/gh/...@v2.9.0/frontend/app-core.min.js` HTTP 200.
+- **Satu tag untuk semua file:** `v2.9.0` (jsDelivr `@v2.9.1`) — kunci 1 CSS + 9 JS sekaligus. Jangan pecah versi per-file.
+- **Rilis:** `git tag -a v2.9.1 -m "v2.9.1 10 FILE (1 CSS+9 JS) & 31 OPSI"` → `git push --tags` → tunggu jsDelivr ~5 menit → cek `https://cdn.jsdelivr.net/gh/...@v2.9.0/frontend/app-core.min.js` HTTP 200.
 - **Pin di app:** `appsscript.json` / `Index.html` harus tulis eksplisit `@v2.9.0`, jangan `@main`.
 - **Starter-kit** sudah pin `@v2.9.0` (v2.12.0). App baru cetak dari starter-kit, jangan copy manual.
 
@@ -144,7 +144,7 @@ Jangan cari folder `backend/` di repo ini — sudah **DIHAPUS 2026-09-19** (`2d5
 
 | Versi | Tanggal | Inti |
 |---|---|---|
-| **v2.9.0** | 2026-09-23 | **10 FILE (1 CSS + 9 JS) & 31 OPSI** — 6 file baru + tema dinamis + badge baru |
+| **v2.9.1** | 2026-09-23 | PATCH scope helper `setMyScope` | **10 FILE (1 CSS + 9 JS) & 31 OPSI** — 6 file baru + tema dinamis + badge baru |
 | v2.8.1 | 2026-09-19 | Patch `AppCore.version` → `"2.8.0"` |
 | v2.8.0 | 2026-09-18 | `btn-icon`, `filter-bar span` |
 | v2.7.x | 2026-09-16 | filter-bar, chart kit, picker, skeleton |

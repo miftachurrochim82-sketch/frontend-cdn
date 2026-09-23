@@ -1,4 +1,4 @@
-# Frontend CDN — Pustaka UI Bersama v2.9.0 (10 File — 1 CSS + 9 JS & 31 Opsi)
+# Frontend CDN — Pustaka UI Bersama v2.9.1 (10 File — 1 CSS + 9 JS & 31 Opsi)
 ### Vue 3 + Tailwind CSS • Pemkab Trenggalek
 
 Seluruh aplikasi ekosistem (si-kompetensi, si-pelaporan, si-platform, si-lahar, dan aplikasi baru) memuat UI dari folder ini via jsDelivr. **Satu nomor versi berlaku untuk semua berkas** — satu tag rilis (`v2.9.0`) mengunci 1 CSS + 7 JS sekaligus.
@@ -222,7 +222,7 @@ Alur rilis (urutan WAJIB — pelajaran insiden tag v2.6.3):
 ### Riwayat rilis singkat
 | Tag | Versi berkas | Perubahan |
 |---|---|---|
-| `v2.9.0` | `"2.9.0"` | **10 FILE (1 CSS + 9 JS) & 31 OPSI** — 6 file baru (layout/ui/forms/data/charts/workflow) + tema dinamis Opsi B + badge draft/baru/diproses/selesai/batal |
+| `v2.9.1` | `"2.9.1"` | **10 FILE (1 CSS + 9 JS) & 31 OPSI** — 6 file baru (layout/ui/forms/data/charts/workflow) + tema dinamis Opsi B + badge draft/baru/diproses/selesai/batal |
 | `v2.8.1` | `"2.8.0"` | Patch konsistensi internal (T49) — fix `AppCore.version`/`AppModules.version` |
 | `v2.8.0` | `"2.8.0"` | F2: promosi `.btn-icon`/`.btn-icon-danger`/`.btn-lg` ke kit; F1: `<app-filter-bar>` dukung `span` |
 | `v2.7.0` | `"2.7.0"` | B1–B7: picker, chart kit, filter-bar, empty-state, skeleton, v-can, paginate helper |
