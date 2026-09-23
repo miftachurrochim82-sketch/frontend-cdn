@@ -9,7 +9,7 @@ Repositori ini adalah **master bersama** ekosistem: memuat pustaka frontend CDN 
 
 | Paket | Versi | Catatan |
 |---|---|---|
-| **CoreLib** (backend GAS library — repo terpisah [`LIbrary-CoreLib`](https://github.com/miftachurrochim82-sketch/LIbrary-CoreLib)) | `v2.3.0` | ⭐ Util sadar-WIB: `todayIsoLocal()`, `dateKey10()` (fix bug UTC-vs-WIB `todayIso()` lama). Util publik: `paginate()`, `matchSearch()`. Aditif murni — perilaku lama tidak berubah. Pin GAS: **15**. |
+| **CoreLib** (backend GAS library — repo terpisah [`LIbrary-CoreLib`](https://github.com/miftachurrochim82-sketch/LIbrary-CoreLib)) | `v2.4.0` | ⭐ **C4-C8**: `validateTransition`, `assertOwnership`, `periodeBulan/dalamPeriode/hitungHariKerja`, `findUnique/upsertUnique`, `getThemeConfig` (menu "Saya" & tema per-app). Pin GAS: **17** (PASS 47) |
 | **Frontend CDN** (`frontend/`, satu versi untuk semua berkas) | `v2.9.0` | **8 FILE & 31 OPSI — Sekali Jalan:** 6 file baru (layout/ui/forms/data/charts/workflow) + `btn-ghost` + tabs/pagination + badge draft/baru/diproses/selesai/batal + tema dinamis Opsi B (`AppCore.themes` + `<app-theme-picker>`). |
 
 <details>
@@ -100,10 +100,10 @@ frontend-cdn/
 | Proyek | Deskripsi | Dependensi dari repo ini | Tautan |
 |---|---|---|---|
 | **`si-platform`** | Portal SSO, User Management, Role RBAC, Storage & Audit Log | CDN `@v2.7.5` (CSS + JS kit; Track A–E selesai) | [GitHub](https://github.com/miftachurrochim82-sketch/si-platform) |
-| **`si-kompetensi`** | Riwayat & Analisis Pengembangan Kompetensi ASN | CDN `@v2.7.5` + CoreLib pin 12 (devMode, auto HEAD) | [GitHub](https://github.com/miftachurrochim82-sketch/si-kompetensi) |
-| **`si-pelaporan`** | Manajemen & Verifikasi Pelaporan Kinerja ASN | CDN `@v2.7.5` + CoreLib pin 13 (pinned = v2.2.3) | [GitHub](https://github.com/miftachurrochim82-sketch/si-pelaporan) |
-| **`si-lahar`** | e-Kinerja Harian ASN: rencana, realisasi, verifikasi, Paspor Kinerja | CDN `@v2.8.1` + CoreLib pin 15 (`v2.3.0`) | [GitHub](https://github.com/miftachurrochim82-sketch/si-lahar) |
-| **`LIbrary-CoreLib`** | ★ Sumber resmi library GAS CoreLib (dipindah dari `backend/` folder repo ini, 2026-09-19) | Library ID `1GmeYflf…` pin 15 (v2.3.0) | [GitHub](https://github.com/miftachurrochim82-sketch/LIbrary-CoreLib) |
+| **`si-kompetensi`** | Riwayat & Analisis Pengembangan Kompetensi ASN | CDN `@v2.7.5` → *saat ini `@v2.9.0` + pin 17* | [GitHub](https://github.com/miftachurrochim82-sketch/si-kompetensi) |
+| **`si-pelaporan`** | Manajemen & Verifikasi Pelaporan Kinerja ASN | CDN `@v2.7.5` → *saat ini `@v2.9.0` + pin 17* | [GitHub](https://github.com/miftachurrochim82-sketch/si-pelaporan) |
+| **`si-lahar`** | e-Kinerja Harian ASN: rencana, realisasi, verifikasi, Paspor Kinerja | CDN `@v2.9.0` + CoreLib pin 17 (`v2.4.0`) | [GitHub](https://github.com/miftachurrochim82-sketch/si-lahar) |
+| **`LIbrary-CoreLib`** | ★ Sumber resmi library GAS CoreLib (dipindah dari `backend/` folder repo ini, 2026-09-19) | Library ID `1GmeYflf…` pin **17** (`v2.4.0` LIVE 2026-09-23 PASS 47) | [GitHub](https://github.com/miftachurrochim82-sketch/LIbrary-CoreLib) |
 | **`frontend-cdn`** | Master bersama: CDN frontend + dokumentasi arsitektur ekosistem | — | repo ini |
 
 ---

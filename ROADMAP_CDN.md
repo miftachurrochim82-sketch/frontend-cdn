@@ -67,7 +67,7 @@
 | CoreLib **v2.3.0** | **~3.020** | +103 (util C1/C2/C3: `todayIsoLocal_`, `dateKey10_`, `paginate_`, `matchSearch_`, 4 test baru) |
 | si-kompetensi | **~11.835** | 0 |
 | si-pelaporan | **~3.365** | 0 |
-| **si-lahar** (app baru, statusnya: frontend selesai; adopsi pin 15 + CDN @v2.8.1) | **~3.800** | — |
+| **si-lahar** (app baru, statusnya: frontend selesai; adopsi pin 17 + CDN @v2.9.0) | **~3.800** | — |
 | Rasio kepala (indikator) | **~4,15 : 1** | stabil (dari 4,21) |
 | Rasio stack-bersama (indikator) | **~2,00 : 1** | membaik (dari 2,07) |
 
@@ -199,8 +199,8 @@ Selesai bila:
 **Status per 2026-09-19:**
 - **Frontend (Gelombang 1)**: ✅ TUNTAS — pengecualian terdokumentasi tetap: (a) 2 ekspor multi-sheet `_exportXlsx` tetap lokal (opsi ekstensi CDN tidak dijadwalkan); (b) 6 baris filter menyatu tombol Refresh/Tambah di MasterSatelit & DiklatPortofolio dipertahankan; (c) B7 v-can tidak diadopsi si-kompetensi. S4: 0 paginasi manual, 0 formatDate lokal, 0 chart manual, 0 empty-state custom.
 - **Backend (Gelombang 1)**: ✅ TUNTAS — C1/C2/C3/C5 selesai; CoreLib **v2.3.0** LIVE (testAll 42/0/1, versi 15 tersimpan 2026-09-19).
-- **CDN**: ✅ rilis stabil v2.8.0 → patch v2.8.1.
-- **si-lahar**: adopsi penuh (frontend selesai; pin 15 + CDN @v2.8.1 setelah rilis Batch 5).
+- **CDN**: ✅ rilis stabil v2.8.0 → patch v2.8.1 → **v2.9.0 LIVE (8 file & 31 opsi)**.
+- **si-lahar**: adopsi penuh (frontend selesai; pin 17 + CDN @v2.9.0).
 
 **Alarm over/under-engineering**: bila app <9.500 (berarti logika bisnis ikut terbuang — STOP, review) atau CDN >3.800 tanpa adopsi nyata di ≥2 app (berarti komponen spekulatif — STOP, turunkan ke Gelombang 2).
 
@@ -239,9 +239,9 @@ Selesai bila:
 | CoreLib | v2.3.0 | v2.3.0 | `/library/d/1GmeYflf…/15` | `testAll()` PASS 42 / FAIL 0 / SKIP 1 |
 | Frontend CDN | **v2.9.0** | **v2.9.0** | jsDelivr `@v2.9.0` | `AppCore.version` = `"2.9.0"` konsisten (8 file) |
 | — 8 FILE | — | — | `app-common, app-core, app-components, app-modules, app-layout, app-ui, app-forms, app-data, app-charts, app-workflow` | `wc -l` ~4.250, minified ~135 KB |
-| si-lahar | — | — | — | CoreLib pin 15 + CDN `@v2.8.1` → siap bump ke `@v2.9.0` |
+| si-lahar | — | — | — | CoreLib pin 17 + CDN `@v2.9.0` ✅ LIVE |
 | starter-kit | v2.11.0 → **v2.12.0** *(next)* | — | — | Akan pakai CDN v2.9.0 + menu "Saya" + tema dinamis |
 
 ---
 
-*Referensi audit: STATUS_PROYEK.md (2026-09-16: audit sinkron frontend, audit backend app-vs-CoreLib, verifikasi live v2.2.3). Audit terakhir: 2026-09-19 (Batch 5 — CoreLib v2.3.0 + CDN v2.8.1). Checklist salin-manual: DAFTAR_SALIN.md.*
+*Referensi audit: STATUS_PROYEK.md (2026-09-16: audit sinkron frontend, audit backend app-vs-CoreLib, verifikasi live v2.2.3). Audit terakhir: 2026-09-23 (Batch 6 — CoreLib v2.4.0 pin17 PASS47 + CDN v2.9.0). Checklist salin-manual: DAFTAR_SALIN.md.*
