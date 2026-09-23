@@ -412,7 +412,12 @@
           if (saved) applyTheme(saved, prefix);
         },
         getMyScope: function () {
-          return getMyScope(this.currentUser);
+          // Bila ada currentUser, kembalikan identitas (kompatibel lama); bila tidak, kembalikan scope 'mine'|'all'
+          if (this.currentUser && this.currentUser.pegawai_id) return getMyScope(this.currentUser);
+          return getMyScope();
+        },
+        setMyScope: function (scope) {
+          return setMyScope(scope);
         },
 
         // ================= GAS BACKEND BRIDGE =================
@@ -919,14 +924,35 @@
     return null;
   }
 
-  // SCOPE HELPER — untuk menu khusus pegawai "Saya" vs "Semua"
+  // SCOPE HELPER — untuk menu "Saya" vs "Semua" (filterScope 'mine'|'all')
+  // Simpan di safeLocal 'app_scope' (sinkron dengan starter-kit J_App.html)
   function getMyScope(currentUser) {
+    // Bila dipanggil tanpa argumen (AppCore.getMyScope()), kembalikan scope string 'mine'|'all'
+    if (arguments.length === 0 || currentUser === undefined || typeof currentUser === 'string') {
+      try {
+        var v = safeLocal.getItem('app_scope');
+        if (v === 'mine' || v === 'all') return v;
+        // fallback legacy key per-app (mis. sicontoh_scope)
+        var legacy = safeLocal.getItem('sicontoh_scope');
+        if (legacy === 'mine' || legacy === 'all') return legacy;
+        return 'all';
+      } catch(e){ return 'all'; }
+    }
+    // Bila dipanggil dengan currentUser object (AppCore.create().getMyScope), kembalikan identitas user (kompatibilitas lama)
     var u = currentUser || {};
     return {
       pegawai_id: u.pegawai_id || u.id || u.email || '',
       email: u.email || '',
       role: String(u.role || '').toLowerCase()
     };
+  }
+  function setMyScope(scope) {
+    try {
+      var v = (String(scope).toLowerCase() === 'mine') ? 'mine' : 'all';
+      safeLocal.setItem('app_scope', v);
+      safeLocal.setItem('sicontoh_scope', v);
+    } catch(e){}
+    return scope;
   }
 
   global.AppCore = {
@@ -941,6 +967,7 @@
     applyTheme: applyTheme,
     getTheme: getTheme,
     getMyScope: getMyScope,
+    setMyScope: setMyScope,
     version: '2.9.0'
   };
 
