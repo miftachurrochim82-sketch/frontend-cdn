@@ -1,36 +1,28 @@
 {
-  "name": "@miftachurrochim82/frontend-cdn",
+  "name": "@trenggalekkab/frontend-cdn",
   "version": "2.9.0",
-  "description": "Shared Frontend Assets CDN untuk aplikasi web Google Apps Script Pemkab Trenggalek",
+  "description": "Shared Frontend CDN Library (v2.9.0) 8 FILE & 31 OPSI — Sekali Jalan: tabs, pagination, theme-picker, drawer, export, tree, charts",
   "main": "app-core.min.js",
-  "files": [
-    "*.js",
-    "*.css",
-    "*.md"
-  ],
-  "scripts": {
-    "build:js": "terser app-core.js -c -m -o app-core.min.js && terser app-components.js -c -m -o app-components.min.js && terser app-modules.js -c -m -o app-modules.min.js && terser app-layout.js -c -m -o app-layout.min.js && terser app-ui.js -c -m -o app-ui.min.js && terser app-forms.js -c -m -o app-forms.min.js && terser app-data.js -c -m -o app-data.min.js && terser app-charts.js -c -m -o app-charts.min.js && terser app-workflow.js -c -m -o app-workflow.min.js",
-    "build:css": "cleancss -o app-common.min.css app-common.css",
-    "build": "npm run build:js && npm run build:css"
-  },
+  "author": "Pemerintah Kabupaten Trenggalek",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/miftachurrochim82-sketch/frontend-cdn.git"
   },
   "keywords": [
-    "vue3",
-    "tailwind",
     "trenggalek",
-    "simpeg",
-    "cdn"
-  ],
-  "author": "miftachurrochim82-sketch",
-  "license": "MIT",
-  "publishConfig": {
-    "access": "public"
-  },
-  "devDependencies": {
-    "clean-css-cli": "^5.6.3",
-    "terser": "^5.39.0"
-  }
+    "vue3",
+    "cdn",
+    "sso",
+    "app-core",
+    "high-performance",
+    "stale-while-revalidate",
+    "app-tabs",
+    "app-pagination",
+    "app-theme-picker",
+    "app-crud-table",
+    "app-stat-card",
+    "app-modal",
+    "app-badge"
+  ]
 }
