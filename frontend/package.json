@@ -1,28 +1,27 @@
 {
-  "name": "@trenggalekkab/frontend-cdn",
+  "name": "@miftachurrochim82/frontend-cdn",
   "version": "2.9.0",
-  "description": "Shared Frontend CDN Library (v2.9.0) 8 FILE & 31 OPSI — Sekali Jalan: tabs, pagination, theme-picker, drawer, export, tree, charts",
+  "description": "Shared Frontend Assets CDN untuk aplikasi web Google Apps Script Pemkab Trenggalek",
   "main": "app-core.min.js",
-  "author": "Pemerintah Kabupaten Trenggalek",
+  "files": [
+    "*.js",
+    "*.css",
+    "*.md"
+  ],
+  "author": "miftachurrochim82-sketch",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/miftachurrochim82-sketch/frontend-cdn.git"
   },
   "keywords": [
-    "trenggalek",
     "vue3",
-    "cdn",
-    "sso",
-    "app-core",
-    "high-performance",
-    "stale-while-revalidate",
-    "app-tabs",
-    "app-pagination",
-    "app-theme-picker",
-    "app-crud-table",
-    "app-stat-card",
-    "app-modal",
-    "app-badge"
-  ]
+    "tailwind",
+    "trenggalek",
+    "simpeg",
+    "cdn"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
 }
