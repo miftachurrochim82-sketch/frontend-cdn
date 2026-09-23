@@ -124,7 +124,9 @@ frontend-cdn/
 
 | Dokumen | Isi |
 |---|---|
-| [`ECOSYSTEM_GUIDE.md`](ECOSYSTEM_GUIDE.md) | Panduan arsitektur lengkap (backend, frontend, SSO, deployment, troubleshooting) |
+| [`ECOSYSTEM_GUIDE.md`](ECOSYSTEM_GUIDE.md) | **Panduan Frontend** v2.9.0 (fokus CDN, 8 FILE & 31 OPSI — backend kini di LIbrary-CoreLib) |
+| [`ECOSYSTEM_GUIDE_LEGACY_2026-09-23.md`](ECOSYSTEM_GUIDE_LEGACY_2026-09-23.md) | Arsip panduan gabungan lama (sebelum pecah repo, jangan pakai lagi) |
+| **[`LIbrary-CoreLib/ECOSYSTEM_GUIDE.md`](https://github.com/miftachurrochim82-sketch/LIbrary-CoreLib/blob/main/ECOSYSTEM_GUIDE.md)** | **Panduan Backend** CoreLib v2.4.0 pin17 (fokus GAS, SSO, DB) — repo terpisah |
 | [`LIbrary-CoreLib/src/00_MIGRATION_v2.md`](https://github.com/miftachurrochim82-sketch/LIbrary-CoreLib/blob/main/src/00_MIGRATION_v2.md) | **Master CoreLib** (repo terpisah): changelog v2.0→v2.3.0, prosedur rilis, kontrak keamanan, publik API |
 | [`frontend/README.md`](frontend/README.md) | Katalog komponen & props |
 | [`frontend/CDN_SNIPPET.md`](frontend/CDN_SNIPPET.md) | Snippet pemuatan CDN standar untuk aplikasi baru |

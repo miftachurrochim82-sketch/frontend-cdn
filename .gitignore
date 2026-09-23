@@ -1,4 +1,5 @@
-# Mengabaikan berkas non-GAS
+# Mengabaikan berkas non-GAS (untuk push CoreLib dulu — repo ini sebenarnya frontend)
+# File CDN (frontend/*) tetap ter-commit walau pattern ini ada, karena sudah ter-track sebelum .gitignore
 **/**
 !appsscript.json
 !01_CoreFoundation.gs
@@ -12,4 +13,7 @@ package-lock.json
 README.md
 00_MIGRATION_v2.md
 *.md
+!ECOSYSTEM_GUIDE.md
+!ECOSYSTEM_GUIDE_*.md
+!ROADMAP_CDN.md
 .github/**
