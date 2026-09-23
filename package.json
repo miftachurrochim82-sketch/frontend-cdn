@@ -1,10 +1,10 @@
 {
   "name": "@miftachurrochim82/frontend-cdn",
-  "version": "2.8.0",
-  "description": "Shared Frontend Assets CDN & Backend Global Library for Google Apps Script Web Apps (Pemkab Trenggalek)",
+  "version": "2.9.0",
+  "description": "Shared Frontend Assets CDN untuk aplikasi web Google Apps Script Pemkab Trenggalek",
   "main": "frontend/app-core.js",
   "scripts": {
-    "build:js": "terser frontend/app-core.js -c -m -o frontend/app-core.min.js && terser frontend/app-components.js -c -m -o frontend/app-components.min.js && terser frontend/app-modules.js -c -m -o frontend/app-modules.min.js",
+    "build:js": "terser frontend/app-core.js -c -m -o frontend/app-core.min.js && terser frontend/app-components.js -c -m -o frontend/app-components.min.js && terser frontend/app-modules.js -c -m -o frontend/app-modules.min.js && terser frontend/app-layout.js -c -m -o frontend/app-layout.min.js && terser frontend/app-ui.js -c -m -o frontend/app-ui.min.js && terser frontend/app-forms.js -c -m -o frontend/app-forms.min.js && terser frontend/app-data.js -c -m -o frontend/app-data.min.js && terser frontend/app-charts.js -c -m -o frontend/app-charts.min.js && terser frontend/app-workflow.js -c -m -o frontend/app-workflow.min.js",
     "build:css": "cleancss -o frontend/app-common.min.css frontend/app-common.css",
     "build": "npm run build:js && npm run build:css"
   },
@@ -13,13 +13,11 @@
     "url": "git+https://github.com/miftachurrochim82-sketch/frontend-cdn.git"
   },
   "keywords": [
-    "google-apps-script",
     "vue3",
     "tailwind",
     "trenggalek",
     "simpeg",
-    "cdn",
-    "clasp"
+    "cdn"
   ],
   "author": "miftachurrochim82-sketch",
   "license": "MIT",
