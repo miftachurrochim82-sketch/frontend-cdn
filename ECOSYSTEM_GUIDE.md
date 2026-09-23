@@ -57,7 +57,7 @@ Ekosistem aplikasi web Pemerintah Kabupaten Trenggalek dirancang di atas infrast
 ┌─────────────────────────────────────────────────────────────────────────────────────────┐
 │                                   SHARED FOUNDATION LAYER                               │
 ├────────────────────────────────────────────┬────────────────────────────────────────────┤
-│ 1. CoreLib Global Backend Library v2.3.0     │ 2. Frontend CDN v2.9.0 (jsDelivr)          │
+│ 1. CoreLib Global Backend Library v2.4.0     │ 2. Frontend CDN v2.9.0 (jsDelivr)          │
 │    ID: 1GmeYflfMpRa1iTVgFHRD6K1DMoxc9Oo... │    CSS: app-common.min.css                 │
 │    - Physical Row Database Engine          │    JS : app-components.min.js              │
 │    - Declarative Resource Router           │         app-modules.min.js                 │
@@ -80,23 +80,25 @@ Ekosistem aplikasi web Pemerintah Kabupaten Trenggalek dirancang di atas infrast
 
 | Repositori | Peran | Dependensi Utama |
 |---|---|---|
-| `backend` (`CoreLib`) | Global Apps Script Library | GAS V8 Runtime, Google Sheets API, Drive API |
+| `LIbrary-CoreLib` (`CoreLib`) | Global Apps Script Library | GAS V8 Runtime, Google Sheets API, Drive API |
 | `frontend` (`frontend-cdn`) | Shared CSS/JS Bundle CDN | Vue 3, Tailwind CSS, Font Awesome 6.5.2 |
 | `si-platform` | Portal Pusat SSO & SIMPEG | Vue 3, Tailwind CSS, Font Awesome 6.5.2, `app-common.css` |
-| `si-kompetensi` | Aplikasi Satelit Kompetensi ASN | `CoreLib` pin 12 (`developmentMode: true`), `frontend-cdn @v2.7.5` |
-| `si-pelaporan` | Aplikasi Satelit Laporan | `CoreLib` pin 13 (`v2.2.3`), `frontend-cdn @v2.7.5` |
-| `si-lahar` | Aplikasi Satelit e-Kinerja Harian ASN | `CoreLib` pin 15 (`v2.3.0`), `frontend-cdn @v2.8.1` |
-| ~~`backend/Code.gs`~~ (dihapus 2026-09-17 → starter-kit) | ~~Template kerangka aplikasi baru~~ | `CoreLib v2.3.0`, `frontend-cdn v2.8.1` |
+| `si-kompetensi` | Aplikasi Satelit Kompetensi ASN | `CoreLib` pin 12 (`developmentMode: true`), `frontend-cdn @v2.7.5` → *saat ini pin 17 + @v2.9.0* |
+| `si-pelaporan` | Aplikasi Satelit Laporan | `CoreLib` pin 13 (`v2.2.3`), `frontend-cdn @v2.7.5` → *saat ini pin 17 + @v2.9.0* |
+| `si-lahar` | Aplikasi Satelit e-Kinerja Harian ASN | `CoreLib` pin 17 (`v2.4.0`), `frontend-cdn @v2.9.0` |
+| ~~`backend/Code.gs`~~ (dihapus 2026-09-17 → starter-kit) | ~~Template kerangka aplikasi baru~~ | `CoreLib v2.4.0`, `frontend-cdn v2.9.0` |
 
 ---
 
-## 3. Backend Core Foundation v2.3.0 (`CoreLib`)
+## 3. Backend Core Foundation v2.4.0 (`CoreLib`)
 
-> **v2.3.0 (2026-09-19)** ⭐: Aditif murni — 4 util baru.
+> **v2.4.0 (2026-09-23)** ⭐ LIVE pin **17** — 5 grup aditif: **C4** `validateTransition`, **C5** `assertOwnership`, **C6** `periodeBulan/dalamPeriode/hitungHariKerja`, **C7** `findUnique/upsertUnique`, **C8** `getThemeConfig` (menu "Saya" & tema per-app). Verifikasi live: `testAll()` PASS 47 / FAIL 0 / SKIP 1. Tidak ubah DB/apiSave/checkAuth.
+>
+> **v2.3.0 (2026-09-19)**: Aditif murni — 4 util baru.
 > **C3**: `todayIsoLocal()` + `dateKey10()` (fix bug UTC-vs-WIB `todayIso()` lama yang mundur 1 hari untuk user WIB sebelum 07:00). `todayIso()` LAMA tidak diubah (backward-compat).
 > **C1**: `paginate(rows, page, limit)` (potong array + meta, cermin si-lahar).
 > **C2**: `matchSearch(row, q, fields)` (substring case-insensitive; `q` kosong → true; `fields` kosong/null → false, cermin si-lahar).
-> Diverifikasi live: `testAll()` PASS 42 / FAIL 0 / SKIP 1. Versi library tersimpan = **15**.
+> Diverifikasi live: `testAll()` PASS 42 / FAIL 0 / SKIP 1. Versi library tersimpan = **17**.
 >
 > **v2.2.4 (2026-09-16/17)**: aditif murni (Batch 3 ROADMAP) — `CoreLib.ensureSheet`, `CoreLib.getDb`/`masterDbFor_`, opsi `decorate` pada delegasi `initDatabase`; perilaku lama tidak berubah.
 >
@@ -104,7 +106,7 @@ Ekosistem aplikasi web Pemerintah Kabupaten Trenggalek dirancang di atas infrast
 >
 > **v2.2.2 (2026-09-15)**: FIX `checkAuth` (`=== undefined → 0`), `dispatchAction` membuang `data._cacheBust`, penguatan `requireRole_`, test regresi `testRoleGateV222`. ⚠️ Fix `levelOf_` belum ikut terkirim di versi ini — dilengkapi di v2.2.3.
 >
-> Changelog lengkap: [`backend/00_MIGRATION_v2.md`](backend/00_MIGRATION_v2.md).
+> Changelog lengkap: [`LIbrary-CoreLib/src/00_MIGRATION_v2.md`](https://github.com/miftachurrochim82-sketch/LIbrary-CoreLib/blob/main/src/00_MIGRATION_v2.md).
 
 Library backend terdistribusi resmi Pemkab Trenggalek:
 * **Script ID / Library ID**: `1GmeYflfMpRa1iTVgFHRD6K1DMoxc9OoKqpuucPJXgNZ9XBK06O7wgDkO`
@@ -208,7 +210,7 @@ Setiap aplikasi web cukup memuat tag berikut di file `Index.html`:
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/vue@3.5.42/dist/vue.global.prod.js"></script>
 
-<!-- Shared CDN Pemkab Trenggalek v2.8.1 — selalu pakai TAG VERSI, jangan @main -->
+<!-- Shared CDN Pemkab Trenggalek v2.9.0 — selalu pakai TAG VERSI, jangan @main -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.0/frontend/app-common.min.css">
 
 <!-- Tema per aplikasi: override CSS variables di <style> lokal, mis.
@@ -468,7 +470,7 @@ Dan di `src/appsscript.json`, daftarkan library:
 ### 7.1 Deployment Google Apps Script
 **Praktik berjalan (manual, aman untuk beginner)**: paste whole-file dari workspace/repo ke editor GAS (jangan find-replace manual), lalu unggah salinan ke GitHub via *Upload files* (jalur ini bebas kontaminasi CF challenge script).
 
-**Alternatif otomatis via Clasp** (`.claspignore` repo `backend/` sudah memutihkan hanya 5 berkas library — `Code.gs` tidak akan pernah ter-push):
+**Alternatif otomatis via Clasp** (repo `LIbrary-CoreLib` — `.claspignore` sudah memutihkan hanya 5 berkas library):
 1. Instal Google Clasp di komputer Anda:
    ```bash
    npm install -g @google/clasp
@@ -522,7 +524,7 @@ Setiap repository aplikasi yang dibuat melalui template telah dilengkapi `.githu
 | Tiket SSO menghasilkan error `INVALID_TICKET` | Tiket kedaluwarsa (> 5 menit) atau sudah dipakai | Arahkan pengguna kembali ke SI-PLATFORM untuk membuat tiket baru |
 | Ikon tidak muncul (kotak kosong) | Masih menggunakan class Phosphor (`ph ph-*`) | Ubah class ikon menjadi format Font Awesome 6.5.2 (`fa-solid fa-*`) |
 | Bundle aplikasi berat saat initial load | Mengimpor XLSX / PDF / ChartJS di `<head>` | Hapus script berat dari `<head>`, gunakan `AppCore.loadLib('xlsx')` on-demand |
-| `AppCore.version` melaporkan versi lama (mis. 2.7.4) | CDN tag lama atau tag basi | Bump tag di `Index.html` ke `@v2.8.1`; jalankan `AppCore.version` untuk verifikasi (= `"2.8.0"`) |
+| `AppCore.version` melaporkan versi lama (mis. 2.7.4) | CDN tag lama atau tag basi | Bump tag di `Index.html` ke `@v2.9.0`; jalankan `AppCore.version` untuk verifikasi (= `"2.9.0"`) |
 
 ---
 
@@ -554,16 +556,16 @@ Setiap repository aplikasi yang dibuat melalui template telah dilengkapi `.githu
 * **Dokumentasi & Versi**: CoreLib v2.3.0 (GAS versi 15) • Frontend CDN v2.9.0 (diperbarui 2026-09-19)
 * **Lisensi**: MIT License
 
-## Garis versi frontend vs backend (revisi 2026-09-20 malam: pecah repo TERLAKSANA)
+## Garis versi frontend vs backend (revisi 2026-09-23: pecah repo TERLAKSANA → CDN v2.9.0 + CoreLib v2.4.0 pin 17)
 
-- **Backend/CoreLib** kini berumah di repo tersendiri:
+- **Backend/CoreLib** kini berumah di repo tersendiri **[LIbrary-CoreLib](https://github.com/miftachurrochim82-sketch/LIbrary-CoreLib)**:
   `github.com/miftachurrochim82-sketch/LIbrary-CoreLib` (src/ = 6 berkas GAS,
-  byte-identik dengan backend v2.3.0 yang teruji). Tag garis backend
+  byte-identik dengan backend v2.4.0 LIVE pin 17 yang teruji PASS 47). Tag garis backend
   (`corelib-v2.3.0`, f1a8d2a) hidup DI REPO ITU, bukan di sini.
   Repo itu juga memuat clasp.json (scriptId saja, tanpa token) + claspignore =
   bibit otomatisasi deploy bertahap.
 - **Repo ini (frontend-cdn)** = rumah kit frontend saja ke depan; tag polos
   `v2.8.x` dilanjutkan; jsDelivr tetap membaca tag repo ini.
-- Folder `backend/` di repo ini = **cermin beku historis** (jangan diedit lagi;
+- Folder `backend/` di repo ini = **DIHAPUS 2026-09-19** (commit `2d5afab`); sumber kini di `LIbrary-CoreLib` (jangan edit di sini;
   edit CoreLib selanjutnya wajib di LIbrary-CoreLib lalu salin ke GAS).
 - Doktrin tetap: GitHub = salinan/arsip; GAS = rujukan hidup & sumber error.
