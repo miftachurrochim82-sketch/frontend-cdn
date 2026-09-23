@@ -1,5 +1,10 @@
 // ============================================================
-// app-core.js — Factory Inisialisasi Vue App (Shared CDN v2.8.1)
+// app-core.js — Factory Inisialisasi Vue App (Shared CDN v2.9.0)
+// Changelog v2.9.0 (2026-09-22) — 8 FILE & 31 OPSI — Sekali Jalan:
+// - 🎨 THEME DYNAMIC (H4 Opsi B): AppCore.themes + applyTheme() — 6 preset (emerald/sky/amber/violet/rose/teal) + custom JSON
+//   + safeLocal cache THEME_CODE, helper AppCore.getTheme() — app bisa ganti warna tanpa edit Index.html
+// - 🔧 SCOPE HELPER: AppCore.getMyScope() — "saya" vs "semua" untuk menu khusus pegawai (Laporan Saya dkk)
+// - 🔢 Version bump: 2.8.0 → 2.9.0
 // Changelog v2.8.1 (2026-09-19):
 // - FIX (T49): internal `version` diselaraskan ke '2.8.0' (dari '2.7.4')
 //   agar konsisten dengan tag rilis @v2.8.0 dan app-components.js.
@@ -333,7 +338,9 @@
           isProcessing: false,
           dataLoaded: false,
           loadedPages: {},
-          pageSize: config.pageSize || 10
+          pageSize: config.pageSize || 10,
+          // v2.9.0 H4: theme dynamic
+          themeCode: (function(){ try { return safeLocal.getItem((config.storagePrefix||'app')+'_theme') || safeLocal.getItem('app_theme') || ''; } catch(e){ return ''; } })()
         };
       },
 
@@ -387,6 +394,25 @@
           // v2.7.0 (B2): komponen bertema (chart kit) mendengarkan event ini utk re-render
           try { window.dispatchEvent(new CustomEvent('appcore:dark', { detail: this.isDarkMode })); } catch (e) {}
           if (typeof config.onDarkToggle === 'function') config.onDarkToggle(this);
+        },
+
+        // v2.9.0 H4: Tema dinamis (Opsi B) — apply + simpan
+        applyTheme: function (themeCodeOrObj) {
+          var ok = applyTheme(themeCodeOrObj, prefix);
+          if (ok) {
+            this.themeCode = typeof themeCodeOrObj === 'string' ? themeCodeOrObj : 'custom';
+            this.showToast('Tema berhasil diubah', 'success');
+            try { window.dispatchEvent(new CustomEvent('appcore:theme', { detail: this.themeCode })); } catch(e){}
+          }
+          return ok;
+        },
+        loadTheme: function () {
+          var saved = null;
+          try { saved = safeLocal.getItem(prefix + '_theme') || safeLocal.getItem('app_theme'); } catch(e){}
+          if (saved) applyTheme(saved, prefix);
+        },
+        getMyScope: function () {
+          return getMyScope(this.currentUser);
         },
 
         // ================= GAS BACKEND BRIDGE =================
@@ -760,6 +786,8 @@
       mounted: function () {
         var self = this;
         document.documentElement.classList.toggle('dark', this.isDarkMode);
+        // v2.9.0 H4: auto-apply saved theme
+        try { var _t = safeLocal.getItem(prefix + '_theme') || safeLocal.getItem('app_theme'); if(_t) applyTheme(_t, prefix); } catch(e){}
 
         var ticket = '';
         try {
@@ -793,6 +821,15 @@
         app.component(name, global.AppModules[name]);
       });
     }
+    // v2.9.0: registrasi modular 6 file baru (8 FILE total) — semua merge ke AppComponents juga
+    ['AppLayout','AppUi','AppForms','AppData','AppCharts','AppWorkflow'].forEach(function(g){
+      if (global[g]) {
+        Object.keys(global[g]).forEach(function(name){
+          if(name==='version') return;
+          try{ app.component(name, global[g][name]); }catch(e){}
+        });
+      }
+    });
 
     // v2.7.0 (B7): directive v-can — gating elemen UI berdasar role sesi.
     // Cermin fail-closed levelOf_ CoreLib v2.2.3: role tak dikenal = level 0;
@@ -827,6 +864,71 @@
     return Math.max(1, Math.ceil(list.length / perPage));
   }
 
+  /* ============================================================
+     THEME SYSTEM — Opsi B v2.9.0 (H4)
+     6 preset + custom. Dipakai <app-theme-picker> & AppCore.applyTheme().
+     App bisa override manual di Index.html ATAU dinamis via Settings.
+     ============================================================ */
+  var THEMES = {
+    emerald: { primary: '#059669', primaryDark: '#047857', primaryLight: '#ecfdf5', primaryLighter: '#d1fae5', primaryText: '#064e3b', primaryAccent: '#34d399', primaryRgb: '5, 150, 105', label: 'Emerald' },
+    sky:     { primary: '#0284c7', primaryDark: '#0369a1', primaryLight: '#f0f9ff', primaryLighter: '#e0f2fe', primaryText: '#0c4a6e', primaryAccent: '#38bdf8', primaryRgb: '2, 132, 199', label: 'Sky' },
+    amber:   { primary: '#d97706', primaryDark: '#b45309', primaryLight: '#fffbeb', primaryLighter: '#fef3c7', primaryText: '#78350f', primaryAccent: '#fbbf24', primaryRgb: '217, 119, 6', label: 'Amber' },
+    violet:  { primary: '#7c3aed', primaryDark: '#6d28d9', primaryLight: '#f5f3ff', primaryLighter: '#ede9fe', primaryText: '#4c1d95', primaryAccent: '#a78bfa', primaryRgb: '124, 58, 237', label: 'Violet' },
+    rose:    { primary: '#e11d48', primaryDark: '#be123c', primaryLight: '#fff1f2', primaryLighter: '#ffe4e6', primaryText: '#881337', primaryAccent: '#fb7185', primaryRgb: '225, 29, 72', label: 'Rose' },
+    teal:    { primary: '#0d9488', primaryDark: '#0f766e', primaryLight: '#f0fdfa', primaryLighter: '#ccfbf1', primaryText: '#134e4a', primaryAccent: '#2dd4bf', primaryRgb: '13, 148, 136', label: 'Teal' }
+  };
+
+  function applyTheme(themeCodeOrObj, storagePrefix) {
+    var t = null;
+    if (typeof themeCodeOrObj === 'string') t = THEMES[themeCodeOrObj];
+    else if (themeCodeOrObj && typeof themeCodeOrObj === 'object') t = themeCodeOrObj;
+    if (!t || !t.primary) return false;
+    var r = document.documentElement;
+    try {
+      r.style.setProperty('--primary', t.primary);
+      r.style.setProperty('--primary-dark', t.primaryDark || t.primary);
+      r.style.setProperty('--primary-light', t.primaryLight);
+      r.style.setProperty('--primary-lighter', t.primaryLighter);
+      r.style.setProperty('--primary-text', t.primaryText);
+      r.style.setProperty('--primary-accent', t.primaryAccent);
+      r.style.setProperty('--primary-rgb', t.primaryRgb);
+      // simpan untuk reload berikutnya (Opsi B) — coba simpan dengan prefix spesifik + generic
+      var keys = [];
+      if (storagePrefix) keys.push(storagePrefix + '_theme');
+      keys.push('app_theme');
+      // juga coba baca prefix dari global AppCore jika ada
+      try { safeLocal.setItem(keys[0], typeof themeCodeOrObj === 'string' ? themeCodeOrObj : JSON.stringify(t)); if(keys.length>1) safeLocal.setItem(keys[1], typeof themeCodeOrObj === 'string' ? themeCodeOrObj : JSON.stringify(t)); } catch(e){}
+      return true;
+    } catch(e) { return false; }
+  }
+
+  function getTheme(storagePrefix) {
+    var keys = [];
+    if (storagePrefix) keys.push(storagePrefix + '_theme');
+    keys.push('app_theme');
+    // juga coba prefix generik lain
+    keys.push('app_theme');
+    for (var i=0;i<keys.length;i++) {
+      var raw = null;
+      try { raw = safeLocal.getItem(keys[i]); } catch(e){}
+      if (!raw) continue;
+      if (THEMES[raw]) return THEMES[raw];
+      try { var j = JSON.parse(raw); if (j && j.primary) return j; } catch(e){}
+      if (raw) return raw;
+    }
+    return null;
+  }
+
+  // SCOPE HELPER — untuk menu khusus pegawai "Saya" vs "Semua"
+  function getMyScope(currentUser) {
+    var u = currentUser || {};
+    return {
+      pegawai_id: u.pegawai_id || u.id || u.email || '',
+      email: u.email || '',
+      role: String(u.role || '').toLowerCase()
+    };
+  }
+
   global.AppCore = {
     create: create,
     paginate: paginate,
@@ -835,7 +937,11 @@
     loadLib: loadLib,
     libs: LIBS,
     debounce: debounce,
-    version: '2.8.0'
+    themes: THEMES,
+    applyTheme: applyTheme,
+    getTheme: getTheme,
+    getMyScope: getMyScope,
+    version: '2.9.0'
   };
 
 })(window)

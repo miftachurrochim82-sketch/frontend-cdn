@@ -1,12 +1,11 @@
-# 📋 Snippet Standar Pemuatan CDN — v2.8.1
+# 📋 Snippet Standar Pemuatan CDN — v2.9.0 (8 File & 31 Opsi)
 
 > **Salin blok di bawah ini ke `Index.html` setiap web app baru.**
-> Dokumen ini dibuat untuk menghentikan tiga pola pemuatan yang saling
-> bertentangan antar repo (lihat bagian *Masalah yang diperbaiki*).
+> v2.9.0 = 8 file (1 CSS + 7 JS) — 1 tag `@v2.9.0` untuk semua file.
 
 ---
 
-## 1. Blok standar `<head>`
+## 1. Blok standar `<head>` — WAJIB
 
 ```html
   <!-- ========== Pustaka pihak ketiga (WAJIB) ========== -->
@@ -19,67 +18,88 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/vue@3.5.42/dist/vue.global.prod.js"></script>
 
-  <!-- ========== Shared CDN Pemkab Trenggalek ==========
+  <!-- ========== Shared CDN Pemkab Trenggalek v2.9.0 ==========
        ATURAN:
-       1. Pakai TAG VERSI (mis. @v2.8.1), JANGAN @main.
+       1. Pakai TAG VERSI (mis. @v2.9.0), JANGAN @main.
           -> @main di-cache jsDelivr hingga 12 jam, update Anda tidak
              langsung terlihat dan tiap app bisa dapat versi berbeda.
        2. Pakai berkas .min (sudah di-build & di-commit di repo ini).
        3. JANGAN muat chart.js / xlsx / jspdf / pdf-lib di sini.
           Semua itu dimuat otomatis saat dibutuhkan lewat AppCore.loadLib().
   -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.8.1/frontend/app-common.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.0/frontend/app-common.min.css">
 ```
 
-## 2. Blok standar sebelum `</body>`
+## 2. Blok standar sebelum `</body>` — 8 FILE (Mix Sesuai Kebutuhan)
 
+### App Sederhana (SI-CUTI — hanya form, tanpa chart/approval)
 ```html
-  <!-- Shared CDN: JS (urutan bebas — AppCore membaca window.AppComponents
-       & window.AppModules saat create() dipanggil) -->
-  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.8.1/frontend/app-components.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.8.1/frontend/app-modules.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.8.1/frontend/app-core.min.js"></script>
+  <!-- Shared CDN: JS Inti (WAJIB) -->
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.0/frontend/app-core.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.0/frontend/app-components.min.js"></script>
+  <!-- Modular (pilih yang dibutuhkan) -->
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.0/frontend/app-layout.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.0/frontend/app-ui.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.0/frontend/app-forms.min.js"></script>
 
   <!-- Local App JS -->
   <?!= include('J_State'); ?>
   <?!= include('J_Helpers'); ?>
   <?!= include('J_Api'); ?>
   <?!= include('J_Actions'); ?>
-  <?!= include('J_Export'); ?>
   <?!= include('J_App'); ?>
 ```
 
+### App Lengkap (SI-DOKUMEN — full fitur, 31 opsi)
+```html
+  <!-- Shared CDN: JS Lengkap (8 file) -->
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.0/frontend/app-core.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.0/frontend/app-components.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.0/frontend/app-layout.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.0/frontend/app-ui.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.0/frontend/app-forms.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.0/frontend/app-data.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.0/frontend/app-charts.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.0/frontend/app-workflow.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.0/frontend/app-modules.min.js"></script>
+
+  <!-- Local App JS -->
+  <?!= include('J_State'); ?>
+  <?!= include('J_Helpers'); ?>
+  <?!= include('J_Api'); ?>
+  <?!= include('J_Actions'); ?>
+  <?!= include('J_App'); ?>
+```
+
+> **Catatan:** Urutan bebas — `AppCore.create()` membaca `window.AppComponents`, `AppLayout`, `AppUi`, `AppForms`, `AppData`, `AppCharts`, `AppWorkflow`, `AppModules` saat `create()` dipanggil. Semua file **1 tag `@v2.9.0`**.
+
 ---
 
-## 2b. Komponen baru & fitur (v2.7.0 → v2.8.1)
+## 2b. Komponen Baru v2.9.0 (31 Opsi)
 
-| Fitur | Bentuk | Contoh |
+| Fitur | File | Contoh |
 |---|---|---|
-| `v-can` | direktif gating role (fail-closed) | `<button v-can="'verifikator'">Verifikasi</button>` |
-| `<app-filter-bar>` | filter deklaratif + v-model | `<app-filter-bar :filters="fs" v-model="filterState" />` |
-| — opsi `span` *(v2.8.0)* | filter lebar 2..4 kolom | `fs = [{key:'q', type:'text', span:2}, ...]` |
-| `<app-empty-state>` / `<app-skeleton>` | keadaan kosong & loading | `<app-skeleton type="cards" :count="6" />` |
-| `<app-chart-bar>` / `<app-chart-doughnut>` | chart kit bertema dark mode | `<app-chart-bar :labels="bln" :datasets="ds" title="Laporan per Bulan" />` |
-| `<app-pegawai-picker>` | picker master SIMPEG | `<app-pegawai-picker v-model="form.pegawai_id" />` |
-| `AppCore.paginate/pageCount` | helper paginasi | `AppCore.paginate(list, page, 10)` |
-| Kelas tombol kit *(v2.8.0)* | `.btn-icon` / `.btn-icon-danger` / `.btn-lg` | `<button class="btn-icon"><i class="fa-solid fa-pen"></i></button>` |
-
-### Komponen baru di v2.6.5
-
-| Komponen | Perubahan | Contoh |
-|---|---|---|
-| `<app-badge>` | Prop baru `icon` (class Font Awesome, opsional) | `<app-badge status="disetujui" icon="fa-solid fa-check" />` |
-| `<app-stat-card>` | **Baru** — kartu metrik KPI: `title`, `value` (Number diformat id-ID otomatis), `icon`, `color` (emerald/sky/amber/purple/rose), `subtext` | `<app-stat-card title="Total Pegawai" :value="1234" color="sky" />` |
+| `<app-tabs>` **WAJIB** | `app-ui` | `<app-tabs :tabs="[{id:'semua',label:'Semua',count:12},{id:'saya',label:'Saya',count:3}]" v-model="tab" />` |
+| `<app-pagination>` **WAJIB** | `app-ui` | `<app-pagination :page="page" :total-pages="8" :total-data="95" @change-page="load" />` |
+| `<app-alert>` / `<app-confirm>` | `app-ui` | `<app-alert type="warning" title="Perhatian">Isi</app-alert>` |
+| `<app-breadcrumb>` / `<app-page-header>` | `app-layout` | `<app-breadcrumb :items="[{label:'Home',to:'dashboard'},{label:'Kategori'}]" />` |
+| `<app-debounced-search>` **WAJIB** | `app-forms` | `<app-debounced-search v-model="q" :delay="300" @search="load" />` |
+| `<app-date-picker>` / `<app-file-upload>` / `<app-rich-editor>` | `app-forms` | `<app-file-upload v-model="files" :max-size-mb="10" />` |
+| `<app-detail-drawer>` / `<app-export-button>` / `<app-master-tree>` / `<app-image-viewer>` | `app-data` | `<app-detail-drawer :show="show" title="Detail" @close="show=false"><slot/></app-detail-drawer>` |
+| `<app-chart-line>` **BARU** | `app-charts` | `<app-chart-line :labels="bln" :datasets="ds" title="Tren" />` |
+| `<app-approval-panel>` / `<app-audit-timeline>` | `app-workflow` | `<app-approval-panel :steps="steps" :current-step="1" />` |
+| `<app-theme-picker>` ⭐ **Opsi B** | `app-workflow` | `<app-theme-picker v-model="theme" @change="applyTheme" />` |
+| `AppCore.themes` + `applyTheme()` | `app-core` | `AppCore.applyTheme('sky')` atau `AppCore.applyTheme({primary:'#0284c7',...})` |
+| `AppCore.getMyScope()` | `app-core` | `this.getMyScope()` → `{pegawai_id, email, role}` untuk filter "Saya" |
+| Kelas `btn-ghost` / `btn-sm/xs` / `col-S/M/L/XL` | `app-common` | `<button class="btn btn-ghost">Tab</button>` / `<th class="col-M">Nama</th>` |
 
 Katalog props lengkap: [`README.md`](README.md) folder ini.
 
 ---
 
-## 3. Registry pustaka (`AppCore.libs`) — baru di v2.6.0
+## 3. Registry pustaka (`AppCore.libs`) — tetap v2.9.0
 
-Semua URL pustaka berat kini **terpusat di satu tempat** dan dimuat
-on-demand. Aplikasi tidak perlu lagi menulis URL atau pengecekan
-`typeof` sendiri.
+Semua URL pustaka berat kini **terpusat di satu tempat** dan dimuat on-demand.
 
 | Nama | Pustaka | Versi terkunci | Muat otomatis oleh |
 |---|---|---|---|
@@ -95,66 +115,20 @@ on-demand. Aplikasi tidak perlu lagi menulis URL atau pengecekan
 ```javascript
 // Di dalam methods Vue (instance app buatan AppCore.create):
 async renderGrafik() {
-  if (!(await this.loadLib('chart'))) return;   // toast error otomatis
+  if (!(await this.loadLib('chart'))) return;
   new Chart(ctx, { /* ... */ });
 }
-
-// Beberapa pustaka sekaligus:
-await this.loadLib(['chart', 'xlsx']);
-
-// Tanpa toast (tangani error sendiri):
-await this.loadLib('pdflib', { silent: true });
-
-// Dari luar instance Vue (mis. di helper global):
-await AppCore.loadLib('xlsx');
-
-// Menambah pustaka baru: cukup tambah satu entri di LIBS (app-core.js),
-// tidak perlu menulis loader:
-//   moment: { url: 'https://.../moment.min.js',
-//             test: function(){ return typeof moment !== 'undefined'; },
-//             label: 'Moment.js' }
+// Tema dinamis Opsi B:
+this.applyTheme('sky'); // atau 'emerald'/'amber'/'violet'/'rose'/'teal'
 ```
-
-**Catatan dependensi:** entri boleh punya `after: 'namaLib'` — pustaka
-itu dimuat lebih dulu (dipakai `autotable` → `jspdf`).
 
 ---
 
-## 4. Masalah yang diperbaiki di v2.6.0
+## 4. Masalah yang diperbaiki di v2.9.0
 
-Sebelum rilis ini, ketiga aplikasi memuat CDN dengan cara berbeda:
-
-| Aplikasi | URL | Berkas | Cache buster | Masalah |
-|---|---|---|---|---|
-| si-kompetensi | `@main` | non-min | `?v=2.5.1` | Unduh kode mentah (~74 KB) padahal `.min` tersedia |
-| si-pelaporan | `@main` | `.min` | **tidak ada** | Bisa macet di versi lama hingga 12 jam |
-| si-platform | `@v2.4.0` | hanya CSS | ✅ tag | Tidak memuat JS CDN |
-
-Selain itu `ensureChartLibrary()` memuat `https://cdn.jsdelivr.net/npm/chart.js`
-**tanpa versi terkunci** — Chart.js bisa naik versi besar (breaking) tanpa
-ada yang mengubah kode, dan aplikasi rusak tanpa sebab yang jelas.
-Sekarang dikunci ke `4.4.1`.
-
-### Konsekuensi untuk alur kerja Anda
-
-Karena CDN dimuat lewat jsDelivr dari GitHub, **perubahan CDN baru berlaku
-setelah masuk ke GitHub**. Urutannya:
-
-1. Ubah berkas di `frontend-cdn/frontend/`
-2. Jalankan `npm run build` (memperbarui `.min`)
-3. Commit & push / unggah lewat web GitHub
-4. **Buat tag rilis** `vX.Y.Z` (GitHub → Releases → Draft a new release)
-   — ini yang membuat URL `@vX.Y.Z` bisa dipakai dan cache-nya permanen
-5. Baru ubah `Index.html` aplikasi untuk menunjuk tag tersebut
-
-> ⚠️ PELAJARAN v2.6.3: buat tag HANYA setelah SEMUA berkas terunggah.
-> Tag v2.6.3 sempat menunjuk app-components lama karena tag dibuat lebih
-> dulu daripada unggahan. Mulai v2.6.4 seluruh berkas memakai SATU nomor
-> versi ekosistem — satu tag berlaku untuk semua berkas.
-
-> Selama tag belum dibuat, URL `@vX.Y.Z` akan mengembalikan **404**.
-> Jika Anda ingin menguji sebelum membuat tag, sementara pakai
-> `@main` + `?v=X.Y.Z`, lalu ganti ke tag versi setelah rilis.
+- **5 keluhan berulang hilang:** `btn-ghost` (67x dipakai tapi belum ada), `<app-tabs>` (pengganti `grid+btn` kecil), `<app-pagination>` standalone, preset kolom `col-S/M/L/XL` (larang `min-w-[137px]` ngarang), `<app-filter-bar>` debounce
+- **Tema dinamis Opsi B:** 5 app bisa beda warna tanpa edit `Index.html` — pilih di `Pengaturan > Tema` → simpan ke `safeLocal` → `AppCore.applyTheme()` inject `--primary` otomatis
+- **Menu "Saya":** `AppCore.getMyScope()` + toggle `Semua/Saya` untuk laporan/analisa personal
 
 ---
 
@@ -163,20 +137,18 @@ setelah masuk ke GitHub**. Urutannya:
 Buka aplikasi, jalankan di Console browser:
 
 ```javascript
-AppCore.version        // harus "2.8.0" (tag rilis: v2.8.1)
-Object.keys(AppCore.libs)   // ['chart','xlsx','jspdf','autotable','pdflib','pdf']
-AppComponents.version  // harus "2.8.0"
-AppModules.version     // harus "2.8.0"
+AppCore.version        // harus "2.9.0"
+AppComponents.version  // harus "2.9.0"
+AppLayout.version      // harus "2.9.0"
+AppUi.version          // harus "2.9.0"
+AppForms.version       // harus "2.9.0"
+AppData.version        // harus "2.9.0"
+AppCharts.version      // harus "2.9.0"
+AppWorkflow.version    // harus "2.9.0"
+Object.keys(AppCore.themes) // ['emerald','sky','amber','violet','rose','teal']
 ```
 
-> **Catatan versi**: sejak v2.8.1, ketiga bundle (`app-components`, `app-core`,
-> `app-modules`) melaporkan `"2.8.0"` secara konsisten. Tag rilis di GitHub
-> (`v2.8.1`) mewakili nomor rilis; `"2.8.0"` mewakili nomor versi berkas
-> (generasi kode). Perbedaan ini normal untuk patch release yang tidak
-> mengubah kode fungsional.
-
-Kalau `AppCore.version` masih versi lama, berarti jsDelivr belum menyegarkan
-cache — paksa dengan menaikkan query string (`?v=2.8.1`) atau tunggu.
+Kalau `AppCore.version` masih versi lama, berarti jsDelivr belum menyegarkan cache — paksa dengan menaikkan query string (`?v=2.9.0`) atau tunggu.
 
 ---
 
@@ -184,8 +156,9 @@ cache — paksa dengan menaikkan query string (`?v=2.8.1`) atau tunggu.
 
 | Tag | Versi berkas | Perubahan kunci |
 |---|---|---|
-| `v2.8.1` | `"2.8.0"` | Patch konsistensi internal (T49) — fix `AppCore.version`/`AppModules.version` |
-| `v2.8.0` | `"2.8.0"` | F2: promosi `.btn-icon`/`.btn-icon-danger`/`.btn-lg`; F1: `<app-filter-bar>` dukung `span` |
+| `v2.9.0` | `"2.9.0"` | **8 FILE & 31 OPSI** — 6 file baru (layout/ui/forms/data/charts/workflow) + `btn-ghost` + tabs/pagination + badge draft/baru/diproses/selesai/batal + tema dinamis Opsi B |
+| `v2.8.1` | `"2.8.0"` | Patch konsistensi internal (T49) |
+| `v2.8.0` | `"2.8.0"` | F2: `.btn-icon`/`.btn-icon-danger`/`.btn-lg`; F1: `<app-filter-bar>` dukung `span` |
 | `v2.7.0` | `"2.7.0"` | B1–B7: picker, chart kit, filter-bar, empty-state, skeleton, v-can, paginate helper |
-| `v2.6.5` | `"2.6.5"` | AppBadge `icon`, `app-stat-card` baru, badge variants |
+| `v2.6.5` | `"2.6.5"` | AppBadge `icon`, `app-stat-card` baru |
 | `v2.6.0` | `"2.6.0"` | Registry `AppCore.libs` + `loadLib()` on-demand |

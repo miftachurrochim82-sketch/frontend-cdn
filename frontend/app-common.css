@@ -1,7 +1,18 @@
 /* ============================================================
-   app-common.css — CSS Global & Custom Utilities (Shared CDN v2.8.0)
+   app-common.css — CSS Global & Custom Utilities (Shared CDN v2.9.0)
    Dipakai bersama oleh semua web app GAS Pemkab Trenggalek.
    ============================================================
+   Changelog v2.9.0 (2026-09-22) — 8 FILE & 31 OPSI — Sekali Jalan:
+   - 🎨 A1: .btn-ghost (dipakai 67x tapi belum ada) — tombol hantu transparan untuk TAB & filter
+   - 🎨 A2: .btn-sm / .btn-xs — tombol kecil untuk tabel padat
+   - 🎨 A3/A4: Style <app-tabs> & <app-pagination> — garis bawah primary, Prev/Next seragam
+   - 🎨 A5: Preset kolom .col-S/M/L/XL (90/150/220/260px) — larang min-w ngarang
+   - 🎨 A6: .input--sm / .select--sm / .form-label--sm — form padat
+   - 🎨 A7: State .is-error / .is-success + .focus-ring baku
+   - 🎨 A8: .alert (kuning/merah/hijau/biru) — kotak info di atas form
+   - 🎨 Breadcrumb & Page-Header — navigasi atas halaman
+   - 🎨 Detail-Drawer, Export-Button, Theme-Picker support
+
    Changelog v2.8.0 (2026-09-18):
    - 🎨 F2: .btn-icon / .btn-icon-danger / .btn-lg DIPROMOSIKAN dari
      A0_Style si-lahar (G18c-2) ke kit — tombol aksi tabel 32px & CTA
@@ -13,7 +24,7 @@
   - Tidak ada perubahan perilaku CSS; versi diselaraskan dengan
     ekosistem (AppBadge icon/info/emerald/purple di app-components).
 
-  Changelog v2.6.4 (2026-09-15):
+   Changelog v2.6.4 (2026-09-15):
    - 🔢 Penyelarasan versi tunggal ekosistem. Isi TIDAK berubah.
 
    Changelog v2.6.0 (2026-09-15):
@@ -39,7 +50,7 @@
      THEME PALETTE — Override di Index.html tiap web app
      ------------------------------------------------------------
      Default: EMERALD (SI-KOMPETENSI)
-     Salinan preset biru & kuning ada di komentar bawah.
+     Preset lengkap ada di komentar bawah + dipakai <app-theme-picker>.
      ============================================================ */
   --primary:          #059669;   /* emerald-600 — tombol utama, sidebar active */
   --primary-dark:     #047857;   /* emerald-700 — hover tombol utama */
@@ -75,20 +86,21 @@
 }
 
 /* ============================================================
-   PRESET TEMA (salin ke <style> di Index.html app ke-2 & ke-3)
+   PRESET TEMA (salin ke <style> di Index.html ATAU pilih via
+   Pengaturan > Tema (app-theme-picker) — Opsi B v2.9.0.
    ------------------------------------------------------------
    TEMA BIRU (SI-PELAPORAN):
    :root {
-     --primary:         #2563eb;
-     --primary-dark:    #1d4ed8;
-     --primary-light:   #eff6ff;
-     --primary-lighter: #dbeafe;
-     --primary-text:    #1e3a8a;
-     --primary-accent:  #60a5fa;
-     --primary-rgb:     37, 99, 235;
+     --primary:         #0284c7;
+     --primary-dark:    #0369a1;
+     --primary-light:   #f0f9ff;
+     --primary-lighter: #e0f2fe;
+     --primary-text:    #0c4a6e;
+     --primary-accent:  #38bdf8;
+     --primary-rgb:     2, 132, 199;
    }
 
-   TEMA KUNING (SI-ASET):
+   TEMA KUNING (SI-LAHAR):
    :root {
      --primary:         #d97706;
      --primary-dark:    #b45309;
@@ -99,7 +111,7 @@
      --primary-rgb:     217, 119, 6;
    }
 
-   TEMA UNGU (SI-ARSIP):
+   TEMA UNGU (SI-DOKUMEN):
    :root {
      --primary:         #7c3aed;
      --primary-dark:    #6d28d9;
@@ -108,6 +120,28 @@
      --primary-text:    #4c1d95;
      --primary-accent:  #a78bfa;
      --primary-rgb:     124, 58, 237;
+   }
+
+   TEMA ROSE (SI-ARSIP):
+   :root {
+     --primary:         #e11d48;
+     --primary-dark:    #be123c;
+     --primary-light:   #fff1f2;
+     --primary-lighter: #ffe4e6;
+     --primary-text:    #881337;
+     --primary-accent:  #fb7185;
+     --primary-rgb:     225, 29, 72;
+   }
+
+   TEMA TEAL (Alternatif):
+   :root {
+     --primary:         #0d9488;
+     --primary-dark:    #0f766e;
+     --primary-light:   #f0fdfa;
+     --primary-lighter: #ccfbf1;
+     --primary-text:    #134e4a;
+     --primary-accent:  #2dd4bf;
+     --primary-rgb:     13, 148, 136;
    }
    ============================================================ */
 
@@ -154,6 +188,13 @@ body {
 .badge-info    { background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
 .badge-emerald { background-color: #d1fae5; color: #047857; border: 1px solid #a7f3d0; }
 .badge-purple  { background-color: #f3e8ff; color: #7e22ce; border: 1px solid #e9d5ff; }
+
+/* v2.9.0: badge status transaksi starter-kit (draft/baru/diproses/selesai/batal) */
+.badge-draft { background-color: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+.badge-baru { background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+.badge-diproses { background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+.badge-selesai { background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+.badge-batal { background-color: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
 
 /* ============================================================
    SIDEBAR THEME — Tinted sesuai --primary-light per app
@@ -336,6 +377,39 @@ body {
   color: var(--slate-700);
   margin-bottom: 0.35rem;
 }
+/* v2.9.0: varian compact untuk form padat */
+.input--sm, .select--sm {
+  padding: 0.4rem 0.65rem;
+  font-size: 0.75rem;
+  border-radius: 0.5rem;
+}
+.form-label--sm {
+  font-size: 0.7rem;
+  margin-bottom: 0.25rem;
+}
+/* v2.9.0: state validasi baku */
+.input.is-error, .select.is-error, .textarea.is-error {
+  border-color: var(--danger);
+  background-color: #fff1f2;
+}
+.input.is-error:focus, .select.is-error:focus, .textarea.is-error:focus {
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+}
+.input.is-success, .select.is-success, .textarea.is-success {
+  border-color: var(--success);
+  background-color: #f0fdf4;
+}
+.form-error {
+  font-size: 0.7rem;
+  color: var(--danger);
+  margin-top: 0.25rem;
+  font-weight: 500;
+}
+.form-hint {
+  font-size: 0.7rem;
+  color: var(--slate-500);
+  margin-top: 0.2rem;
+}
 
 /* ============================================================
    BUTTONS — Otomatis pakai --primary per app
@@ -367,6 +441,55 @@ body {
 .btn-info { background-color: var(--info); color: #ffffff; }
 .btn-info:hover:not(:disabled) { background-color: var(--info-dark); }
 
+/* v2.9.0 A1: .btn-ghost — tombol hantu transparan untuk TAB & filter (dipakai 67x tapi belum ada) */
+.btn-ghost {
+  background-color: #ffffff;
+  color: var(--slate-600);
+  border-color: var(--slate-200);
+}
+.btn-ghost:hover:not(:disabled) {
+  background-color: var(--slate-50);
+  color: var(--slate-800);
+  border-color: var(--slate-300);
+}
+.btn-ghost.active, .btn-ghost.btn-ghost--active {
+  background-color: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+}
+.btn-ghost.active:hover, .btn-ghost.btn-ghost--active:hover {
+  background-color: var(--primary-dark);
+}
+.dark .btn-ghost {
+  background-color: #1e293b;
+  color: #cbd5e1;
+  border-color: #334155;
+}
+.dark .btn-ghost:hover:not(:disabled) {
+  background-color: #334155;
+  color: #f1f5f9;
+}
+.dark .btn-ghost.active, .dark .btn-ghost.btn-ghost--active {
+  background-color: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+}
+
+/* v2.9.0 A2: .btn-sm / .btn-xs — tombol kecil untuk tabel padat */
+.btn-sm {
+  padding: 0.35rem 0.7rem;
+  font-size: 0.75rem;
+  border-radius: 0.5rem;
+  gap: 0.35rem;
+}
+.btn-xs {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.7rem;
+  border-radius: 0.4rem;
+  gap: 0.25rem;
+  font-weight: 600;
+}
+
 /* Tombol aksi ikon 32px (v2.8.0 / F2 — promosi A0_Style si-lahar).
    Pakai: <button class="btn-icon"><i class="fa-solid fa-pen-to-square"></i></button>
    Varian hapus: tambah kelas .btn-icon-danger. */
@@ -388,11 +511,365 @@ body {
 /* CTA besar (v2.8.0 / F2): tombol aksi utama halaman, enak di-tap di HP. */
 .btn-lg { padding: 0.625rem 1.25rem; font-weight: 700; }
 
+/* v2.9.0: focus ring baku */
+.focus-ring:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.25);
+}
+.focus-ring--error:focus {
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.18);
+}
+
 /* ============================================================
-   TABS
+   TABS — v2.9.0 A3 (baru, pengganti grid+btn kecil)
    ============================================================ */
+.app-tabs {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 2px solid var(--slate-200);
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.app-tabs::-webkit-scrollbar { display: none; }
+.app-tabs-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--slate-500);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: var(--transition);
+  background: transparent;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+}
+.app-tabs-item:hover {
+  color: var(--slate-800);
+  background-color: var(--slate-50);
+}
+.app-tabs-item.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+  background-color: transparent;
+}
+.app-tabs-item .badge-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border-radius: 9999px;
+  background-color: var(--slate-100);
+  color: var(--slate-600);
+}
+.app-tabs-item.active .badge-count {
+  background-color: var(--primary-light);
+  color: var(--primary);
+}
+.dark .app-tabs { border-bottom-color: #334155; }
+.dark .app-tabs-item { color: #94a3b8; }
+.dark .app-tabs-item:hover { color: #f1f5f9; background-color: rgba(51,65,85,0.5); }
+.dark .app-tabs-item.active { color: var(--primary-accent); border-bottom-color: var(--primary-accent); }
+
+/* Legacy: .tab-active / .tab-inactive (tetap untuk kompatibilitas) */
 .tab-active { background-color: var(--primary); color: #ffffff; }
 .tab-inactive { background-color: var(--slate-200); color: var(--slate-700); }
+
+/* ============================================================
+   PAGINATION — v2.9.0 A4 (baru, standalone)
+   ============================================================ */
+.app-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--slate-200);
+  background-color: #ffffff;
+  font-size: 0.75rem;
+}
+.app-pagination-info {
+  color: var(--slate-500);
+  font-weight: 500;
+}
+.app-pagination-info strong {
+  color: var(--slate-800);
+  font-weight: 700;
+}
+.app-pagination-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.app-pagination-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  border: 1px solid var(--slate-200);
+  background-color: #ffffff;
+  color: var(--slate-700);
+  cursor: pointer;
+  transition: var(--transition);
+}
+.app-pagination-btn:hover:not(:disabled) {
+  background-color: var(--slate-50);
+  border-color: var(--slate-300);
+}
+.app-pagination-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.app-pagination-btn--primary {
+  background-color: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+}
+.app-pagination-btn--primary:hover:not(:disabled) {
+  background-color: var(--primary-dark);
+}
+.dark .app-pagination {
+  background-color: #1e293b;
+  border-top-color: #334155;
+}
+.dark .app-pagination-info { color: #94a3b8; }
+.dark .app-pagination-info strong { color: #f1f5f9; }
+.dark .app-pagination-btn {
+  background-color: #0f172a;
+  border-color: #334155;
+  color: #cbd5e1;
+}
+.dark .app-pagination-btn:hover:not(:disabled) {
+  background-color: #334155;
+}
+
+/* ============================================================
+   COLUMN PRESETS — v2.9.0 A5 (larang min-w ngarang)
+   ============================================================ */
+.col-S  { min-width: 90px; }
+.col-M  { min-width: 150px; }
+.col-L  { min-width: 220px; }
+.col-XL { min-width: 260px; }
+.col-SM { min-width: 110px; }
+.col-ML { min-width: 180px; }
+
+/* ============================================================
+   ALERT — v2.9.0 (kotak info di atas form)
+   ============================================================ */
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border-radius: var(--radius);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border: 1px solid;
+}
+.alert-info {
+  background-color: #eff6ff; color: #1e40af; border-color: #bfdbfe;
+}
+.alert-success {
+  background-color: #f0fdf4; color: #15803d; border-color: #bbf7d0;
+}
+.alert-warning {
+  background-color: #fffbeb; color: #92400e; border-color: #fde68a;
+}
+.alert-danger {
+  background-color: #fef2f2; color: #b91c1c; border-color: #fecaca;
+}
+.dark .alert-info { background-color: rgba(2,132,199,0.12); color: #7dd3fc; border-color: rgba(2,132,199,0.25); }
+.dark .alert-success { background-color: rgba(22,163,74,0.12); color: #4ade80; border-color: rgba(22,163,74,0.25); }
+.dark .alert-warning { background-color: rgba(245,158,11,0.12); color: #fbbf24; border-color: rgba(245,158,11,0.25); }
+.dark .alert-danger { background-color: rgba(220,38,38,0.12); color: #f87171; border-color: rgba(220,38,38,0.25); }
+
+/* ============================================================
+   BREADCRUMB & PAGE-HEADER — v2.9.0 C1/C2
+   ============================================================ */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--slate-500);
+  flex-wrap: wrap;
+}
+.breadcrumb a {
+  color: var(--slate-600);
+  text-decoration: none;
+  font-weight: 500;
+}
+.breadcrumb a:hover { color: var(--primary); }
+.breadcrumb-separator {
+  color: var(--slate-300);
+  font-size: 0.65rem;
+}
+.breadcrumb-current {
+  color: var(--slate-800);
+  font-weight: 700;
+}
+.dark .breadcrumb { color: #94a3b8; }
+.dark .breadcrumb a { color: #cbd5e1; }
+.dark .breadcrumb-current { color: #f1f5f9; }
+
+.page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+@media (min-width: 768px) {
+  .page-header {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+}
+.page-header-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--slate-900);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.page-header-title i {
+  color: var(--primary);
+}
+.dark .page-header-title { color: #ffffff; }
+.page-header-subtitle {
+  font-size: 0.8125rem;
+  color: var(--slate-500);
+  margin-top: 0.2rem;
+}
+.dark .page-header-subtitle { color: #94a3b8; }
+.page-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* ============================================================
+   DETAIL DRAWER — v2.9.0 F2
+   ============================================================ */
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(4px);
+  z-index: 60;
+  animation: fadeIn 0.2s ease-out;
+}
+.drawer-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  max-width: 480px;
+  background-color: #ffffff;
+  box-shadow: -10px 0 40px rgba(0,0,0,0.12);
+  z-index: 61;
+  display: flex;
+  flex-direction: column;
+  animation: slideInRight 0.25s ease-out;
+}
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+.dark .drawer-panel {
+  background-color: #1e293b;
+  color: #f1f5f9;
+}
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--slate-200);
+}
+.dark .drawer-header { border-bottom-color: #334155; }
+.drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+.drawer-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--slate-200);
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+.dark .drawer-footer { border-top-color: #334155; }
+
+/* ============================================================
+   THEME PICKER — v2.9.0 H4 Opsi B
+   ============================================================ */
+.theme-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+@media (min-width: 640px) {
+  .theme-picker-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+}
+.theme-swatch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.85rem 0.5rem;
+  border-radius: 1rem;
+  border: 2px solid var(--slate-200);
+  cursor: pointer;
+  transition: var(--transition);
+  background: #ffffff;
+}
+.theme-swatch:hover {
+  border-color: var(--slate-300);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+.theme-swatch.active {
+  border-color: var(--primary);
+  background-color: var(--primary-light);
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.15);
+}
+.theme-swatch-dot {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 9999px;
+  border: 3px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+.theme-swatch-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--slate-700);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.dark .theme-swatch {
+  background-color: #1e293b;
+  border-color: #334155;
+}
+.dark .theme-swatch-label { color: #cbd5e1; }
 
 /* ============================================================
    TOAST

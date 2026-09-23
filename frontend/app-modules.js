@@ -1,5 +1,8 @@
 // ============================================================
-// app-modules.js — Modul halaman mandiri (Shared CDN v2.8.1)
+// app-modules.js — Modul halaman mandiri (Shared CDN v2.9.0)
+// Changelog v2.9.0 (2026-09-22) — 8 FILE & 31 OPSI — Sekali Jalan:
+// - 🔧 VERSION: bump 2.8.0 → 2.9.0 (sinkron 8 file)
+// - 📦 WORKFLOW: app-theme-picker sekarang juga tersedia via app-workflow.js (merge)
 // Changelog v2.8.1 (2026-09-19):
 // - FIX (T49): internal `version` diselaraskan ke '2.8.0' (dari '2.7.4')
 //   agar konsisten dengan tag rilis @v2.8.0 dan app-components.js.
@@ -506,7 +509,7 @@
   global.AppModules = {
     'app-profile': AppProfile,
     'app-settings': AppSettings,
-    version: '2.8.0'
+    version: '2.9.0'
   };
 
 })(window);
