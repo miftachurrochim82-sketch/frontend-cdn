@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Preview CDN v2.9.0 — 8 File & 31 Opsi</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/vue@3.5.42/dist/vue.global.prod.js"></script>
+<!-- LOCAL PREVIEW: load dari workspace (bukan jsDelivr) — untuk preview sebelum tag -->
+<link rel="stylesheet" href="./frontend/app-common.min.css">
+<style>
+  :root { --primary:#059669; --primary-dark:#047857; --primary-light:#ecfdf5; --primary-lighter:#d1fae5; --primary-text:#064e3b; --primary-accent:#34d399; --primary-rgb:5,150,105; }
+  body{font-family:'Inter',system-ui,sans-serif; background:#f8fafc; padding:1.5rem}
+  .demo-card{background:#fff; border:1px solid #e2e8f0; border-radius:1rem; padding:1.25rem; margin-bottom:1rem}
+  .demo-title{font-weight:800; font-size:0.9rem; color:#0f172a; margin-bottom:0.75rem; display:flex; align-items:center; gap:0.5rem}
+  .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:1rem}
+  @media(max-width:640px){.grid-2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div style="max-width:1100px; margin:0 auto">
+    <div style="background:linear-gradient(135deg,var(--primary),var(--primary-dark)); color:white; padding:1.5rem 1.75rem; border-radius:1.25rem; margin-bottom:1.5rem">
+      <h1 style="font-size:1.4rem; font-weight:800">📦 CDN v2.9.0 — 8 File & 31 Opsi <span style="background:rgba(255,255,255,0.2); padding:0.2rem 0.6rem; border-radius:9999px; font-size:0.7rem; margin-left:0.5rem">PREVIEW</span></h1>
+      <p style="opacity:0.9; font-size:0.85rem; margin-top:0.35rem">8 file (1 CSS + 7 JS) — sekali jalan, app tinggal mix sesuai kebutuhan. Tema dinamis Opsi B sudah aktif.</p>
+      <div style="margin-top:1rem; display:flex; gap:0.5rem; flex-wrap:wrap">
+        <span style="background:white; color:var(--primary); padding:0.35rem 0.75rem; border-radius:9999px; font-size:0.7rem; font-weight:700">RAK A Fondasi (7)</span>
+        <span style="background:rgba(255,255,255,0.15); padding:0.35rem 0.75rem; border-radius:9999px; font-size:0.7rem">RAK C Layout (4)</span>
+        <span style="background:rgba(255,255,255,0.15); padding:0.35rem 0.75rem; border-radius:9999px; font-size:0.7rem">RAK D UI (7)</span>
+        <span style="background:rgba(255,255,255,0.15); padding:0.35rem 0.75rem; border-radius:9999px; font-size:0.7rem">RAK E Forms (6)</span>
+        <span style="background:rgba(255,255,255,0.15); padding:0.35rem 0.75rem; border-radius:9999px; font-size:0.7rem">RAK F Data (6)</span>
+        <span style="background:rgba(255,255,255,0.15); padding:0.35rem 0.75rem; border-radius:9999px; font-size:0.7rem">RAK G Charts (3)</span>
+        <span style="background:rgba(255,255,255,0.15); padding:0.35rem 0.75rem; border-radius:9999px; font-size:0.7rem">RAK H Workflow (4)</span>
+      </div>
+    </div>
+
+    <!-- TEMA DINAMIS H4 -->
+    <div class="demo-card">
+      <div class="demo-title"><i class="fa-solid fa-palette" style="color:var(--primary)"></i> H4 — Tema Dinamis (Opsi B) — <span style="color:var(--primary)">{{ themeCode || 'emerald' }}</span></div>
+      <app-theme-picker v-model="themeCode" @change="onThemeChange"></app-theme-picker>
+      <div style="margin-top:0.75rem; display:flex; gap:0.5rem; flex-wrap:wrap">
+        <button class="btn btn-primary btn-sm"><i class="fa-solid fa-check"></i> Tombol Primary ikut tema</button>
+        <button class="btn btn-ghost btn-sm">Ghost</button>
+        <span class="app-tabs-item active" style="padding:0.35rem 0.75rem; border:1px solid #e2e8f0; border-radius:0.5rem">Tab Active</span>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="demo-card">
+        <div class="demo-title"><i class="fa-solid fa-table-columns" style="color:var(--primary)"></i> D1 — Tabs (WAJIB)</div>
+        <app-tabs :tabs="tabsDemo" v-model="tabDemo"></app-tabs>
+        <div style="margin-top:0.75rem; font-size:0.8rem; color:#475569">Aktif: <strong>{{ tabDemo }}</strong> — ganti tab tidak reload, cuma ganti filter.</div>
+      </div>
+      <div class="demo-card">
+        <div class="demo-title"><i class="fa-solid fa-list-ol" style="color:var(--primary)"></i> D2 — Pagination (WAJIB)</div>
+        <app-pagination :page="pageDemo" :total-pages="8" :total-data="95" @change-page="pageDemo=$event"></app-pagination>
+        <div style="margin-top:0.5rem; font-size:0.75rem; color:#64748b">Halaman {{ pageDemo }} dari 8 — klik Next/Prev.</div>
+      </div>
+    </div>
+
+    <div class="demo-card">
+      <div class="demo-title"><i class="fa-solid fa-filter" style="color:var(--primary)"></i> E1/E3 — Filter Bar + Debounced Search (WAJIB)</div>
+      <app-debounced-search v-model="searchDemo" placeholder="Ketik cari (debounce 300ms)..." label="Pencarian"></app-debounced-search>
+      <div style="margin-top:0.5rem; font-size:0.75rem; color:#64748b">Nilai: "{{ searchDemo }}" (update setelah 300ms)</div>
+      <div style="margin-top:1rem"><app-filter-bar-enhanced :filters="filterDemo" v-model="filterVal" @change="onFilter"></app-filter-bar-enhanced></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="demo-card">
+        <div class="demo-title"><i class="fa-solid fa-triangle-exclamation" style="color:#d97706"></i> D4/D5 — Alert & Confirm</div>
+        <app-alert type="warning" title="Perhatian">Contoh alert kuning — untuk validasi form.</app-alert>
+        <app-alert type="success" title="Berhasil" style="margin-top:0.5rem">Data berhasil disimpan.</app-alert>
+        <button class="btn btn-danger btn-sm" style="margin-top:0.75rem" @click="showConfirm=true">Buka Confirm Dialog</button>
+        <app-confirm :show="showConfirm" title="Hapus Data?" message="Yakin hapus transaksi ini? Tindakan tidak bisa dibatalkan." type="danger" @close="showConfirm=false" @confirm="showConfirm=false"></app-confirm>
+      </div>
+      <div class="demo-card">
+        <div class="demo-title"><i class="fa-solid fa-bread-slice" style="color:var(--primary)"></i> C1/C2 — Breadcrumb & Page Header</div>
+        <app-breadcrumb :items="[{label:'Home', to:'dashboard'}, {label:'Master', to:'master'}, {label:'Kategori'}]" @navigate="onNav"></app-breadcrumb>
+        <div style="margin-top:0.75rem">
+          <app-page-header title="Master Kategori" subtitle="5 master = 5 dimensi laporan" icon="fa-solid fa-sitemap">
+            <template #actions><button class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Tambah</button></template>
+          </app-page-header>
+        </div>
+      </div>
+    </div>
+
+    <div class="demo-card">
+      <div class="demo-title"><i class="fa-solid fa-table" style="color:var(--primary)"></i> F1 — Table + Preset Kolom + Badge Baru</div>
+      <div style="display:flex; gap:0.5rem; margin-bottom:0.75rem; flex-wrap:wrap">
+        <app-badge status="draft" label="draft"></app-badge>
+        <app-badge status="baru" label="baru"></app-badge>
+        <app-badge status="diproses" label="diproses"></app-badge>
+        <app-badge status="selesai" label="selesai"></app-badge>
+        <app-badge status="batal" label="batal"></app-badge>
+      </div>
+      <div class="table-scroll">
+        <table style="width:100%; font-size:0.75rem">
+          <thead><tr><th class="col-M">Kode</th><th class="col-L">Nama</th><th class="col-S">Status</th><th class="col-M">Aksi</th></tr></thead>
+          <tbody><tr><td style="padding:0.6rem">TRX-001</td><td style="padding:0.6rem">Contoh Transaksi</td><td style="padding:0.6rem"><app-badge status="diproses" size="sm"></app-badge></td><td style="padding:0.6rem"><button class="btn btn-ghost btn-xs">Lihat</button> <button class="btn btn-primary btn-xs">Edit</button></td></tr></tbody>
+        </table>
+      </div>
+      <div style="margin-top:0.5rem; font-size:0.7rem; color:#64748b">Kolom pakai preset <code>.col-S/M/L/XL</code> — tidak ada <code>min-w-[137px]</code> ngarang.</div>
+    </div>
+
+    <div class="grid-2">
+      <div class="demo-card">
+        <div class="demo-title"><i class="fa-solid fa-cloud-arrow-up" style="color:var(--primary)"></i> E5 — File Upload</div>
+        <app-file-upload label="Lampiran" hint="Max 10 MB, drag & drop" v-model="filesDemo"></app-file-upload>
+      </div>
+      <div class="demo-card">
+        <div class="demo-title"><i class="fa-solid fa-sitemap" style="color:var(--primary)"></i> F5 — Master Tree</div>
+        <app-master-tree :items="[{id:'1', nama:'Kategori Induk', kode:'KT-01'}, {id:'2', nama:'Anak 1', parent_id:'1', kode:'KT-01-01'}, {id:'3', nama:'Anak 2', parent_id:'1', kode:'KT-01-02'}]"></app-master-tree>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="demo-card">
+        <div class="demo-title"><i class="fa-solid fa-chart-line" style="color:var(--primary)"></i> G2 — Chart Line (baru)</div>
+        <app-chart-line :labels="['Jan','Feb','Mar','Apr','Mei','Jun']" :datasets="[{label:'Tren', data:[12,19,8,15,22,18]}]" title="Tren 6 Bulan" :height="200"></app-chart-line>
+      </div>
+      <div class="demo-card">
+        <div class="demo-title"><i class="fa-solid fa-list-check" style="color:var(--primary)"></i> H1/H2 — Approval & Timeline</div>
+        <app-approval-panel :steps="[{label:'Draft'}, {label:'Verifikator'}, {label:'Selesai'}]" :current-step="1"></app-approval-panel>
+        <div style="margin-top:1rem"><app-audit-timeline :items="[{title:'Dibuat', waktu:'22 Sep 10:00', aktor:'Budi', status:'baru'}, {title:'Diproses', waktu:'22 Sep 11:00', aktor:'Siti', status:'diproses'}]"></app-audit-timeline></div>
+      </div>
+    </div>
+
+    <div class="demo-card">
+      <div class="demo-title"><i class="fa-solid fa-up-right-from-square" style="color:var(--primary)"></i> F2/F6 — Drawer & Image Viewer</div>
+      <button class="btn btn-secondary btn-sm" @click="showDrawer=true"><i class="fa-solid fa-eye"></i> Buka Detail Drawer</button>
+      <button class="btn btn-secondary btn-sm" style="margin-left:0.5rem" @click="showImage=true">Buka Image Viewer</button>
+      <app-detail-drawer :show="showDrawer" title="Detail Transaksi" subtitle="TRX-001" @close="showDrawer=false">
+        <div style="display:flex; flex-direction:column; gap:0.75rem; font-size:0.8rem">
+          <div><strong>Kode:</strong> TRX-001</div>
+          <div><strong>Judul:</strong> Contoh drawer — slide dari kanan, tidak pindah halaman.</div>
+          <app-alert type="info">Drawer cocok untuk lihat detail tanpa tutup tabel.</app-alert>
+        </div>
+      </app-detail-drawer>
+      <app-image-viewer :show="showImage" src="https://picsum.photos/600/400" @close="showImage=false"></app-image-viewer>
+    </div>
+
+    <div style="background:#0f172a; color:#e2e8f0; padding:1.25rem; border-radius:1rem; font-size:0.75rem; line-height:1.6">
+      <div style="font-weight:800; margin-bottom:0.5rem">✅ Semua 31 opsi sudah ada di 8 file — cara pakai (tetap 1 tag @v2.9.0):</div>
+      <pre style="background:#1e293b; padding:0.75rem; border-radius:0.5rem; overflow:auto"><code>&lt;link rel="stylesheet" href="...frontend-cdn@v2.9.0/frontend/app-common.min.css"&gt;
+&lt;script src="...@v2.9.0/frontend/app-core.min.js"&gt;&lt;/script&gt;
+&lt;script src="...@v2.9.0/frontend/app-layout.min.js"&gt;&lt;/script&gt;
+&lt;script src="...@v2.9.0/frontend/app-ui.min.js"&gt;&lt;/script&gt;
+&lt;script src="...@v2.9.0/frontend/app-forms.min.js"&gt;&lt;/script&gt;
+&lt;script src="...@v2.9.0/frontend/app-data.min.js"&gt;&lt;/script&gt;
+&lt;script src="...@v2.9.0/frontend/app-charts.min.js"&gt;&lt;/script&gt;
+&lt;script src="...@v2.9.0/frontend/app-workflow.min.js"&gt;&lt;/script&gt;
+&lt;!-- app-components.min.js & app-modules.min.js tetap untuk backward compat --&gt;</code></pre>
+      <div style="margin-top:0.75rem; color:#94a3b8">App ringan cukup load A+B+C+D+E. App lengkap load semua. Semua 1 tag, tidak ada versi campur.</div>
+    </div>
+
+  </div>
+</div>
+
+<script src="./frontend/app-core.min.js"></script>
+<script src="./frontend/app-components.min.js"></script>
+<script src="./frontend/app-layout.min.js"></script>
+<script src="./frontend/app-ui.min.js"></script>
+<script src="./frontend/app-forms.min.js"></script>
+<script src="./frontend/app-data.min.js"></script>
+<script src="./frontend/app-charts.min.js"></script>
+<script src="./frontend/app-workflow.min.js"></script>
+<script src="./frontend/app-modules.min.js"></script>
+<script>
+  const app = Vue.createApp({
+    data(){ return { themeCode: 'emerald', tabDemo:'semua', tabsDemo:[{id:'semua',label:'Semua',count:12},{id:'saya',label:'Saya',count:3,icon:'fa-solid fa-user'}], pageDemo:1, searchDemo:'', filterDemo:[{key:'status',label:'Status',type:'select',options:['baru','diproses','selesai']},{key:'q',label:'Cari',type:'text',placeholder:'Ketik...'}], filterVal:{}, showConfirm:false, filesDemo:[], showDrawer:false, showImage:false }},
+    methods:{
+      onThemeChange(code){ if(window.AppCore) window.AppCore.applyTheme(code); },
+      onFilter(v){ console.log('filter',v); },
+      onNav(to){ alert('navigate '+to); }
+    },
+    mounted(){
+      // auto apply saved theme
+      try{ const t = localStorage.getItem('app_theme') || localStorage.getItem('app-theme'); if(t && window.AppCore) window.AppCore.applyTheme(t); }catch(e){}
+    }
+  });
+  // register all CDN components (AppCore will also do, but for preview we mount directly)
+  [window.AppComponents, window.AppLayout, window.AppUi, window.AppForms, window.AppData, window.AppCharts, window.AppWorkflow, window.AppModules].forEach(g=>{
+    if(!g) return;
+    Object.keys(g).forEach(k=>{ if(k!=='version') app.component(k, g[k]); });
+  });
+  app.mount('#app');
+</script>
+</body>
+</html>
