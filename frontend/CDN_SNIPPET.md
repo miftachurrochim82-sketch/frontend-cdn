@@ -30,7 +30,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.0/frontend/app-common.min.css">
 ```
 
-## 2. Blok standar sebelum `</body>` — 8 FILE (Mix Sesuai Kebutuhan)
+## 2. Blok standar sebelum `</body>` — 10 FILE (1 CSS + 9 JS — Mix Sesuai Kebutuhan)
 
 ### App Sederhana (SI-CUTI — hanya form, tanpa chart/approval)
 ```html
@@ -156,7 +156,7 @@ Kalau `AppCore.version` masih versi lama, berarti jsDelivr belum menyegarkan cac
 
 | Tag | Versi berkas | Perubahan kunci |
 |---|---|---|
-| `v2.9.0` | `"2.9.0"` | **8 FILE & 31 OPSI** — 6 file baru (layout/ui/forms/data/charts/workflow) + `btn-ghost` + tabs/pagination + badge draft/baru/diproses/selesai/batal + tema dinamis Opsi B |
+| `v2.9.0` | `"2.9.0"` | **10 FILE (1 CSS + 9 JS) & 31 OPSI** — 6 file baru (layout/ui/forms/data/charts/workflow) + `btn-ghost` + tabs/pagination + badge draft/baru/diproses/selesai/batal + tema dinamis Opsi B |
 | `v2.8.1` | `"2.8.0"` | Patch konsistensi internal (T49) |
 | `v2.8.0` | `"2.8.0"` | F2: `.btn-icon`/`.btn-icon-danger`/`.btn-lg`; F1: `<app-filter-bar>` dukung `span` |
 | `v2.7.0` | `"2.7.0"` | B1–B7: picker, chart kit, filter-bar, empty-state, skeleton, v-can, paginate helper |
