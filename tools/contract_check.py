@@ -10,22 +10,40 @@ import os, re, sys
 
 HOME = "/home/user"
 
-# --- Kontrak komponen kit (katalog = sumber kebenaran) ---
+# --- Kontrak komponen kit (katalog = sumber kebenaran) — v2.9.0 31 OPSI ---
 KIT_TAGS = {
-    "app-badge", "app-crud-table", "app-empty-state", "app-filter-bar",
-    "app-header", "app-login", "app-modal", "app-pegawai-picker",
-    "app-sidebar", "app-skeleton", "app-stat-card",
-    "app-chart-bar", "app-chart-doughnut",
-    # dari bundle app-modules.min.js (CDN yang sama):
-    "app-settings", "app-profile",
+    # Shell inti (tetap)
+    "app-login", "app-sidebar", "app-header", "app-badge", "app-stat-card",
+    "app-modal", "app-crud-table", "app-empty-state", "app-skeleton",
+    "app-filter-bar", "app-pegawai-picker",
+    "app-profile", "app-settings",
+    # Charts (tetap + baru)
+    "app-chart-bar", "app-chart-doughnut", "app-chart-line", "app-configurable-dashboard",
+    # Layout BARU v2.9.0 (app-layout.js)
+    "app-breadcrumb", "app-page-header",
+    # UI BARU v2.9.0 (app-ui.js)
+    "app-tabs", "app-pagination", "app-alert", "app-confirm",
+    # Forms BARU v2.9.0 (app-forms.js)
+    "app-debounced-search", "app-date-picker", "app-file-upload", "app-rich-editor",
+    "app-filter-bar-enhanced",
+    # Data BARU v2.9.0 (app-data.js)
+    "app-detail-drawer", "app-export-button", "app-csv-import", "app-master-tree",
+    "app-image-viewer", "app-file-preview",
+    # Workflow BARU v2.9.0 (app-workflow.js)
+    "app-approval-panel", "app-stepper", "app-audit-timeline", "app-theme-picker",
 }
 # Tag lokal app yang sah (bukan kit, tapi dikenal):
 LOCAL_TAGS = {"pagination-controls"}
 
-# --- Kontrak fungsi milik CoreLib (aturan CoreLib-first) ---
+# --- Kontrak fungsi milik CoreLib (aturan CoreLib-first) — v2.4.0 A+B 18 fungsi ---
 CORELIB_OWNED = [
     "normId", "normStr", "parseDate", "genUniqueCode", "requireRole",
     "checkRole", "getHighestRole", "isAllowedConfigKey",
+    "todayIsoLocal", "dateKey10", "paginate", "matchSearch",
+    "assertOwnership", "checkOwnership", "validateTransition",
+    "getThemeConfig", "buildThemeCss", "getThemeCss",
+    "periodeBulan", "dalamPeriode", "hitungHariKerja",
+    "findUnique", "upsertUnique",
 ]
 
 APPS = [
@@ -53,7 +71,7 @@ APPS = [
     {
         "name": "si-arsip-2026",
         "src": os.path.join(HOME, "si-arsip-2026", "src"),
-        "pin": "2.8.1",   # app baru (v1 shell 2026-09-20)
+        "pin": "2.9.0",   # bump CDN v2.9.0 (8 file) — 2026-09-22
         "waiver": False,
         "markers": [
             ("J_App.html", "AppCore.create"),
@@ -63,7 +81,7 @@ APPS = [
     {
         "name": "si-lahar",
         "src": os.path.join(HOME, "si-lahar", "src"),
-        "pin": "2.8.1",   # refaktor 2026-09-19 (V_Rencana/V_Master, delegasi CoreLib v2.3.0)
+        "pin": "2.9.0",   # bump CDN v2.9.0 + CoreLib v2.4.0 — 2026-09-22
         "waiver": False,
         "markers": [
             ("J_App.html", "AppCore.create"),
@@ -74,7 +92,7 @@ APPS = [
     {
         "name": "starter-kit",
         "src": os.path.join(HOME, "starter-kit", "src"),
-        "pin": "2.8.1",   # blueprint mengikuti tag stabil terbaru (rebuild 2026-09-19)
+        "pin": "2.9.0",   # v2.12.0 — CDN 8 file + CoreLib 16 — 2026-09-23
         "waiver": False,
         "markers": [
             ("J_App.html", "AppCore.create"),
@@ -85,7 +103,7 @@ APPS = [
     {
         "name": "si-dokumen",
         "src": os.path.join(HOME, "si-dokumen", "src"),
-        "pin": "2.8.1",   # v1.7.0 (2026-09-22) — CoreLib pin 15
+        "pin": "2.9.0",   # v1.7.0 bump CDN 8 file + CoreLib 16 — 2026-09-23
         "waiver": False,
         "markers": [
             ("J_App.html", "AppCore.create"),
