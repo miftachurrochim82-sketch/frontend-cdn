@@ -50,7 +50,7 @@ APPS = [
     {
         "name": "si-kompetensi",
         "src": os.path.join(HOME, "si-kompetensi", "src"),
-        "pin": "2.7.5",
+        "pin": "2.9.2",
         "waiver": False,
         "markers": [
             ("06_MasterLogic.gs", "CoreLib.ensureSheet"),
@@ -60,7 +60,7 @@ APPS = [
     {
         "name": "si-platform",
         "src": os.path.join(HOME, "si-platform", "src"),
-        "pin": "2.7.5",
+        "pin": "2.9.2",
         "waiver": False,
         "play_cdn_banned": True,
         "markers": [
