@@ -114,8 +114,8 @@ APPS = [
     {
         "name": "si-pelaporan",
         "src": os.path.join(HOME, "si-pelaporan", "src"),
-        "pin": "2.7.0",   # alignment ditunda (keputusan user) -> waiver
-        "waiver": True,
+        "pin": "2.9.2",
+        "waiver": False,
         "markers": [],
     },
 ]
