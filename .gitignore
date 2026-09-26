@@ -1,6 +1,8 @@
 # Mengabaikan berkas non-GAS (untuk push CoreLib dulu — repo ini sebenarnya frontend)
 # File CDN (frontend/*) tetap ter-commit walau pattern ini ada, karena sudah ter-track sebelum .gitignore
 **/**
+!frontend/
+!frontend/**
 !appsscript.json
 !01_CoreFoundation.gs
 !02_CoreGateway.gs

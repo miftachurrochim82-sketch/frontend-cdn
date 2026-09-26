@@ -1,7 +1,7 @@
 {
   "name": "@trenggalekkab/frontend-cdn",
-  "version": "2.9.0",
-  "description": "Shared Frontend CDN Library (v2.9.0) 8 FILE & 31 OPSI — Sekali Jalan: tabs, pagination, theme-picker, drawer, export, tree, charts",
+  "version": "2.9.2",
+  "description": "Shared Frontend CDN Library (v2.9.0) 8 FILE & 31 OPSI \u2014 Sekali Jalan: tabs, pagination, theme-picker, drawer, export, tree, charts",
   "main": "app-core.min.js",
   "author": "Pemerintah Kabupaten Trenggalek",
   "license": "MIT",

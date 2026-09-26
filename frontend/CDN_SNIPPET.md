@@ -1,7 +1,7 @@
-# 📋 Snippet Standar Pemuatan CDN — v2.9.0 (8 File & 31 Opsi)
+# 📋 Snippet Standar Pemuatan CDN — v2.9.2 (10 File & 31 Opsi)
 
 > **Salin blok di bawah ini ke `Index.html` setiap web app baru.**
-> v2.9.0 = 8 file (1 CSS + 7 JS) — 1 tag `@v2.9.0` untuk semua file.
+> v2.9.2 = 10 file (1 CSS + 7 JS) — 1 tag `@v2.9.2` untuk semua file.
 
 ---
 
@@ -20,14 +20,14 @@
 
   <!-- ========== Shared CDN Pemkab Trenggalek v2.9.0 ==========
        ATURAN:
-       1. Pakai TAG VERSI (mis. @v2.9.0), JANGAN @main.
+       1. Pakai TAG VERSI (mis. @v2.9.2), JANGAN @main.
           -> @main di-cache jsDelivr hingga 12 jam, update Anda tidak
              langsung terlihat dan tiap app bisa dapat versi berbeda.
        2. Pakai berkas .min (sudah di-build & di-commit di repo ini).
        3. JANGAN muat chart.js / xlsx / jspdf / pdf-lib di sini.
           Semua itu dimuat otomatis saat dibutuhkan lewat AppCore.loadLib().
   -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.1/frontend/app-common.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.2/frontend/app-common.min.css">
 ```
 
 ## 2. Blok standar sebelum `</body>` — 10 FILE (1 CSS + 9 JS — Mix Sesuai Kebutuhan)
@@ -35,12 +35,12 @@
 ### App Sederhana (SI-CUTI — hanya form, tanpa chart/approval)
 ```html
   <!-- Shared CDN: JS Inti (WAJIB) -->
-  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.1/frontend/app-core.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.1/frontend/app-components.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.2/frontend/app-core.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.2/frontend/app-components.min.js"></script>
   <!-- Modular (pilih yang dibutuhkan) -->
-  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.1/frontend/app-layout.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.1/frontend/app-ui.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.1/frontend/app-forms.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.2/frontend/app-layout.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.2/frontend/app-ui.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.2/frontend/app-forms.min.js"></script>
 
   <!-- Local App JS -->
   <?!= include('J_State'); ?>
@@ -53,15 +53,15 @@
 ### App Lengkap (SI-DOKUMEN — full fitur, 31 opsi)
 ```html
   <!-- Shared CDN: JS Lengkap (8 file) -->
-  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.1/frontend/app-core.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.1/frontend/app-components.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.1/frontend/app-layout.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.1/frontend/app-ui.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.1/frontend/app-forms.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.1/frontend/app-data.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.1/frontend/app-charts.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.1/frontend/app-workflow.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.1/frontend/app-modules.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.2/frontend/app-core.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.2/frontend/app-components.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.2/frontend/app-layout.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.2/frontend/app-ui.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.2/frontend/app-forms.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.2/frontend/app-data.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.2/frontend/app-charts.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.2/frontend/app-workflow.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.2/frontend/app-modules.min.js"></script>
 
   <!-- Local App JS -->
   <?!= include('J_State'); ?>
@@ -71,7 +71,7 @@
   <?!= include('J_App'); ?>
 ```
 
-> **Catatan:** Urutan bebas — `AppCore.create()` membaca `window.AppComponents`, `AppLayout`, `AppUi`, `AppForms`, `AppData`, `AppCharts`, `AppWorkflow`, `AppModules` saat `create()` dipanggil. Semua file **1 tag `@v2.9.0`**.
+> **Catatan:** Urutan bebas — `AppCore.create()` membaca `window.AppComponents`, `AppLayout`, `AppUi`, `AppForms`, `AppData`, `AppCharts`, `AppWorkflow`, `AppModules` saat `create()` dipanggil. Semua file **1 tag `@v2.9.2`**.
 
 ---
 

@@ -10,14 +10,14 @@ Repositori ini adalah **master bersama** ekosistem: memuat pustaka frontend CDN 
 | Paket | Versi | Catatan |
 |---|---|---|
 | **CoreLib** (backend GAS library — repo terpisah [`LIbrary-CoreLib`](https://github.com/miftachurrochim82-sketch/LIbrary-CoreLib)) | `v2.4.0` | ⭐ **C4-C8**: `validateTransition`, `assertOwnership`, `periodeBulan/dalamPeriode/hitungHariKerja`, `findUnique/upsertUnique`, `getThemeConfig` (menu "Saya" & tema per-app). Pin GAS: **17** (PASS 47) |
-| **Frontend CDN** (`frontend/`, satu versi untuk semua berkas) | `v2.9.1` | **10 FILE (1 CSS + 9 JS) & 31 OPSI — Sekali Jalan:** 6 file baru (layout/ui/forms/data/charts/workflow) + `btn-ghost` + tabs/pagination + badge draft/baru/diproses/selesai/batal + tema dinamis Opsi B (`AppCore.themes` + `<app-theme-picker>`). |
+| **Frontend CDN** (`frontend/`, satu versi untuk semua berkas) | `v2.9.2` | **10 FILE (1 CSS + 9 JS) & 31 OPSI — Sekali Jalan:** 6 file baru (layout/ui/forms/data/charts/workflow) + `btn-ghost` + tabs/pagination + badge draft/baru/diproses/selesai/batal + tema dinamis Opsi B (`AppCore.themes` + `<app-theme-picker>`). |
 
 <details>
 <summary>Riwayat versi sebelumnya</summary>
 
 | Versi | Tanggal | Perubahan |
 |---|---|---|
-| CDN v2.9.1 | 2026-09-23 | PATCH `setMyScope`/`getMyScope` scope string | **10 FILE (1 CSS + 9 JS) & 31 OPSI:** 6 file baru (app-layout/ui/forms/data/charts/workflow) + btn-ghost + tabs/pagination + alert/confirm + breadcrumb/page-header + debounced-search/date-picker/file-upload/rich-editor + detail-drawer/export/master-tree/image-viewer + chart-line + approval/timeline + theme-picker (Opsi B). Badge: draft/baru/diproses/selesai/batal. AppCore.themes (6 preset) + applyTheme() + getMyScope(). |
+| CDN v2.9.2 | 2026-09-23 | PATCH `setMyScope`/`getMyScope` scope string | **10 FILE (1 CSS + 9 JS) & 31 OPSI:** 6 file baru (app-layout/ui/forms/data/charts/workflow) + btn-ghost + tabs/pagination + alert/confirm + breadcrumb/page-header + debounced-search/date-picker/file-upload/rich-editor + detail-drawer/export/master-tree/image-viewer + chart-line + approval/timeline + theme-picker (Opsi B). Badge: draft/baru/diproses/selesai/batal. AppCore.themes (6 preset) + applyTheme() + getMyScope(). |
 | CDN v2.8.1 | 2026-09-19 | FIX T49: `version` internal di `app-core.js` dan `app-modules.js` diselaraskan ke `"2.8.0"` (dari `"2.7.4"`). Tidak ada perubahan perilaku. |
 | CoreLib v2.3.0 | 2026-09-19 | ⭐ C3: `todayIsoLocal_()` + `dateKey10_()` (fix bug UTC-vs-WIB). C1/C2: `paginate_()` + `matchSearch_()` (util publik). Wrapper publik `CoreLib.todayIsoLocal/dateKey10/paginate/matchSearch`. Verifikasi live: `testAll()` PASS 42 / FAIL 0 / SKIP 1. Versi 15. |
 | CDN v2.8.0 | 2026-09-18 | F2: `.btn-icon`/`.btn-icon-danger`/`.btn-lg` promosi dari A0_Style si-lahar ke app-common.css (light+dark). F1: `<app-filter-bar>` dukung `span` 2..4 per filter. Harness: simulasi SSO 20/20 PASS. |
@@ -32,7 +32,7 @@ Repositori ini adalah **master bersama** ekosistem: memuat pustaka frontend CDN 
 
 </details>
 
-> Aplikasi konsumen memuat aset via jsDelivr dengan **tag versi** (`@v2.9.0`), bukan `@main`.
+> Aplikasi konsumen memuat aset via jsDelivr dengan **tag versi** (`@v2.9.2`), bukan `@main`.
 > Berkas `.min.*` dijamin sinkron dengan sumbernya oleh `npm run build` (8 file).
 
 > **Catatan versi CDN**: sejak v2.9.0, kedelapan berkas (`app-common`, `app-core`, `app-components`, `app-modules`, `app-layout`, `app-ui`, `app-forms`, `app-data`, `app-charts`, `app-workflow`) melaporkan `version: "2.9.0"` secara konsisten.
@@ -100,9 +100,9 @@ frontend-cdn/
 | Proyek | Deskripsi | Dependensi dari repo ini | Tautan |
 |---|---|---|---|
 | **`si-platform`** | Portal SSO, User Management, Role RBAC, Storage & Audit Log | CDN `@v2.7.5` (CSS + JS kit; Track A–E selesai) | [GitHub](https://github.com/miftachurrochim82-sketch/si-platform) |
-| **`si-kompetensi`** | Riwayat & Analisis Pengembangan Kompetensi ASN | CDN `@v2.7.5` → *saat ini `@v2.9.0` + pin 17* | [GitHub](https://github.com/miftachurrochim82-sketch/si-kompetensi) |
-| **`si-pelaporan`** | Manajemen & Verifikasi Pelaporan Kinerja ASN | CDN `@v2.7.5` → *saat ini `@v2.9.0` + pin 17* | [GitHub](https://github.com/miftachurrochim82-sketch/si-pelaporan) |
-| **`si-lahar`** | e-Kinerja Harian ASN: rencana, realisasi, verifikasi, Paspor Kinerja | CDN `@v2.9.0` + CoreLib pin 17 (`v2.4.0`) | [GitHub](https://github.com/miftachurrochim82-sketch/si-lahar) |
+| **`si-kompetensi`** | Riwayat & Analisis Pengembangan Kompetensi ASN | CDN `@v2.7.5` → *saat ini `@v2.9.2` + pin 17* | [GitHub](https://github.com/miftachurrochim82-sketch/si-kompetensi) |
+| **`si-pelaporan`** | Manajemen & Verifikasi Pelaporan Kinerja ASN | CDN `@v2.7.5` → *saat ini `@v2.9.2` + pin 17* | [GitHub](https://github.com/miftachurrochim82-sketch/si-pelaporan) |
+| **`si-lahar`** | e-Kinerja Harian ASN: rencana, realisasi, verifikasi, Paspor Kinerja | CDN `@v2.9.2` + CoreLib pin 17 (`v2.4.0`) | [GitHub](https://github.com/miftachurrochim82-sketch/si-lahar) |
 | **`LIbrary-CoreLib`** | ★ Sumber resmi library GAS CoreLib (dipindah dari `backend/` folder repo ini, 2026-09-19) | Library ID `1GmeYflf…` pin **17** (`v2.4.0` LIVE 2026-09-23 PASS 47) | [GitHub](https://github.com/miftachurrochim82-sketch/LIbrary-CoreLib) |
 | **`frontend-cdn`** | Master bersama: CDN frontend + dokumentasi arsitektur ekosistem | — | repo ini |
 

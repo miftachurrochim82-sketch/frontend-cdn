@@ -122,7 +122,7 @@ Preset: `emerald` `#065f46` (default), `sky` `#0c4a6e`, `amber` `#92400e`, `viol
 
 ## 7. Deployment & Versioning
 
-- **Satu tag untuk semua file:** `v2.9.0` (jsDelivr `@v2.9.1`) — kunci 1 CSS + 9 JS sekaligus. Jangan pecah versi per-file.
+- **Satu tag untuk semua file:** `v2.9.0` (jsDelivr `@v2.9.2`) — kunci 1 CSS + 9 JS sekaligus. Jangan pecah versi per-file.
 - **Rilis:** `git tag -a v2.9.1 -m "v2.9.1 10 FILE (1 CSS+9 JS) & 31 OPSI"` → `git push --tags` → tunggu jsDelivr ~5 menit → cek `https://cdn.jsdelivr.net/gh/...@v2.9.0/frontend/app-core.min.js` HTTP 200.
 - **Pin di app:** `appsscript.json` / `Index.html` harus tulis eksplisit `@v2.9.0`, jangan `@main`.
 - **Starter-kit** sudah pin `@v2.9.0` (v2.12.0). App baru cetak dari starter-kit, jangan copy manual.

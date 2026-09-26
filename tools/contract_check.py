@@ -71,7 +71,7 @@ APPS = [
     {
         "name": "si-arsip-2026",
         "src": os.path.join(HOME, "si-arsip-2026", "src"),
-        "pin": "2.9.0",   # bump CDN v2.9.0 (8 file) — 2026-09-22
+        "pin": "2.9.2",   # bump CDN v2.9.0 (8 file) — 2026-09-22
         "waiver": False,
         "markers": [
             ("J_App.html", "AppCore.create"),
@@ -81,7 +81,7 @@ APPS = [
     {
         "name": "si-lahar",
         "src": os.path.join(HOME, "si-lahar", "src"),
-        "pin": "2.9.0",   # bump CDN v2.9.0 + CoreLib v2.4.0 — 2026-09-22
+        "pin": "2.9.2",   # bump CDN v2.9.0 + CoreLib v2.4.0 — 2026-09-22
         "waiver": False,
         "markers": [
             ("J_App.html", "AppCore.create"),
@@ -92,7 +92,7 @@ APPS = [
     {
         "name": "starter-kit",
         "src": os.path.join(HOME, "starter-kit", "src"),
-        "pin": "2.9.0",   # v2.12.0 — CDN 8 file + CoreLib 17 — 2026-09-23
+        "pin": "2.9.2",   # v2.12.0 — CDN 8 file + CoreLib 17 — 2026-09-23
         "waiver": False,
         "markers": [
             ("J_App.html", "AppCore.create"),
@@ -103,7 +103,7 @@ APPS = [
     {
         "name": "si-dokumen",
         "src": os.path.join(HOME, "si-dokumen", "src"),
-        "pin": "2.9.0",   # v1.7.0 bump CDN 8 file + CoreLib 16 — 2026-09-23
+        "pin": "2.9.2",   # v1.7.0 bump CDN 8 file + CoreLib 16 — 2026-09-23
         "waiver": False,
         "markers": [
             ("J_App.html", "AppCore.create"),
