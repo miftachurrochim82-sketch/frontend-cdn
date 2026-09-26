@@ -10,7 +10,7 @@ Repositori ini adalah **master bersama** ekosistem: memuat pustaka frontend CDN 
 | Paket | Versi | Catatan |
 |---|---|---|
 | **CoreLib** (backend GAS library — repo terpisah [`LIbrary-CoreLib`](https://github.com/miftachurrochim82-sketch/LIbrary-CoreLib)) | `v2.4.0` | ⭐ **C4-C8**: `validateTransition`, `assertOwnership`, `periodeBulan/dalamPeriode/hitungHariKerja`, `findUnique/upsertUnique`, `getThemeConfig` (menu "Saya" & tema per-app). Pin GAS: **17** (PASS 47) |
-| **Frontend CDN** (`frontend/`, satu versi untuk semua berkas) | `v2.9.2` | **10 FILE (1 CSS + 9 JS) & 31 OPSI — Sekali Jalan:** 6 file baru (layout/ui/forms/data/charts/workflow) + `btn-ghost` + tabs/pagination + badge draft/baru/diproses/selesai/batal + tema dinamis Opsi B (`AppCore.themes` + `<app-theme-picker>`). |
+| **Frontend CDN** (`frontend/`, satu versi untuk semua berkas) | `v2.9.2` **STABIL/FROZEN 2026-09-26** | **10 FILE (1 CSS + 9 JS) & 31 OPSI — 🔒 BEKU** — Semua 6 app sudah @v2.9.2 ✅. **Kebijakan Freeze:** tidak ada update CDN dalam waktu dekat; patch app-side pakai `// CDN-FIX v2.13.0+1` (kumpulkan ≥5 baru rilis v2.14.0). Ekosistem STABIL = `CDN v2.9.2 + Starter-kit v2.13.0` — siap clone. |
 
 <details>
 <summary>Riwayat versi sebelumnya</summary>
