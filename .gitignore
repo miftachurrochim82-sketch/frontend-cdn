@@ -1,21 +1,19 @@
-# Mengabaikan berkas non-GAS (untuk push CoreLib dulu — repo ini sebenarnya frontend)
-# File CDN (frontend/*) tetap ter-commit walau pattern ini ada, karena sudah ter-track sebelum .gitignore
-**/**
-!frontend/
-!frontend/**
-!appsscript.json
-!01_CoreFoundation.gs
-!02_CoreGateway.gs
-!03_CoreServices.gs
-!99_CoreTest.gs
-.git/**
-node_modules/**
-package.json
-package-lock.json
-README.md
-00_MIGRATION_v2.md
-*.md
-!ECOSYSTEM_GUIDE.md
-!ECOSYSTEM_GUIDE_*.md
-!ROADMAP_CDN.md
-.github/**
+# Dependensi & keluaran tooling
+node_modules/
+
+# Berkas sistem / editor
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/
+
+# CATATAN PENTING — artefak frontend/*.min.js dan *.min.css SENGAJA
+# di-commit. jsDelivr menyajikannya langsung dari tag git, jadi artefak
+# harus ada di repo. CI (`npm run check`) memastikan artefak tersebut
+# selalu sinkron dengan sumbernya.
+#
+# .gitignore lama memakai pola `**/**` (abaikan semua) lalu di-negasi
+# satu per satu, dan ikut mengabaikan package.json, *.md, serta
+# .github/** yang sebenarnya ter-track. Komentarnya sendiri mengakui
+# pola itu tidak berfungsi. Diganti dengan daftar abaikan biasa.

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Preview CDN v2.9.2 — 8 File & 31 Opsi</title>
+<title>Preview CDN __V__ — 10 File (1 CSS + 9 JS) & 31 Opsi</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/vue@3.5.42/dist/vue.global.prod.js"></script>
@@ -22,7 +22,7 @@
 <div id="app">
   <div style="max-width:1100px; margin:0 auto">
     <div style="background:linear-gradient(135deg,var(--primary),var(--primary-dark)); color:white; padding:1.5rem 1.75rem; border-radius:1.25rem; margin-bottom:1.5rem">
-      <h1 style="font-size:1.4rem; font-weight:800">📦 CDN v2.9.2 — 8 File & 31 Opsi <span style="background:rgba(255,255,255,0.2); padding:0.2rem 0.6rem; border-radius:9999px; font-size:0.7rem; margin-left:0.5rem">PREVIEW</span></h1>
+      <h1 style="font-size:1.4rem; font-weight:800">📦 CDN __V__ — 10 File (1 CSS + 9 JS) & 31 Opsi <span style="background:rgba(255,255,255,0.2); padding:0.2rem 0.6rem; border-radius:9999px; font-size:0.7rem; margin-left:0.5rem">PREVIEW</span></h1>
       <p style="opacity:0.9; font-size:0.85rem; margin-top:0.35rem">8 file (1 CSS + 7 JS) — sekali jalan, app tinggal mix sesuai kebutuhan. Tema dinamis Opsi B sudah aktif.</p>
       <div style="margin-top:1rem; display:flex; gap:0.5rem; flex-wrap:wrap">
         <span style="background:white; color:var(--primary); padding:0.35rem 0.75rem; border-radius:9999px; font-size:0.7rem; font-weight:700">RAK A Fondasi (7)</span>
@@ -141,15 +141,15 @@
     </div>
 
     <div style="background:#0f172a; color:#e2e8f0; padding:1.25rem; border-radius:1rem; font-size:0.75rem; line-height:1.6">
-      <div style="font-weight:800; margin-bottom:0.5rem">✅ Semua 31 opsi sudah ada di 8 file — cara pakai (tetap 1 tag @v2.9.2):</div>
-      <pre style="background:#1e293b; padding:0.75rem; border-radius:0.5rem; overflow:auto"><code>&lt;link rel="stylesheet" href="...frontend-cdn@v2.9.2/frontend/app-common.min.css"&gt;
-&lt;script src="...@v2.9.2/frontend/app-core.min.js"&gt;&lt;/script&gt;
-&lt;script src="...@v2.9.2/frontend/app-layout.min.js"&gt;&lt;/script&gt;
-&lt;script src="...@v2.9.2/frontend/app-ui.min.js"&gt;&lt;/script&gt;
-&lt;script src="...@v2.9.2/frontend/app-forms.min.js"&gt;&lt;/script&gt;
-&lt;script src="...@v2.9.2/frontend/app-data.min.js"&gt;&lt;/script&gt;
-&lt;script src="...@v2.9.2/frontend/app-charts.min.js"&gt;&lt;/script&gt;
-&lt;script src="...@v2.9.2/frontend/app-workflow.min.js"&gt;&lt;/script&gt;
+      <div style="font-weight:800; margin-bottom:0.5rem">✅ Semua 31 opsi sudah ada di 10 file — cara pakai (tetap 1 tag @__V__):</div>
+      <pre style="background:#1e293b; padding:0.75rem; border-radius:0.5rem; overflow:auto"><code>&lt;link rel="stylesheet" href="...frontend-cdn@__V__/frontend/app-common.min.css"&gt;
+&lt;script src="...@__V__/frontend/app-core.min.js"&gt;&lt;/script&gt;
+&lt;script src="...@__V__/frontend/app-layout.min.js"&gt;&lt;/script&gt;
+&lt;script src="...@__V__/frontend/app-ui.min.js"&gt;&lt;/script&gt;
+&lt;script src="...@__V__/frontend/app-forms.min.js"&gt;&lt;/script&gt;
+&lt;script src="...@__V__/frontend/app-data.min.js"&gt;&lt;/script&gt;
+&lt;script src="...@__V__/frontend/app-charts.min.js"&gt;&lt;/script&gt;
+&lt;script src="...@__V__/frontend/app-workflow.min.js"&gt;&lt;/script&gt;
 &lt;!-- app-components.min.js & app-modules.min.js tetap untuk backward compat --&gt;</code></pre>
       <div style="margin-top:0.75rem; color:#94a3b8">App ringan cukup load A+B+C+D+E. App lengkap load semua. Semua 1 tag, tidak ada versi campur.</div>
     </div>
@@ -166,6 +166,25 @@
 <script src="./frontend/app-charts.min.js"></script>
 <script src="./frontend/app-workflow.min.js"></script>
 <script src="./frontend/app-modules.min.js"></script>
+<script>
+  // Versi diisi saat runtime dari artefak CDN itu sendiri
+  // (AppComponents.version <- package.json). Tidak ada lagi file
+  // preview-vX.Y.Z.html baru tiap rilis, dan tidak ada versi
+  // hardcoded yang bisa desinkron.
+  (function () {
+    var v = (window.AppComponents && window.AppComponents.version)
+         || (window.AppCore && window.AppCore.version) || '?';
+    var tag = 'v' + v;
+    document.title = document.title.split('__V__').join(tag);
+    var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    var node;
+    while ((node = walker.nextNode())) {
+      if (node.nodeValue.indexOf('__V__') !== -1) {
+        node.nodeValue = node.nodeValue.split('__V__').join(tag);
+      }
+    }
+  })();
+</script>
 <script>
   const app = Vue.createApp({
     data(){ return { themeCode: 'emerald', tabDemo:'semua', tabsDemo:[{id:'semua',label:'Semua',count:12},{id:'saya',label:'Saya',count:3,icon:'fa-solid fa-user'}], pageDemo:1, searchDemo:'', filterDemo:[{key:'status',label:'Status',type:'select',options:['baru','diproses','selesai']},{key:'q',label:'Cari',type:'text',placeholder:'Ketik...'}], filterVal:{}, showConfirm:false, filesDemo:[], showDrawer:false, showImage:false }},

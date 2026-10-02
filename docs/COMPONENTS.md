@@ -1,70 +1,12 @@
-# Frontend CDN — Pustaka UI Bersama v2.9.1 (10 File — 1 CSS + 9 JS & 31 Opsi)
-### Vue 3 + Tailwind CSS • Pemkab Trenggalek
+# Katalog Komponen
 
-Seluruh aplikasi ekosistem (si-kompetensi, si-pelaporan, si-platform, si-lahar, dan aplikasi baru) memuat UI dari folder ini via jsDelivr. **Satu nomor versi berlaku untuk semua berkas** — satu tag rilis (`v2.9.0`) mengunci 1 CSS + 7 JS sekaligus.
-
-> Snippet siap salin untuk `Index.html` aplikasi baru: **[CDN_SNIPPET.md](CDN_SNIPPET.md)**.
-
----
-
-## 🆕 Rilis v2.9.0 (2026-09-22) — 10 FILE (1 CSS + 9 JS) & 31 OPSI — Sekali Jalan
-
-**Tujuan:** tutup 5 keluhan berulang (button/tab/filter/pagination/kolom) + kaya fitur + tema dinamis — tidak tambal-sulam lagi.
-
-**RAK A — Fondasi (`app-common.css`):** `btn-ghost` (dipakai 67x tapi belum ada), `btn-sm/xs`, style `app-tabs` & `app-pagination`, preset kolom `col-S/M/L/XL` (90/150/220/260px), `input--sm`, `is-error/success`, `alert`, `breadcrumb`, `page-header`, `drawer`, `theme-picker` — 7 opsi
-
-**RAK C — Layout (`app-layout.js` BARU):** `<app-breadcrumb>` (C1), `<app-page-header>` (C2)
-
-**RAK D — UI (`app-ui.js` BARU):** `<app-tabs>` (D1 WAJIB), `<app-pagination>` (D2 WAJIB), `<app-badge>` extend `draft/baru/diproses/selesai/batal` (D3), `<app-alert>` (D4), `<app-confirm>` (D5), `<app-stat-card>` trend (D6)
-
-**RAK E — Forms (`app-forms.js` BARU):** `<app-filter-bar>` upgrade debounce+date-range (E1), `<app-debounced-search>` (E3 WAJIB), `<app-date-picker>` (E4), `<app-file-upload>` drag&drop (E5), `<app-rich-editor>` (E6) — plus `<app-pegawai-picker>` existing
-
-**RAK F — Data (`app-data.js` BARU):** `<app-crud-table>` upgrade sticky+preset (F1), `<app-detail-drawer>` (F2), `<app-export-button>` (F3), `<app-csv-import>` (F4), `<app-master-tree>` (F5), `<app-image-viewer>`/`<app-file-preview>` (F6)
-
-**RAK G — Charts (`app-charts.js` BARU):** `<app-chart-line>` (G2), `<app-configurable-dashboard>` (G3) — plus `bar/doughnut` existing
-
-**RAK H — Workflow (`app-workflow.js` BARU):** `<app-approval-panel>`/`<app-stepper>` (H1), `<app-audit-timeline>` (H2), ⭐ `<app-theme-picker>` + **Tema Dinamis Opsi B** (H4 WAJIB — pilih warna di Pengaturan, simpan ke `safeLocal` + `THEME_CODE`, apply via `AppCore.applyTheme()`)
-
-**Core (`app-core.js`):** `AppCore.themes` (6 preset: emerald/sky/amber/violet/rose/teal) + `applyTheme()` + `getTheme()` + `getMyScope()` untuk menu "Saya" vs "Semua"
-
-**Badge:** status baru `draft/baru/diproses/selesai/batal` — cermin `V_Utama` starter-kit
-
-> Total: **dari 12 → 31 opsi** (+19), dari 4 → **10 file fisik (1 CSS + 9 JS)**, baris 2.850 → ~4.250 (+49%), minified ~135 KB (app ringan cuma load 60–80 KB via mix)
+Referensi lengkap 31 komponen & props untuk Frontend CDN Pemkab Trenggalek.
+Untuk cara memuat CDN dan daftar modul, lihat [`../README.md`](../README.md).
+Untuk riwayat versi, lihat [`../CHANGELOG.md`](../CHANGELOG.md).
 
 ---
 
-## 📦 Berkas (10 File Fisik — 1 CSS + 9 JS — 1 Toko, 1 Versi)
 
-| Berkas | Isi | Dimuat via | Wajib? |
-|---|---|---|---|
-| `app-common.css` → `app-common.min.css` | Design tokens, CSS variables (tema via `--primary`), kelas util (`btn-ghost/sm/xs`, `col-S/M/L/XL`, `alert`, `breadcrumb`, `drawer`, `theme-picker`) + preset 6 tema | `<link>` di `<head>` | **WAJIB** semua app |
-| `app-core.js` → `.min.js` | `AppCore`: `create()`, sesi aman, `loadLib()` on-demand, cache SWR, `AppCore.themes` + `applyTheme()` + `getMyScope()` | `<script>` sebelum `</body>` | **WAJIB** |
-| `app-layout.js` → `.min.js` **BARU** | `app-breadcrumb`, `app-page-header` | `<script>` | WAjIB (layout) |
-| `app-ui.js` → `.min.js` **BARU** | `app-tabs`, `app-pagination`, `app-alert`, `app-confirm` | `<script>` | WAJIB (feedback) |
-| `app-forms.js` → `.min.js` **BARU** | `app-debounced-search`, `app-date-picker`, `app-file-upload`, `app-rich-editor`, `app-filter-bar-enhanced` | `<script>` | Jika ada form/filter |
-| `app-data.js` → `.min.js` **BARU** | `app-detail-drawer`, `app-export-button`, `app-csv-import`, `app-master-tree`, `app-image-viewer/file-preview` | `<script>` | Jika ada tabel/data |
-| `app-charts.js` → `.min.js` **BARU** | `app-chart-line`, `app-configurable-dashboard` (+ bar/doughnut existing) | `<script>` | Jika ada chart |
-| `app-workflow.js` → `.min.js` **BARU** | `app-approval-panel/stepper`, `app-audit-timeline`, `app-theme-picker` (+ profile/settings) | `<script>` | Jika ada approval/tema |
-| `app-components.js` → `.min.js` | **Bundle kompatibilitas** — tetap memuat 12 komponen inti (login/sidebar/header/badge/stat-card/modal/crud-table/empty/skeleton/filter-bar/chart/pegawai-picker) + merge otomatis 6 file baru | `<script>` | **WAJIB** (backward compat) |
-| `app-modules.js` → `.min.js` | `app-profile`, `app-settings` (tetap, juga merge ke workflow) | `<script>` | Jika ada profil/pengaturan |
-
-> **Mix sesuai kebutuhan:** App sederhana (SI-CUTI) → `common + core + layout + ui + forms` (5 file). App lengkap (SI-DOKUMEN) → semua 8 file. Tetap **1 tag `@v2.9.0`**.
-
-Cek versi runtime di Console browser:
-```javascript
-AppCore.version        // "2.9.0"
-AppComponents.version  // "2.9.0"
-AppLayout.version      // "2.9.0"
-AppUi.version          // "2.9.0"
-AppForms.version       // "2.9.0"
-AppData.version        // "2.9.0"
-AppCharts.version      // "2.9.0"
-AppWorkflow.version    // "2.9.0"
-```
-
-> Sejak v2.9.0, semua 8 file melaporkan **"2.9.0"** konsisten.
-
----
 
 ## 🧩 Katalog Komponen & Props (31 Opsi)
 
@@ -202,29 +144,31 @@ Semua bawaan `app-common.css`, sudah punya varian light & dark — **jangan** di
 
 ---
 
-## 🏗️ Build & Rilis
+---
 
-```bash
-npm install
-npm run build     # memperbarui seluruh berkas .min.* dari sumbernya (8 file)
+## Registry pustaka (`AppCore.libs`)
+
+Semua URL pustaka berat kini **terpusat di satu tempat** dan dimuat on-demand.
+
+| Nama | Pustaka | Versi terkunci | Muat otomatis oleh |
+|---|---|---|---|
+| `chart` | Chart.js | 4.4.1 | `ensureChartLibrary()` |
+| `xlsx` | SheetJS | 0.18.5 | `exportExcel()` |
+| `jspdf` | jsPDF | 2.5.1 | `exportPDF()` |
+| `autotable` | jsPDF-AutoTable | 3.8.2 | `exportPDF()` (lewat grup `pdf`) |
+| `pdflib` | pdf-lib | 1.17.1 | — (panggil manual) |
+| `pdf` | *grup*: jspdf + autotable | — | `exportPDF()` |
+
+### Cara pakai
+
+```javascript
+// Di dalam methods Vue (instance app buatan AppCore.create):
+async renderGrafik() {
+  if (!(await this.loadLib('chart'))) return;
+  new Chart(ctx, { /* ... */ });
+}
+// Tema dinamis Opsi B:
+this.applyTheme('sky'); // atau 'emerald'/'amber'/'violet'/'rose'/'teal'
 ```
 
-Alur rilis (urutan WAJIB — pelajaran insiden tag v2.6.3):
-1. Ubah sumber (`app-*.js` / `app-common.css`) + naikkan `version` internal & `package.json` → `2.9.0`.
-2. `npm run build` → commit `.min.*` hasil build (8 file).
-3. **Unggah SEMUA berkas ke GitHub dulu.**
-4. **Baru buat tag** `v2.9.0` (GitHub → Releases). Tag yang dibuat sebelum unggahan = tag basi via jsDelivr.
-5. Terakhir, ubah `Index.html` aplikasi konsumen agar menunjuk tag baru.
-
-> jsDelivr meng-cache `@main` hingga 12 jam → aplikasi wajib memakai tag versi.
-> Detail snippet & troubleshooting: [CDN_SNIPPET.md](CDN_SNIPPET.md).
-
-### Riwayat rilis singkat
-| Tag | Versi berkas | Perubahan |
-|---|---|---|
-| `v2.9.1` | `"2.9.1"` | **10 FILE (1 CSS + 9 JS) & 31 OPSI** — 6 file baru (layout/ui/forms/data/charts/workflow) + tema dinamis Opsi B + badge draft/baru/diproses/selesai/batal |
-| `v2.8.1` | `"2.8.0"` | Patch konsistensi internal (T49) — fix `AppCore.version`/`AppModules.version` |
-| `v2.8.0` | `"2.8.0"` | F2: promosi `.btn-icon`/`.btn-icon-danger`/`.btn-lg` ke kit; F1: `<app-filter-bar>` dukung `span` |
-| `v2.7.0` | `"2.7.0"` | B1–B7: picker, chart kit, filter-bar, empty-state, skeleton, v-can, paginate helper |
-| `v2.6.5` | `"2.6.5"` | AppBadge `icon`, `app-stat-card` baru, badge variants |
-| `v2.6.0` | `"2.6.0"` | Registry `AppCore.libs` + `loadLib()` on-demand |
+---
