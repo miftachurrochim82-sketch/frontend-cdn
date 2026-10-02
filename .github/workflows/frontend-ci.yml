@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "frontend/**"
+      - "tools/build.mjs"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/frontend-ci.yml"
@@ -15,13 +16,14 @@ on:
       - main
     paths:
       - "frontend/**"
+      - "tools/build.mjs"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/frontend-ci.yml"
 
 jobs:
   build:
-    name: Build frontend assets
+    name: Verifikasi artefak CDN
     runs-on: ubuntu-latest
 
     steps:
@@ -37,5 +39,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build frontend assets
-        run: npm run build
+      # Membangun ulang artefak lalu membandingkannya dengan yang
+      # di-commit. Gagal kalau ada .min yang basi atau tidak diminify.
+      #
+      # Ini inti perbaikan Batch 1: sebelumnya CI hanya menjalankan build
+      # dan membuang hasilnya, sehingga selalu hijau meski 8 dari 9
+      # artefak .min sebenarnya hanya salinan mentah sumbernya.
+      - name: Verifikasi artefak .min sinkron dengan sumber
+        run: npm run check
+
+      - name: Syntax check artefak JS
+        run: |
+          for f in frontend/*.min.js; do
+            node --check "$f" || exit 1
+          done
+          echo "Semua artefak JS valid."
