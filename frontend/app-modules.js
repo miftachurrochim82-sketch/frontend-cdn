@@ -509,7 +509,7 @@
   global.AppModules = {
     'app-profile': AppProfile,
     'app-settings': AppSettings,
-    version: '2.9.0'
+    version: '2.9.3'
   };
 
 })(window);

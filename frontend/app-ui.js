@@ -133,12 +133,12 @@
     'app-pagination': AppPagination,
     'app-alert': AppAlert,
     'app-confirm': AppConfirm,
-    version: '2.9.0'
+    version: '2.9.3'
   };
 
   global.AppUi = comps;
   global.AppComponents = global.AppComponents || {};
   Object.keys(comps).forEach(function(k){ if(k!=='version') global.AppComponents[k]=comps[k]; });
-  if(global.AppComponents) global.AppComponents.version = '2.9.0';
+  if(global.AppComponents) global.AppComponents.version = '2.9.3';
 
 })(window);

@@ -113,7 +113,7 @@
     'app-stepper': AppStepper,
     'app-audit-timeline': AppAuditTimeline,
     'app-theme-picker': AppThemePicker,
-    version: '2.9.0'
+    version: '2.9.3'
   };
 
   // merge profile/settings dari AppModules jika sudah load
@@ -126,7 +126,7 @@
   global.AppWorkflow = comps;
   global.AppComponents = global.AppComponents || {};
   Object.keys(comps).forEach(function(k){ if(k!=='version') global.AppComponents[k]=comps[k]; });
-  if(global.AppComponents) global.AppComponents.version='2.9.0';
+  if(global.AppComponents) global.AppComponents.version='2.9.3';
 
   // juga expose ke AppModules untuk backward compat
   global.AppModules = global.AppModules || {};

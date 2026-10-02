@@ -223,12 +223,12 @@
     'app-master-tree': AppMasterTree,
     'app-image-viewer': AppImageViewer,
     'app-file-preview': AppFilePreview,
-    version: '2.9.0'
+    version: '2.9.3'
   };
 
   global.AppData = comps;
   global.AppComponents = global.AppComponents || {};
   Object.keys(comps).forEach(function(k){ if(k!=='version') global.AppComponents[k]=comps[k]; });
-  if(global.AppComponents) global.AppComponents.version='2.9.0';
+  if(global.AppComponents) global.AppComponents.version='2.9.3';
 
 })(window);

@@ -218,12 +218,12 @@
     'app-file-upload': AppFileUpload,
     'app-rich-editor': AppRichEditor,
     'app-filter-bar-enhanced': AppFilterBarEnhanced,
-    version: '2.9.0'
+    version: '2.9.3'
   };
 
   global.AppForms = comps;
   global.AppComponents = global.AppComponents || {};
   Object.keys(comps).forEach(function(k){ if(k!=='version') global.AppComponents[k]=comps[k]; });
-  if(global.AppComponents) global.AppComponents.version='2.9.0';
+  if(global.AppComponents) global.AppComponents.version='2.9.3';
 
 })(window);
