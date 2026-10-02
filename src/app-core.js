@@ -968,7 +968,7 @@
     getTheme: getTheme,
     getMyScope: getMyScope,
     setMyScope: setMyScope,
-    version: '3.0.0'
+    version: '3.0.1'
   };
 
 })(window)

@@ -6,6 +6,11 @@
 //   node tools/build.mjs --check    bandingkan dengan artefak di disk,
 //                                   exit 1 kalau beda (dipakai CI)
 //
+// Sumber ada di src/, artefak sajian di frontend/. Pemisahan ini WAJIB:
+// bila app.css berada di folder yang sama dengan app.min.css, jsDelivr
+// mengabaikan berkas kita dan mencoba meminify app.css sendiri — pada
+// v3.0.0 proses itu gagal dan jsDelivr menyajikan CSS mentah 24 KB.
+//
 // Keluaran hanya DUA berkas. Aplikasi memuat keduanya, titik.
 // Sebelum v3.0.0 ada 10 berkas sajian supaya aplikasi bisa memilih
 // à-la-carte — tidak ada satu pun aplikasi yang memilih, keduanya
@@ -18,7 +23,8 @@ import { minify as minifyJs } from "terser";
 import CleanCSS from "clean-css";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const SRC = join(ROOT, "frontend");
+const SRC = join(ROOT, "src");      // sumber
+const OUT = join(ROOT, "frontend"); // artefak yang disajikan jsDelivr
 const CHECK = process.argv.includes("--check");
 
 // Sumber JS, digabung jadi satu bundel. Urutan penting: core dulu.
@@ -43,7 +49,7 @@ const versionDrift = [];
 const drifted = [];
 
 async function emit(outFile, output) {
-  const path = join(SRC, outFile);
+  const path = join(OUT, outFile);
   if (!CHECK) return writeFile(path, output, "utf8");
   let current = null;
   try {

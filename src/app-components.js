@@ -22,7 +22,7 @@
       appSubtitle:  { type: String, default: 'Sistem Informasi Terintegrasi SIMPEG' },
       instansi:     { type: String, default: 'Pemerintah Kabupaten Trenggalek' },
       tagline:      { type: String, default: 'Autentikasi telah terintegrasi terpusat (SSO). Silakan masuk menggunakan akun resmi Anda pada platform utama.' },
-      version:      { type: String, default: 'v3.0.0' },
+      version:      { type: String, default: 'v3.0.1' },
       logoSvg:      { type: String, default: '' },
       isProcessing: { type: Boolean, default: false },
       errorMessage: { type: String, default: '' }
@@ -672,7 +672,7 @@
     'app-chart-bar':       makeChartComponent_('bar'),
     'app-chart-doughnut':  makeChartComponent_('doughnut'),
     'app-theme-picker':    AppThemePicker,
-    version: '3.0.0'
+    version: '3.0.1'
   };
 
 })(window);

@@ -8,6 +8,22 @@ Sejak v2.9.3 ketiganya dijamin identik oleh `npm run check` di CI.
 
 ---
 
+## v3.0.1 — 2026-10-02
+
+### Diperbaiki
+- **jsDelivr menyajikan CSS mentah 24 KB, bukan artefak 11 KB kita.**
+  Untuk permintaan `*.min.css`, jsDelivr mengabaikan berkas yang ada di
+  repo dan membuat versi minify sendiri dari `app.css` di folder yang
+  sama. Proses itu gagal (`Failed to minify the file using clean-css
+  v5.3.3`) sehingga ia menyajikan sumber apa adanya.
+- Sumber dipindah ke `src/`; `frontend/` kini hanya berisi dua artefak
+  sajian. Tanpa `app.css` bersebelahan, jsDelivr menyajikan berkas kita.
+
+**v3.0.0 jangan dipakai** — tag tetap ada tapi CSS-nya tersaji mentah.
+Gunakan `@v3.0.1`.
+
+---
+
 ## v3.0.0 — 2026-10-02
 
 **Perubahan besar: 10 berkas sajian → 2.** Dasarnya pengukuran pemakaian nyata

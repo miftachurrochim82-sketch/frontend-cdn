@@ -1,8 +1,8 @@
 {
   "name": "@miftachurrochim82/frontend-cdn",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Shared Frontend Assets CDN for Google Apps Script Web Apps (Pemkab Trenggalek) — Vue 3 + Tailwind",
-  "main": "frontend/app-core.js",
+  "main": "frontend/app.min.js",
   "scripts": {
     "build": "node tools/build.mjs",
     "check": "node tools/build.mjs --check"

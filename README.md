@@ -6,7 +6,7 @@ Pustaka UI bersama untuk aplikasi Google Apps Script berbasis **Vue 3 + Tailwind
 
 | | |
 |---|---|
-| Versi aktif | **v3.0.0** |
+| Versi aktif | **v3.0.1** |
 | Konsumen | `starter-kit`, `si-data` |
 | Katalog komponen | [`docs/COMPONENTS.md`](docs/COMPONENTS.md) |
 | Riwayat versi | [`CHANGELOG.md`](CHANGELOG.md) |
@@ -20,14 +20,14 @@ Pustaka UI bersama untuk aplikasi Google Apps Script berbasis **Vue 3 + Tailwind
 Di dalam `<head>`:
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v3.0.0/frontend/app.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v3.0.1/frontend/app.min.css">
 <script src="https://cdn.jsdelivr.net/npm/vue@3.5.42/dist/vue.global.prod.js"></script>
 ```
 
 Sebelum `</body>`:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v3.0.0/frontend/app.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v3.0.1/frontend/app.min.js"></script>
 <script>
   AppCore.create({
     appCode: 'si-contoh',
@@ -69,15 +69,21 @@ Props lengkap ada di [`docs/COMPONENTS.md`](docs/COMPONENTS.md).
 ## Struktur repo
 
 ```
-frontend/
-  app.css              sumber CSS
-  app.min.css          ← disajikan ke aplikasi
-  app-core.js          sumber: AppCore (sesi, SWR, tema, loadLib)
-  app-components.js    sumber: 11 komponen
-  app.min.js           ← disajikan ke aplikasi (bundel core + komponen)
+src/                   SUMBER — jangan dirujuk dari aplikasi
+  app.css
+  app-core.js          AppCore: sesi, SWR, tema, loadLib
+  app-components.js    11 komponen
+frontend/              ARTEFAK SAJIAN — hanya ini yang dimuat aplikasi
+  app.min.css
+  app.min.js           bundel core + komponen
 tools/build.mjs        build & verifikasi
 preview.html           demo sekaligus uji asap
 ```
+
+> Pemisahan `src/` dan `frontend/` wajib dipertahankan. Bila `app.css`
+> berada satu folder dengan `app.min.css`, jsDelivr mengabaikan artefak
+> kita dan mencoba meminify sendiri — pada v3.0.0 itu gagal dan yang
+> tersaji justru CSS mentah 24 KB.
 
 ---
 
