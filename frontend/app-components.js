@@ -1,58 +1,14 @@
-/* ============================================================
-   app-components.js — Komponen Vue 3 Siap Pakai (Shared CDN v2.9.0)
-   Komponen global (inti):
-   1. <app-login>      : Layar Autentikasi Single Sign-On (SSO)
-   2. <app-sidebar>    : Navigasi Samping Themed (per-app colors)
-   3. <app-header>     : Top Bar Universal + Slot extra-actions
-   4. <app-badge>      : Status Badge Multi-domain (v2.9.0: +draft/baru/diproses/selesai/batal)
-   5. <app-stat-card>  : Kartu Widget Metrik Dashboard
-   6. <app-modal>      : Universal Modal Box
-   7. <app-crud-table> : Smart Data Table
-   + 8-14 via modular files (app-layout, app-ui, app-forms, app-data, app-charts, app-workflow) — semua merge ke AppComponents
-
-   Changelog v2.9.0 (2026-09-22) — 8 FILE & 31 OPSI:
-   - 🔧 BADGE: tambah status transaksi starter-kit (draft/baru/diproses/selesai/batal) — cermin V_Utama
-   - 🔧 VERSION: bump ke 2.9.0 (sinkron 8 file). AppLogin default version → 2.9.0
-   - 📦 MODULAR: 6 file baru (app-layout/ui/forms/data/charts/workflow) otomatis merge ke AppComponents
-
-   Changelog v2.6.5 (2026-09-15):
-  - 🆕 AppBadge: prop `icon` (ikon FA menggantikan titik bila diisi).
-  - 🆕 AppBadge: status baru — info (sky), emerald/tuntas (hijau),
-    purple/pppk (ungu). Perilaku status lama tidak berubah.
-
-  Changelog v2.6.4 (2026-09-15):
-   - 🔢 Penyelarasan versi tunggal ekosistem (lihat changelog app-core).
-     Isi komponen TIDAK berubah sejak 2.6.3 (size 3xl/4xl/5xl + subtitle).
-   - ⚠️ CATATAN OPERASIONAL: tag v2.6.3 di GitHub sempat menunjuk isi
-     components lama (2.6.0) karena berkas terunggah setelah tag dibuat.
-     Mulai 2.6.4: unggah SEMUA berkas dahulu, BARU buat tag.
-
-   Changelog v2.6.3 (2026-09-15):
-   - 🆕 ADD: <app-modal> ukuran '3xl', '4xl', '5xl' (form lebar dengan grid
-     3 kolom kini muat tanpa memaksa max-w-2xl).
-   - 🆕 ADD: prop `subtitle` pada <app-modal> — baris keterangan kecil di
-     bawah judul, menggantikan pola subtitle yang dulu ditulis manual di
-     header tiap modal aplikasi.
-   - 🔢 Versi berkas: 2.6.0 → 2.6.3. Tag rilis ekosistem: v2.6.3.
-
-   Changelog v2.6.0 (2026-09-15):
-   - 🔢 Penyelarasan versi: seluruh berkas CDN kini memakai SATU nomor
-     versi bersama (2.6.0) agar bisa dirujuk lewat satu tag git @v2.6.0.
-     TIDAK ada perubahan perilaku/komponen pada rilis ini.
-   - Default prop `version` pada <app-login> ikut diselaraskan ke v2.6.0.
-
-   Changelog v2.4.0 (2026-09-13):
-   - 🎨 THEMING: <app-sidebar> sekarang pakai CSS class .app-sidebar*
-     (didefinisikan di app-common.css). Warna mengikuti --primary-*
-     CSS variables — tiap web app cukup override :root di Index.html
-     untuk ganti tema (hijau/biru/kuning/dst).
-   - Sidebar light mode kini tinted sesuai tema (bukan gelap).
-   - Dark mode sidebar tetap gelap dengan accent --primary-accent.
-   Changelog v2.3.2 (2026-09-13):
-   - FIX: AppHeader — replace(/_/g, ' ') agar semua underscore → spasi.
-   Changelog v2.3.1 (2026-09-13):
-   - FIX: AppHeader — slot extra-actions; AppCrudTable — v-else fix.
-   ============================================================ */
+// ============================================================
+//  app-components.js — Kit komponen Vue 3 (Frontend CDN v3.0.0)
+//
+//  11 komponen. Dulu 38; 27 di antaranya tidak dipanggil oleh
+//  satu pun aplikasi konsumen dan dihapus di v3.0.0.
+//  Lihat CHANGELOG.md untuk data pemakaiannya.
+//
+//  Berkas ini adalah SUMBER. Yang disajikan ke aplikasi adalah
+//  bundel app.min.js (app-core.js + berkas ini), dibangun oleh
+//  `npm run build`.
+// ============================================================
 (function (global) {
   'use strict';
 
@@ -66,7 +22,7 @@
       appSubtitle:  { type: String, default: 'Sistem Informasi Terintegrasi SIMPEG' },
       instansi:     { type: String, default: 'Pemerintah Kabupaten Trenggalek' },
       tagline:      { type: String, default: 'Autentikasi telah terintegrasi terpusat (SSO). Silakan masuk menggunakan akun resmi Anda pada platform utama.' },
-      version:      { type: String, default: 'v2.9.3' },
+      version:      { type: String, default: 'v3.0.0' },
       logoSvg:      { type: String, default: '' },
       isProcessing: { type: Boolean, default: false },
       errorMessage: { type: String, default: '' }
@@ -486,82 +442,6 @@
   };
 
   /* ----------------------------------------------------------
-     7. <app-crud-table>
-     ---------------------------------------------------------- */
-  var AppCrudTable = {
-    name: 'AppCrudTable',
-    props: {
-      items:      { type: Array, default: function () { return []; } },
-      columns:    { type: Array, default: function () { return []; } },
-      loading:    { type: Boolean, default: false },
-      page:       { type: Number, default: 1 },
-      totalPages: { type: Number, default: 1 },
-      totalData:  { type: Number, default: 0 },
-      emptyText:  { type: String, default: 'Tidak ada data ditemukan.' },
-      emptyIcon:  { type: String, default: 'fa-solid fa-folder-open' }
-    },
-    emits: ['change-page'],
-    template: '\
-    <div class="rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/60 shadow-sm overflow-hidden flex flex-col">\
-      <div class="overflow-x-auto">\
-        <table class="w-full text-left text-xs">\
-          <thead>\
-            <tr class="border-b border-slate-100 dark:border-slate-700/80 bg-slate-50/50 dark:bg-slate-900/40 font-extrabold text-slate-400 dark:text-slate-400 uppercase text-[10px] tracking-wider">\
-              <th v-for="(col, ci) in columns" :key="ci" class="py-3 px-4" :class="col.thClass || \'\'">\
-                {{ col.label }}\
-              </th>\
-            </tr>\
-          </thead>\
-          <tbody class="divide-y divide-slate-100 dark:divide-slate-700/60">\
-            <tr v-if="loading">\
-              <td :colspan="(columns || []).length" class="py-12 text-center text-slate-400">\
-                <div class="inline-flex items-center gap-2 font-semibold">\
-                  <i class="fa-solid fa-spinner fa-spin text-base" :style="{ color: \'var(--primary)\' }"></i>\
-                  <span>Memuat data...</span>\
-                </div>\
-              </td>\
-            </tr>\
-            <tr v-else-if="!(items || []).length">\
-              <td :colspan="(columns || []).length" class="py-12 text-center text-slate-400">\
-                <div class="flex flex-col items-center justify-center space-y-2">\
-                  <i :class="emptyIcon" class="text-3xl text-slate-300 dark:text-slate-600"></i>\
-                  <p class="font-medium text-xs">{{ emptyText }}</p>\
-                </div>\
-              </td>\
-            </tr>\
-            <template v-else>\
-              <tr v-for="(row, ri) in items" :key="row.id || ri" class="hover:bg-slate-50/80 dark:hover:bg-slate-700/30 transition-colors">\
-                <slot name="row" :row="row" :index="ri">\
-                  <td v-for="(col, ci) in columns" :key="ci" class="py-3 px-4 text-slate-700 dark:text-slate-300" :class="col.class || \'\'">\
-                    {{ row[col.key] }}\
-                  </td>\
-                </slot>\
-              </tr>\
-            </template>\
-          </tbody>\
-        </table>\
-      </div>\
-      <div class="px-4 py-3 border-t border-slate-100 dark:border-slate-700/80 bg-slate-50/50 dark:bg-slate-900/30 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">\
-        <span>\
-          Menampilkan halaman <strong class="text-slate-800 dark:text-white">{{ page }}</strong> dari <strong class="text-slate-800 dark:text-white">{{ totalPages }}</strong>\
-          <span v-if="totalData"> (Total {{ totalData }} data)</span>\
-        </span>\
-        <div class="flex items-center gap-1.5">\
-          <button @click="$emit(\'change-page\', page - 1)" :disabled="page <= 1"\
-                  class="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:bg-white dark:hover:bg-slate-800 transition disabled:opacity-40">\
-            <i class="fa-solid fa-chevron-left mr-1"></i> Prev\
-          </button>\
-          <button @click="$emit(\'change-page\', page + 1)" :disabled="page >= totalPages"\
-                  class="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:bg-white dark:hover:bg-slate-800 transition disabled:opacity-40">\
-            Next <i class="fa-solid fa-chevron-right ml-1"></i>\
-          </button>\
-        </div>\
-      </div>\
-    </div>'
-  };
-
-
-  /* ----------------------------------------------------------
      8. <app-empty-state> (baru v2.7.0 / B6)
      ---------------------------------------------------------- */
   var AppEmptyState = {
@@ -618,66 +498,6 @@
       </div>\
     </div>'
   };
-
-  /* ----------------------------------------------------------
-     10. <app-filter-bar> (baru v2.7.0 / B4; v2.8.0 / F1: span per filter)
-     ---------------------------------------------------------- */
-  var AppFilterBar = {
-    name: 'AppFilterBar',
-    props: {
-      filters:    { type: Array, default: function () { return []; } },
-      modelValue: { type: Object, default: function () { return {}; } }
-    },
-    emits: ['update:modelValue', 'change', 'reset'],
-    data: function () {
-      return { local: Object.assign({}, this.modelValue) };
-    },
-    watch: {
-      modelValue: {
-        deep: true,
-        handler: function (v) { this.local = Object.assign({}, v || {}); }
-      }
-    },
-    methods: {
-      // v2.8.0 / F1: filter boleh bawa `span` (2..4) → kolom grid lebih lebar
-      // (lg:grid-cols-4, sm:grid-cols-2). Tanpa span = 1 (perilaku lama).
-      spanCls: function (f) {
-        var SPAN = { 2: 'sm:col-span-2 lg:col-span-2', 3: 'sm:col-span-2 lg:col-span-3', 4: 'sm:col-span-2 lg:col-span-4' };
-        return SPAN[parseInt(f && f.span, 10)] || '';
-      },
-      optValue: function (o) { return (o && typeof o === 'object') ? o.value : o; },
-      optLabel: function (o) { return (o && typeof o === 'object') ? (o.label || o.value) : o; },
-      emitChange: function () {
-        var out = Object.assign({}, this.local);
-        this.$emit('update:modelValue', out);
-        this.$emit('change', out);
-      },
-      onInput: function (key, val) { this.local[key] = val; this.emitChange(); },
-      reset: function () {
-        this.local = {};
-        this.$emit('update:modelValue', {});
-        this.$emit('change', {});
-        this.$emit('reset');
-      }
-    },
-    template: '\
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">\
-      <div v-for="f in filters" :key="f.key" :class="spanCls(f)">\
-        <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">{{ f.label }}</label>\
-        <select v-if="f.type === \'select\'" :value="local[f.key] || \'\'" @change="onInput(f.key, $event.target.value)" class="w-full px-3 py-2 rounded-xl text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200">\
-          <option value="">Semua</option>\
-          <option v-for="o in (f.options || [])" :key="optValue(o)" :value="optValue(o)">{{ optLabel(o) }}</option>\
-        </select>\
-        <input v-else :type="f.type === \'date\' ? \'date\' : \'text\'" :value="local[f.key] || \'\'" :placeholder="f.placeholder || \'\'" @input="onInput(f.key, $event.target.value)" class="w-full px-3 py-2 rounded-xl text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200">\
-      </div>\
-      <div class="flex items-end">\
-        <button @click="reset" class="px-3 py-2 rounded-xl text-xs font-semibold text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700/60 transition">\
-          <i class="fa-solid fa-rotate-right mr-1"></i>Reset\
-        </button>\
-      </div>\
-    </div>'
-  };
-
 
   /* ----------------------------------------------------------
      11. Chart kit (baru v2.7.0 / B2): <app-chart-bar> & <app-chart-doughnut>
@@ -795,120 +615,64 @@
     };
   }
 
-  /* ----------------------------------------------------------
-     12. <app-pegawai-picker> (baru v2.7.0 / B1)
-     Searchable picker atas master SIMPEG (cache SWR root: masterPegawaiList,
-     dimuat otomatis via loadMasterSIMPEG saat pertama fokus).
-     ---------------------------------------------------------- */
-  // v2.7.4 FIX: tombol hasil memakai type=button + @mousedown.prevent —
-  // (a) blur input tidak lagi menutup dropdown sebelum click terdaftar (race 180ms),
-  // (b) klik di dalam <form> app tidak lagi memicu submit tak sengaja.
-  var AppPegawaiPicker = {
-    name: 'AppPegawaiPicker',
+  var AppThemePicker = {
+    name: 'AppThemePicker',
     props: {
-      modelValue:  { type: String, default: '' },
-      source:      { type: Array, default: null },   // v2.7.3: daftar custom (mis. :source="sortedPegawaiList"); default = $root.masterPegawaiList
-      label:       { type: String, default: 'Pegawai' },
-      placeholder: { type: String, default: 'Cari nama / NIP…' },
-      clearable:   { type: Boolean, default: true },
-      disabled:    { type: Boolean, default: false }
+      modelValue: { type: String, default: '' },
+      label: { type: String, default: 'Pilih Tema Warna' }
     },
-    emits: ['update:modelValue', 'change'],
-    data: function () { return { query: '', open: false, loading: false }; },
-    computed: {
-      list: function () {
-        if (this.source && this.source.length) return this.source;
-        return (this.$root && this.$root.masterPegawaiList) || [];
-      },
-      selectedName: function () {
-        if (!this.modelValue) return '';
-        var key = String(this.modelValue);
-        for (var i = 0; i < this.list.length; i++) {
-          if (this.idOf(this.list[i] || {}) === key) return this.labelOf(this.list[i]);
-        }
-        // fallback: helper app di root (opsional)
-        var rootFn = this.$root && this.$root.namaPegawai;
-        return (typeof rootFn === 'function') ? String(rootFn(this.modelValue) || '') : '';
-      },
-      results: function () {
-        var q = (this.query || '').toLowerCase();
-        if (!q) return [];
-        var out = [];
-        for (var i = 0; i < this.list.length && out.length < 8; i++) {
-          var p = this.list[i] || {};
-          var nama = String(p.nama || p.nama_lengkap || '').toLowerCase();
-          var nip = String(p.nip || '').toLowerCase();
-          if (nama.indexOf(q) >= 0 || nip.indexOf(q) >= 0) out.push(p);
-        }
-        return out;
-      }
+    emits: ['update:modelValue','change'],
+    data: function(){
+      var themes = [
+        { code:'emerald', label:'Emerald', color:'#059669' },
+        { code:'sky', label:'Sky', color:'#0284c7' },
+        { code:'amber', label:'Amber', color:'#d97706' },
+        { code:'violet', label:'Violet', color:'#7c3aed' },
+        { code:'rose', label:'Rose', color:'#e11d48' },
+        { code:'teal', label:'Teal', color:'#0d9488' }
+      ];
+      return { themes: themes, inner: this.modelValue || (window.AppCore && window.AppCore.getTheme && (window.AppCore.getTheme() && window.AppCore.getTheme().label ? (function(){ try{ var t=window.AppCore.getTheme(); for(var k in window.AppCore.themes){ if(window.AppCore.themes[k].primary===t.primary) return k; } return ''; }catch(e){return ''}})() : '')) || '' };
+    },
+    watch: {
+      modelValue: function(v){ this.inner=v; }
     },
     methods: {
-      idOf:  function (p) { return String(p.id || p.pegawai_id || p.nip || ''); },
-      labelOf: function (p) { return String(p.nama || p.nama_lengkap || '(tanpa nama)'); },
-      subOf: function (p) {
-        var parts = [];
-        if (p.nip) parts.push('NIP ' + p.nip);
-        if (p.unit_nama || p.unit) parts.push(String(p.unit_nama || p.unit));
-        return parts.join(' • ');
-      },
-      focus: async function () {
-        if (this.disabled) return;
-        this.open = true;
-        if (!this.list.length && !this.source && this.$root && this.$root.loadMasterSIMPEG) {
-          this.loading = true;
-          try { await this.$root.loadMasterSIMPEG(); } catch (e) {}
-          this.loading = false;
+      pick: function(code){
+        this.inner=code;
+        this.$emit('update:modelValue', code);
+        this.$emit('change', code);
+        if(window.AppCore && window.AppCore.applyTheme){
+          window.AppCore.applyTheme(code);
         }
-      },
-      pick: function (p) {
-        this.query = '';
-        this.open = false;
-        this.$emit('update:modelValue', this.idOf(p));
-        this.$emit('change', p);
-      },
-      clear: function () {
-        this.$emit('update:modelValue', '');
-        this.$emit('change', null);
-      },
-      onBlur: function () { var self = this; setTimeout(function () { self.open = false; }, 180); }
+        if(this.$root && this.$root.showToast) this.$root.showToast('Tema diubah ke ' + code, 'success');
+      }
     },
     template: '\
-    <div class="relative">\
-      <label v-if="label" class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">{{ label }}</label>\
-      <div class="flex items-center gap-2 px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">\
-        <i class="fa-solid fa-magnifying-glass text-[11px] text-slate-400"></i>\
-        <input :value="query" :placeholder="selectedName ? selectedName : placeholder" :disabled="disabled" @input="query = $event.target.value; open = true" @focus="focus" @blur="onBlur" class="flex-1 bg-transparent text-xs text-slate-700 dark:text-slate-200 outline-none">\
-        <button v-if="modelValue && clearable && !disabled" type="button" @mousedown.prevent @click="clear" class="text-slate-400 hover:text-rose-500 text-[11px]" title="Kosongkan"><i class="fa-solid fa-xmark"></i></button>\
+    <div>\
+      <label v-if="label" class="form-label" style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.04em">{{ label }}</label>\
+      <div class="theme-picker-grid">\
+        <div v-for="t in themes" :key="t.code" class="theme-swatch" :class="{active: inner===t.code}" @click="pick(t.code)">\
+          <div class="theme-swatch-dot" :style="{ background: t.color }"></div>\
+          <span class="theme-swatch-label">{{ t.label }}</span>\
+        </div>\
       </div>\
-      <div v-if="open && !disabled && (query || loading)" class="absolute z-30 mt-1 w-full rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg overflow-hidden">\
-        <p v-if="loading" class="px-3 py-2 text-[11px] text-slate-400">Memuat master pegawai…</p>\
-        <template v-else>\
-          <button v-for="p in results" :key="idOf(p)" type="button" @mousedown.prevent @click="pick(p)" class="w-full text-left px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700/60 border-b border-slate-100 dark:border-slate-700/60 last:border-0">\
-            <span class="block text-xs font-semibold text-slate-700 dark:text-slate-200">{{ labelOf(p) }}</span>\
-            <span class="block text-[10px] text-slate-400 dark:text-slate-500">{{ subOf(p) }}</span>\
-          </button>\
-          <p v-if="!results.length" class="px-3 py-2 text-[11px] text-slate-400">Tidak ditemukan.</p>\
-        </template>\
-      </div>\
+      <div class="form-hint" style="margin-top:0.5rem">Pilihan tersimpan otomatis di browser & berlaku untuk semua halaman. Admin juga bisa set <code>THEME_CODE</code> di Script Properties untuk default server.</div>\
     </div>'
   };
 
   global.AppComponents = {
-    'app-login': AppLogin,
-    'app-sidebar': AppSidebar,
-    'app-header': AppHeader,
-    'app-badge': AppBadge,
-    'app-stat-card': AppStatCard,
-    'app-modal': AppModal,
-    'app-crud-table': AppCrudTable,
-    'app-empty-state': AppEmptyState,
-    'app-skeleton': AppSkeleton,
-    'app-filter-bar': AppFilterBar,
-    'app-chart-bar': makeChartComponent_('bar'),
-    'app-chart-doughnut': makeChartComponent_('doughnut'),
-    'app-pegawai-picker': AppPegawaiPicker,
-    version: '2.9.3'
+    'app-login':           AppLogin,
+    'app-sidebar':         AppSidebar,
+    'app-header':          AppHeader,
+    'app-badge':           AppBadge,
+    'app-stat-card':       AppStatCard,
+    'app-modal':           AppModal,
+    'app-empty-state':     AppEmptyState,
+    'app-skeleton':        AppSkeleton,
+    'app-chart-bar':       makeChartComponent_('bar'),
+    'app-chart-doughnut':  makeChartComponent_('doughnut'),
+    'app-theme-picker':    AppThemePicker,
+    version: '3.0.0'
   };
 
 })(window);

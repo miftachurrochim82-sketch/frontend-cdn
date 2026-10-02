@@ -1,16 +1,16 @@
 # Frontend CDN — Pemkab Trenggalek
 
 Pustaka UI bersama untuk aplikasi Google Apps Script berbasis **Vue 3 + Tailwind**.
-Semua aplikasi memuat UI dari **satu tag versi yang sama** lewat jsDelivr: tampilan seragam, dark mode sinkron, update sekali jalan.
 
-**10 file fisik — 1 CSS + 9 JS — 31 komponen.**
+**2 berkas. 11 komponen. 1 tag versi.**
 
 | | |
 |---|---|
-| Versi aktif | **v2.9.3** |
-| Dokumentasi komponen | [`docs/COMPONENTS.md`](docs/COMPONENTS.md) |
+| Versi aktif | **v3.0.0** |
+| Konsumen | `starter-kit`, `si-data` |
+| Katalog komponen | [`docs/COMPONENTS.md`](docs/COMPONENTS.md) |
 | Riwayat versi | [`CHANGELOG.md`](CHANGELOG.md) |
-| Demo lokal | [`preview.html`](preview.html) |
+| Demo & uji asap | [`preview.html`](preview.html) |
 | Backend `CoreLib` | repo terpisah — [LIbrary-CoreLib](https://github.com/miftachurrochim82-sketch/LIbrary-CoreLib) |
 
 ---
@@ -20,30 +20,14 @@ Semua aplikasi memuat UI dari **satu tag versi yang sama** lewat jsDelivr: tampi
 Di dalam `<head>`:
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.3/frontend/app-common.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v3.0.0/frontend/app.min.css">
 <script src="https://cdn.jsdelivr.net/npm/vue@3.5.42/dist/vue.global.prod.js"></script>
 ```
 
-Sebelum `</body>` — muat **hanya modul yang dipakai**, `app-core` wajib dan harus pertama:
+Sebelum `</body>`:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.3/frontend/app-core.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v2.9.3/frontend/app-components.min.js"></script>
-<!-- opsional, sesuai kebutuhan app: -->
-<script src="...@v2.9.3/frontend/app-layout.min.js"></script>
-<script src="...@v2.9.3/frontend/app-ui.min.js"></script>
-<script src="...@v2.9.3/frontend/app-forms.min.js"></script>
-<script src="...@v2.9.3/frontend/app-data.min.js"></script>
-<script src="...@v2.9.3/frontend/app-charts.min.js"></script>
-<script src="...@v2.9.3/frontend/app-workflow.min.js"></script>
-<script src="...@v2.9.3/frontend/app-modules.min.js"></script>
-```
-
-> **Satu tag untuk semua file.** Jangan mencampur versi antar-file dalam satu aplikasi.
-
-### Contoh minimal
-
-```html
+<script src="https://cdn.jsdelivr.net/gh/miftachurrochim82-sketch/frontend-cdn@v3.0.0/frontend/app.min.js"></script>
 <script>
   AppCore.create({
     appCode: 'si-contoh',
@@ -54,34 +38,46 @@ Sebelum `</body>` — muat **hanya modul yang dipakai**, `app-core` wajib dan ha
 </script>
 ```
 
----
-
-## Daftar modul
-
-| File | Isi | Wajib? |
-|---|---|---|
-| `app-common.css` | Token tema, kelas tombol, grid, alert, drawer, 6 preset tema | **wajib** |
-| `app-core.js` | `AppCore.create()`, storage aman, `loadLib()`, SWR cache, sistem tema | **wajib** |
-| `app-components.js` | Shell inti: login, sidebar, header, modal, crud-table, stat-card, badge | hampir selalu |
-| `app-layout.js` | `app-breadcrumb`, `app-page-header` | opsional |
-| `app-ui.js` | `app-tabs`, `app-pagination`, `app-alert`, `app-confirm` | opsional |
-| `app-forms.js` | pencarian debounce, date-picker, file-upload, rich-editor, filter lanjutan | opsional |
-| `app-data.js` | detail-drawer, export, impor CSV, master-tree, viewer gambar/berkas | opsional |
-| `app-charts.js` | `app-chart-line`, `app-configurable-dashboard` | opsional |
-| `app-workflow.js` | approval-panel, stepper, audit-timeline, theme-picker | opsional |
-| `app-modules.js` | Halaman mandiri `app-profile`, `app-settings` | opsional |
-
-`app-tailwind.min.css` adalah keluaran Tailwind yang sudah jadi (vendored). Tidak punya sumber di repo ini dan tidak dibangun ulang oleh `npm run build`.
+Itu saja. Tidak ada keputusan "modul mana yang perlu dimuat".
 
 ---
 
-## Prinsip desain
+## 11 komponen
 
-1. **Satu versi untuk semua berkas** — satu tag git mengunci 10 file sekaligus.
-2. **Nol render-blocking** — pustaka berat (Chart.js, XLSX, jsPDF) dimuat on-demand lewat `AppCore.loadLib()`.
-3. **SWR cache** — data master SIMPEG tampil instan dari cache, lalu disegarkan di belakang layar.
-4. **Low-boilerplate** — aplikasi cukup mendeklarasikan komponen, tidak menulis ulang CSS/JS.
-5. **À-la-carte** — aplikasi sederhana cukup memuat 3 file, bukan semuanya.
+| Komponen | Keterangan |
+|---|---|
+| `app-login` | Halaman login + SSO ke si-platform |
+| `app-sidebar` | Navigasi samping, role-gated |
+| `app-header` | Bilah atas: judul, user, dark mode |
+| `app-badge` | Label status multi-domain |
+| `app-stat-card` | Kartu metrik KPI |
+| `app-modal` | Dialog |
+| `app-empty-state` | Keadaan kosong |
+| `app-skeleton` | Placeholder saat memuat |
+| `app-chart-bar` | Grafik batang (Chart.js on-demand) |
+| `app-chart-doughnut` | Grafik donat (Chart.js on-demand) |
+| `app-theme-picker` | Pemilih tema, 6 preset |
+
+Props lengkap ada di [`docs/COMPONENTS.md`](docs/COMPONENTS.md).
+
+> **v3.0.0 menghapus 27 komponen** yang tidak dipanggil oleh satu pun aplikasi.
+> Aplikasi yang masih membutuhkannya cukup tetap menunjuk tag `v2.9.3` —
+> jsDelivr menyajikan tiap tag secara permanen.
+
+---
+
+## Struktur repo
+
+```
+frontend/
+  app.css              sumber CSS
+  app.min.css          ← disajikan ke aplikasi
+  app-core.js          sumber: AppCore (sesi, SWR, tema, loadLib)
+  app-components.js    sumber: 11 komponen
+  app.min.js           ← disajikan ke aplikasi (bundel core + komponen)
+tools/build.mjs        build & verifikasi
+preview.html           demo sekaligus uji asap
+```
 
 ---
 
@@ -89,13 +85,15 @@ Sebelum `</body>` — muat **hanya modul yang dipakai**, `app-core` wajib dan ha
 
 ```bash
 npm ci
-npm run build    # bangun ulang 10 artefak .min + sinkronkan versi
+npm run build    # bangun app.min.js + app.min.css, sinkronkan versi
 npm run check    # verifikasi artefak sinkron dengan sumber (dipakai CI)
 ```
 
-**`package.json` adalah satu-satunya sumber versi.** `npm run build` menyuntikkannya ke seluruh berkas sumber — jangan mengedit literal versi secara manual.
+**`package.json` adalah satu-satunya sumber versi.** `npm run build` menyuntikkannya ke berkas sumber — jangan mengedit literal versi secara manual.
 
-Artefak `*.min.js` dan `*.min.css` **sengaja di-commit** karena jsDelivr menyajikannya langsung dari tag git. CI akan gagal bila artefak tidak sinkron dengan sumbernya.
+Artefak `.min` **sengaja di-commit** karena jsDelivr menyajikannya langsung dari tag git. CI gagal bila artefak tidak sinkron dengan sumbernya.
+
+Untuk melihat demo lokal: `npx http-server -p 8080 .` lalu buka `preview.html`.
 
 ### Merilis versi baru
 
@@ -106,14 +104,13 @@ git add -A && git commit -m "release: vX.Y.Z"
 git tag vX.Y.Z && git push --follow-tags
 ```
 
-Lalu perbarui pin versi di aplikasi konsumen.
+Lalu perbarui pin versi di `starter-kit` dan `si-data`.
 
 ---
 
 ## Arsip
 
-Dokumen perencanaan historis (`ROADMAP_CDN.md`, `RENCANA_CDN_LENGKAP.md`, panduan ekosistem lama) dipindahkan ke [`docs/arsip/`](docs/arsip/) dan tidak lagi dipelihara.
-
+Dokumen perencanaan historis ada di [`docs/arsip/`](docs/arsip/) dan tidak dipelihara.
 Hasil audit teknis repo ini ada di [`AUDIT.md`](AUDIT.md).
 
 ## Lisensi

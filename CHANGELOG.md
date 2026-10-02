@@ -8,6 +8,60 @@ Sejak v2.9.3 ketiganya dijamin identik oleh `npm run check` di CI.
 
 ---
 
+## v3.0.0 — 2026-10-02
+
+**Perubahan besar: 10 berkas sajian → 2.** Dasarnya pengukuran pemakaian nyata
+pada kedua aplikasi konsumen (`starter-kit`, `si-data`), bukan perkiraan.
+
+### Data yang mendasari
+- Dari **38 komponen**, hanya **11** yang dipanggil. 27 nol pemakai.
+- Kedua aplikasi memuat **kesepuluh** berkas CDN, padahal 6 di antaranya
+  (`app-layout`, `app-ui`, `app-forms`, `app-data`, `app-charts`,
+  `app-modules`) tidak menyumbang satu pun komponen terpakai.
+- Arsitektur 10 berkas dibuat agar aplikasi bisa memilih à-la-carte.
+  Tidak ada konsumen yang memilih — modularitasnya hanya biaya.
+
+### Dihapus
+- 27 komponen tanpa pemakai: `app-alert`, `app-approval-panel`,
+  `app-audit-timeline`, `app-breadcrumb`, `app-chart-line`,
+  `app-configurable-dashboard`, `app-confirm`, `app-crud-table`,
+  `app-csv-import`, `app-date-picker`, `app-debounced-search`,
+  `app-detail-drawer`, `app-export-button`, `app-file-preview`,
+  `app-file-upload`, `app-filter-bar`, `app-filter-bar-enhanced`,
+  `app-image-viewer`, `app-master-tree`, `app-page-header`,
+  `app-pagination`, `app-pegawai-picker`, `app-profile`,
+  `app-rich-editor`, `app-settings`, `app-stepper`, `app-tabs`.
+- 83 kelas CSS yatim (tidak dirujuk aplikasi maupun template komponen
+  yang dipertahankan). Kelas `badge-*` ternyata mati sejak `app-badge`
+  beralih ke kelas utilitas Tailwind.
+- `app-tailwind.min.css` — 43 KB, tidak dimuat siapa pun; kedua aplikasi
+  meng-inline Tailwind ter-compile sendiri.
+- `tools/contract_check.py` — 226 baris yang menjaga 7 aplikasi, 5 di
+  antaranya sudah tidak dikembangkan. Skrip ini membuat repo pustaka
+  mengenal konsumennya (dependensi terbalik) dan menjadi sumber
+  kebenaran ketiga untuk katalog komponen.
+
+### Diubah
+- `app-common.css` → `app.css`; bundel tunggal `app.min.css`.
+- `app-core.js` + `app-components.js` → bundel tunggal `app.min.js`.
+- `app-theme-picker` dipindah dari `app-workflow.js` ke `app-components.js`.
+- `preview.html` ditulis ulang untuk 11 komponen.
+
+### Dampak ukuran
+
+| | sebelum (dimuat tiap app) | sesudah |
+|---|---|---|
+| Berkas HTTP | 10 | **2** |
+| Total artefak | 132.0 KB | **56.9 KB** (−57%) |
+| Komponen | 38 | 11 |
+| Berkas di repo | 36 | 17 |
+
+### Migrasi
+Ganti kesepuluh tag `<script>`/`<link>` dengan dua baris pada README.
+Aplikasi yang belum siap cukup tetap menunjuk `@v2.9.3`.
+
+---
+
 ## v2.9.3 — 2026-10-02
 
 Rilis perbaikan infrastruktur. **Tidak ada perubahan perilaku komponen.**

@@ -1,14 +1,15 @@
 #!/usr/bin/env node
 // =====================================================================
-// build.mjs — Build artefak CDN (minify JS + CSS)
+// build.mjs — Bangun artefak CDN
 //
-//   node tools/build.mjs            bangun ulang semua artefak .min
-//   node tools/build.mjs --check    bangun ke memori, bandingkan dengan
-//                                   artefak di disk. Exit 1 kalau beda.
-//                                   (dipakai CI — tidak menulis apa pun)
+//   node tools/build.mjs            bangun ulang app.min.js & app.min.css
+//   node tools/build.mjs --check    bandingkan dengan artefak di disk,
+//                                   exit 1 kalau beda (dipakai CI)
 //
-// Menggantikan for-loop bash di package.json: lintas-platform, punya
-// exit code per file, dan melaporkan rasio kompresi.
+// Keluaran hanya DUA berkas. Aplikasi memuat keduanya, titik.
+// Sebelum v3.0.0 ada 10 berkas sajian supaya aplikasi bisa memilih
+// à-la-carte — tidak ada satu pun aplikasi yang memilih, keduanya
+// selalu memuat kesepuluhnya. Modularitas itu hanya biaya.
 // =====================================================================
 import { readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
@@ -18,153 +19,104 @@ import CleanCSS from "clean-css";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SRC = join(ROOT, "frontend");
-
-// Modul JS yang dibangun. Urutan = urutan muat yang disarankan.
-const JS_MODULES = [
-  "app-core",
-  "app-components",
-  "app-modules",
-  "app-layout",
-  "app-ui",
-  "app-forms",
-  "app-data",
-  "app-charts",
-  "app-workflow",
-];
-
-// CSS yang punya sumber di repo ini.
-//
-// CATATAN: app-tailwind.min.css TIDAK dibangun di sini. File itu adalah
-// keluaran Tailwind yang sudah jadi (vendored) dan tidak punya sumber di
-// repo. Skrip lama menjalankan `cleancss -o app-tailwind.min.css
-// app-tailwind.min.css` — membaca dan menulis file yang sama, berisiko
-// mengosongkannya. Dihapus dengan sengaja.
-const CSS_MODULES = ["app-common"];
-
 const CHECK = process.argv.includes("--check");
 
-// ---------------------------------------------------------------------
-// Sinkronisasi versi — package.json adalah SATU-SATUNYA sumber kebenaran.
-//
-// Sebelumnya versi ditulis ulang manual di 16 tempat dan rutin desinkron:
-// pada v2.9.2 artefak yang dirilis masih melaporkan dirinya '2.9.0'.
-// Build sekarang menuliskannya otomatis ke sumber sebelum minify.
-// ---------------------------------------------------------------------
+// Sumber JS, digabung jadi satu bundel. Urutan penting: core dulu.
+const JS_SOURCES = ["app-core.js", "app-components.js"];
+const JS_BUNDLE = "app.min.js";
+const CSS_SOURCE = "app.css";
+const CSS_BUNDLE = "app.min.css";
+
+// --------------------------------------------------- versi: satu sumber
 const PKG = JSON.parse(await readFile(join(ROOT, "package.json"), "utf8"));
 const VERSION = PKG.version;
 
 const VERSION_RULES = [
-  // version: '2.9.0'               -> objek ekspor tiap modul
   [/(\bversion:\s*)'\d+\.\d+\.\d+'/g, `$1'${VERSION}'`],
-  // global.AppComponents.version = '2.9.0'
   [/(\.version\s*=\s*)'\d+\.\d+\.\d+'/g, `$1'${VERSION}'`],
-  // default: 'v2.9.0'              -> prop <app-login>, tampil di layar
   [/(\bdefault:\s*)'v\d+\.\d+\.\d+'/g, `$1'v${VERSION}'`],
+  [/__V__/g, VERSION],
 ];
-
-/** Terapkan versi ke sumber. Mengembalikan teks hasil (tidak menulis). */
-function applyVersion(text) {
-  return VERSION_RULES.reduce((acc, [re, to]) => acc.replace(re, to), text);
-}
+const applyVersion = (t) => VERSION_RULES.reduce((a, [re, to]) => a.replace(re, to), t);
 
 const versionDrift = [];
-
-const kb = (n) => (n / 1024).toFixed(1) + " KB";
-const pct = (from, to) => (((from - to) / from) * 100).toFixed(1) + "%";
-
-const results = [];
 const drifted = [];
-let failed = false;
 
-async function emit(name, outFile, source, output) {
-  const outPath = join(SRC, outFile);
-  if (CHECK) {
-    let current = null;
-    try {
-      current = await readFile(outPath, "utf8");
-    } catch {
-      /* belum ada */
-    }
-    if (current !== output) drifted.push(outFile);
-  } else {
-    await writeFile(outPath, output, "utf8");
+async function emit(outFile, output) {
+  const path = join(SRC, outFile);
+  if (!CHECK) return writeFile(path, output, "utf8");
+  let current = null;
+  try {
+    current = await readFile(path, "utf8");
+  } catch {
+    /* belum ada */
   }
-  results.push({
-    name,
-    from: Buffer.byteLength(source),
-    to: Buffer.byteLength(output),
-  });
+  if (current !== output) drifted.push(outFile);
 }
 
-for (const name of JS_MODULES) {
-  const inFile = `${name}.js`;
-  const original = await readFile(join(SRC, inFile), "utf8");
+// ------------------------------------------------------------------ JS
+const pieces = [];
+let jsRaw = 0;
+for (const file of JS_SOURCES) {
+  const original = await readFile(join(SRC, file), "utf8");
   const source = applyVersion(original);
   if (source !== original) {
-    if (CHECK) versionDrift.push(inFile);
-    else await writeFile(join(SRC, inFile), source, "utf8");
+    if (CHECK) versionDrift.push(file);
+    else await writeFile(join(SRC, file), source, "utf8");
   }
-  const res = await minifyJs(source, {
-    compress: true,
-    mangle: true,
-    format: { comments: false },
-  });
-  if (res.error || typeof res.code !== "string") {
-    console.error(`  GAGAL  ${inFile}: ${res.error ?? "keluaran kosong"}`);
-    failed = true;
-    continue;
-  }
-  await emit(inFile, `${name}.min.js`, source, res.code);
+  jsRaw += Buffer.byteLength(source);
+  pieces.push(source);
 }
 
-for (const name of CSS_MODULES) {
-  const inFile = `${name}.css`;
-  const source = await readFile(join(SRC, inFile), "utf8");
-  const res = new CleanCSS({ level: 2, returnPromise: false }).minify(source);
-  if (res.errors.length) {
-    console.error(`  GAGAL  ${inFile}: ${res.errors.join("; ")}`);
-    failed = true;
-    continue;
-  }
-  await emit(inFile, `${name}.min.css`, source, res.styles);
-}
-
-// ---------------------------------------------------------------- laporan
-console.log(
-  (CHECK ? "Memeriksa artefak CDN" : "Membangun artefak CDN") +
-    `  —  versi ${VERSION} (dari package.json)\n`
-);
-console.log("  " + "berkas".padEnd(24) + "sumber".padStart(10) + "minify".padStart(10) + "hemat".padStart(9));
-console.log("  " + "-".repeat(53));
-let totalFrom = 0;
-let totalTo = 0;
-for (const r of results) {
-  totalFrom += r.from;
-  totalTo += r.to;
-  console.log("  " + r.name.padEnd(24) + kb(r.from).padStart(10) + kb(r.to).padStart(10) + pct(r.from, r.to).padStart(9));
-}
-console.log("  " + "-".repeat(53));
-console.log("  " + "TOTAL".padEnd(24) + kb(totalFrom).padStart(10) + kb(totalTo).padStart(10) + pct(totalFrom, totalTo).padStart(9));
-
-if (failed) {
-  console.error("\nBuild gagal.");
+const res = await minifyJs(pieces.join("\n;\n"), {
+  compress: true,
+  mangle: true,
+  format: { comments: false },
+});
+if (res.error || typeof res.code !== "string") {
+  console.error(`GAGAL minify JS: ${res.error ?? "keluaran kosong"}`);
   process.exit(1);
 }
+const jsOut = res.code;
+await emit(JS_BUNDLE, jsOut);
+
+// ----------------------------------------------------------------- CSS
+const cssSrc = applyVersion(await readFile(join(SRC, CSS_SOURCE), "utf8"));
+const cssRes = new CleanCSS({ level: 2 }).minify(cssSrc);
+if (cssRes.errors.length) {
+  console.error(`GAGAL minify CSS: ${cssRes.errors.join("; ")}`);
+  process.exit(1);
+}
+await emit(CSS_BUNDLE, cssRes.styles);
+
+// ------------------------------------------------------------- laporan
+const kb = (n) => (n / 1024).toFixed(1) + " KB";
+const pct = (a, b) => (((a - b) / a) * 100).toFixed(1) + "%";
+const cssRaw = Buffer.byteLength(cssSrc);
+const cssOut = Buffer.byteLength(cssRes.styles);
+
+console.log(`${CHECK ? "Memeriksa" : "Membangun"} artefak CDN — versi ${VERSION}\n`);
+console.log("  " + "bundel".padEnd(16) + "sumber".padStart(10) + "minify".padStart(10) + "hemat".padStart(9));
+console.log("  " + "-".repeat(45));
+console.log("  " + JS_BUNDLE.padEnd(16) + kb(jsRaw).padStart(10) + kb(Buffer.byteLength(jsOut)).padStart(10) + pct(jsRaw, Buffer.byteLength(jsOut)).padStart(9));
+console.log("  " + CSS_BUNDLE.padEnd(16) + kb(cssRaw).padStart(10) + kb(cssOut).padStart(10) + pct(cssRaw, cssOut).padStart(9));
+console.log("  " + "-".repeat(45));
+const tf = jsRaw + cssRaw;
+const tt = Buffer.byteLength(jsOut) + cssOut;
+console.log("  " + "TOTAL".padEnd(16) + kb(tf).padStart(10) + kb(tt).padStart(10) + pct(tf, tt).padStart(9));
 
 if (CHECK) {
   if (versionDrift.length) {
-    console.error(`\nVersi tidak sinkron (${versionDrift.length}) — sumber masih memuat versi lama:`);
-    for (const f of versionDrift) console.error(`    frontend/${f}`);
-    console.error(`\npackage.json menyatakan ${VERSION}. Jalankan \`npm run build\` lalu commit hasilnya.`);
+    console.error(`\nVersi tertinggal di: ${versionDrift.join(", ")}`);
+    console.error(`package.json menyatakan ${VERSION}. Jalankan \`npm run build\`.`);
     process.exit(1);
   }
   if (drifted.length) {
-    console.error(`\nArtefak basi (${drifted.length}) — tidak cocok dengan sumbernya:`);
-    for (const f of drifted) console.error(`    frontend/${f}`);
-    console.error("\nJalankan `npm run build` lalu commit hasilnya.");
+    console.error(`\nArtefak basi: ${drifted.join(", ")}`);
+    console.error("Jalankan `npm run build` lalu commit hasilnya.");
     process.exit(1);
   }
-  console.log("\nSemua artefak sinkron dengan sumbernya.");
+  console.log("\nArtefak sinkron dengan sumbernya.");
 } else {
-  console.log(`\nSelesai — ${results.length} artefak ditulis ke frontend/.`);
+  console.log("\nSelesai — 2 artefak ditulis ke frontend/.");
 }

@@ -12,5 +12,5 @@ sejarah, bukan sebagai referensi.
 Untuk dokumentasi yang berlaku, lihat:
 
 - [`README.md`](../../README.md) — cara pakai
-- [`docs/COMPONENTS.md`](../COMPONENTS.md) — katalog komponen & props
+- [`../COMPONENTS.md`](../COMPONENTS.md) — katalog komponen & props
 - [`CHANGELOG.md`](../../CHANGELOG.md) — riwayat versi
