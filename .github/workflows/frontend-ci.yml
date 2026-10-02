@@ -4,7 +4,12 @@ on:
   push:
     branches:
       - main
+    # src/** WAJIB ada di sini. Sejak v3.0.1 sumber tinggal di src/ dan
+    # frontend/ hanya menampung artefak. Tanpa baris ini, mengubah
+    # src/app-core.js saja tidak memicu CI — persis drift yang hendak
+    # dicegah oleh `npm run check`.
     paths:
+      - "src/**"
       - "frontend/**"
       - "tools/build.mjs"
       - "package.json"
@@ -15,6 +20,7 @@ on:
     branches:
       - main
     paths:
+      - "src/**"
       - "frontend/**"
       - "tools/build.mjs"
       - "package.json"

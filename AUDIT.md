@@ -2,6 +2,12 @@
 
 Tanggal audit: 2026-10-02 · Commit: `6c2ea09` · Ukuran repo: 668 KB · 36 file
 
+> ⚠️ **Catatan audit bertanggal — bukan deskripsi repo sekarang.**
+> Dokumen ini menggambarkan keadaan pada **v2.9.2** dan dibiarkan utuh sebagai riwayat.
+> Sebagian isinya kini **sudah tidak berlaku**, termasuk bagian
+> "Yang sebaiknya TIDAK diubah". **Keadaan terkini ada di bagian "Status Akhir" di
+> paling bawah.**
+
 ---
 
 ## Ringkasan Eksekutif
@@ -225,3 +231,61 @@ Agar jelas — beberapa hal yang terlihat "berlebihan" sebenarnya sudah tepat:
 ## Langkah berikutnya
 
 Batch 1 saja sudah memperbaiki bug produksi yang menyentuh 7 aplikasi. Saya sarankan mulai dari sana.
+
+---
+
+# Status Akhir — 2026-10-02, v3.0.1 (`b2f427a`)
+
+Bagian ini menggantikan seluruh isi di atas.
+
+## Nasib 8 temuan
+
+| # | Temuan | Keadaan |
+|---|---|---|
+| 1 | 8 dari 9 `.min.*` bukan hasil minify | ✅ **Tutup** — `tools/build.mjs` memakai terser + clean-css; hemat nyata 44,2% |
+| 2 | CI membuang hasil build | ✅ **Tutup** — `npm run check` membandingkan artefak dengan sumber, exit 1 bila beda |
+| 3 | `.gitignore` `**/**` rapuh | ✅ **Tutup** |
+| 4 | Versi tersebar di 11 tempat | ✅ **Tutup** — `package.json` jadi satu-satunya sumber; build menyuntikkannya ke bundel dan CI menolak versi tertinggal |
+| 5 | 7 dokumen 118 KB saling bertabrakan | ✅ **Tutup** — tersisa `README.md`, `docs/COMPONENTS.md`, `CHANGELOG.md`; sisanya ke `docs/arsip/` |
+| 6 | `contract_check.py` dependensi terbalik | ✅ **Tutup** — **dihapus seluruhnya** di v3.0.0, bukan dipecah dua seperti rencana Batch 5 |
+| 7 | 2 `package.json` nama paket berbeda | ✅ **Tutup** — tinggal satu |
+| 8 | `preview-vX.Y.Z.html` beranak | ✅ **Tutup** — satu `preview.html` tanpa versi di nama |
+
+## Keadaan repo sekarang
+
+| | v2.9.2 | v3.0.1 |
+|---|---|---|
+| Berkas sajian CDN | 10 (1 CSS + 9 JS) | **2** |
+| Permintaan HTTP per app | 10 | **2** |
+| Komponen | 38 | **11** |
+| Sumber | `frontend/` campur | `src/` terpisah dari `frontend/` |
+| Artefak benar-benar diminify | tidak | ya — 102,0 KB → 56,9 KB (**−44,2%**) |
+
+## Koreksi terhadap badan dokumen
+
+Bagian **"Yang sebaiknya TIDAK diubah"** menyarankan mempertahankan pemisahan 9 berkas
+JS ("jangan digabung jadi satu bundle raksasa"). **Saran itu dibatalkan di v3.0.0.**
+
+Alasannya bukan selera, melainkan pengukuran: argumen à-la-carte mengandaikan ada
+aplikasi yang memuat sebagian berkas. Setelah diukur, **kedua aplikasi konsumen memuat
+kesepuluhnya**, dan 6 di antaranya tidak menyumbang satu pun komponen yang benar-benar
+dipakai. Modularitas yang tidak pernah dipakai hanyalah biaya. Rinciannya di CHANGELOG
+v3.0.0.
+
+Batch 6 ("perlu diskusi") dengan demikian **sudah dieksekusi**, dan dirilis sebagai
+mayor `v3.0.0` persis seperti yang disyaratkan di sana.
+
+## Bug yang diperbaiki setelah audit
+
+| Bug | Perbaikan |
+|---|---|
+| jsDelivr menyajikan CSS mentah 24 KB untuk `*.min.css` karena `app.css` bersebelahan | v3.0.1 — sumber dipindah ke `src/` |
+| **CI buta terhadap perubahan sumber**: `paths` hanya memantau `frontend/**`, padahal sejak v3.0.1 sumber ada di `src/`. Mengubah `src/app-core.js` saja tidak memicu CI — tepat drift yang hendak dicegah | `src/**` ditambahkan ke `paths` push dan pull_request |
+
+**v3.0.0 jangan dipakai** — tag tetap ada tapi CSS-nya tersaji mentah. Gunakan `@v3.0.1`.
+
+## Sisa pekerjaan
+
+- Tidak ada temuan terbuka dari audit ini.
+- `docs/arsip/` masih menyebut `contract_check.py` dan alur 10 berkas. Isinya arsip
+  bertanggal, sengaja tidak diubah.
